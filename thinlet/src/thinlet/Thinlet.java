@@ -166,6 +166,16 @@ public class Thinlet extends Container
 	}
 	
 	/**
+	 * Set custom font on a component
+	 *
+	 * @param component component to use the custom font
+	 * @param font custom font to use, or null to reset component to use default font
+	 */
+        public void setFont(Object component, Font font) {
+            if (component != null) set(component, "font", font);
+        }
+    
+	/**
 	 *
 	 */
 	private void doLayout(Object component) {
