@@ -2136,6 +2136,9 @@ public class Thinlet extends Container
 		}
 		else { //if (("list" == classname) || ("table" == classname) || ("tree" == classname))
 			Object lead = get(component, ":lead");
+			if (getIndex(component, lead) == -1) {
+				set(component, ":lead", lead = null);
+			}
 			int[] columnwidths = ("table" == classname) ? ((int []) get(component, ":widths")) : null;
 			boolean line = getBoolean(component, "line", true); int iline = line ? 1 : 0;
 			boolean angle = ("tree" == classname) && getBoolean(component, "angle", false);
@@ -3278,6 +3281,9 @@ public class Thinlet extends Container
 				(keycode == KeyEvent.VK_PAGE_DOWN) ||
 				(keycode == KeyEvent.VK_HOME) || (keycode == KeyEvent.VK_END)) {
 			Object lead = get(component, ":lead");
+			if (getIndex(component, lead) == -1) {
+				set(component, ":lead", lead = null);
+			}
 			Object row = getListItem(component, component, keycode, lead, recursive);
 			if (row != null) {
 				String selection = getString(component, "selection", "single");
@@ -4284,6 +4290,8 @@ public class Thinlet extends Container
 	private boolean invoke(Object component, Object part, String event) {
 		Object method = get(component, event);
 		if (method != null) {
+			if (focusowner != null && "action".equals(event))
+				requestFocus(component);
 			invokeImpl(method, part);
 			return true;
 		}
