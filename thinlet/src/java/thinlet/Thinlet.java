@@ -2287,18 +2287,23 @@ public class Thinlet extends Container
 					for (int i = 0; i < columnwidths.length; i++) {
 						if (i != 0) { column = get(column, ":next"); }
 						boolean lastcolumn = (i == columnwidths.length - 1);
-						int width = lastcolumn ? (port.width - x + 2) : columnwidths[i];
-						paintRect(g, x - view.x, 0, width, port.y - 1,
-							enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
-							true, true, false, lastcolumn, true);
-						paintContent(column, g, clipx, clipy, clipwidth, clipheight,
-							x + 2 - view.x, 1, width - 2,
-							port.y - 3, enabled ? c_text : c_disable, "left", false);
+						int width = lastcolumn ? Math.max(port.width - x, columnwidths[i]) + 2 : columnwidths[i];
+						if (x - view.x + Math.min(port.width - (x - view.x), width) > 0 &&
+							Math.max(0, x - view.x) <= port.width) {
+							int truncwidth = (port.width - (x - view.x)) + 2;
+							if (truncwidth > width) truncwidth = -1;
+							paintRect(g, Math.max(0, x - view.x), 0, (truncwidth > 0)? truncwidth: (lastcolumn? width : Math.min(port.width - (x - view.x), width)), port.y - 1,
+								enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
+								true, true, false, lastcolumn || (truncwidth > 0), true);
+							paintContent(column, g, clipx, clipy, clipwidth, clipheight,
+								x + 2 - view.x, 1, width - 2,
+								port.y - 3, enabled ? c_text : c_disable, "left", false);
 						
-						Object sort = get(column, "sort"); // "none", "ascent", "descent"
-						if (sort != null) {
-							paintArrow(g, x - view.x + width - block, 0, block, port.y,
-								(sort == "ascent") ? 'S' : 'N');
+							Object sort = get(column, "sort"); // "none", "ascent", "descent"
+							if (sort != null) {
+								paintArrow(g, x - view.x + width - block, 0, block, port.y,
+									(sort == "ascent") ? 'S' : 'N');
+							}
 						}
 						x += width;
 					}
@@ -3432,6 +3437,14 @@ public class Thinlet extends Container
 				return true;
 			}
 		}
+		else if (keycode == KeyEvent.VK_LEFT) {
+			processScroll(component, "left");
+			return true;
+		}
+		else if (keycode == KeyEvent.VK_RIGHT) {
+			processScroll(component, "right");
+			return true;
+		}
 		else if (keychar == KeyEvent.VK_SPACE) { // select the current item
 			select(component, get(component, ":lead"), recursive, shiftdown, controldown); //...
 			return true;
@@ -4219,6 +4232,9 @@ public class Thinlet extends Container
 					if (view.x != viewx) {
 						view.x = viewx;
 						repaint(component, null, "horizontal");
+                        			// XXX needed for tables, because table headers are not included in the
+                        			// XXX repaint area. Needs to be fixed in repaint(Object, Object, Object).
+						repaint(component);
 					}
 				}
 				else { // (part == "vknob")
@@ -4272,6 +4288,9 @@ public class Thinlet extends Container
 		if ((dx == 0) && (dy == 0)) { return false; }
 		view.x += dx; view.y += dy;
 		repaint(component, null, (dx != 0) ? "horizontal" : "vertical");
+                // XXX needed for tables, because table headers are not included in the
+                // XXX repaint area. Needs to be fixed in repaint(Object, Object, Object).
+		repaint(component);
 		return (((part == "left") || (part == "lefttrack")) && (view.x > 0)) ||
 			(((part == "right") || (part == "righttrack")) &&
 				(view.x < view.width - port.width)) ||
