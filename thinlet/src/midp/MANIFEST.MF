@@ -1,5 +1,5 @@
 MIDlet-1: Demo, /ThinletDemo.png, thinlet.midp.demo.Demo
-MIDlet-2: Calculator, /ThinletDemo.png, thinlet.midp.calculator.Calculator
+MIDlet-2: Calculator, /ThinletDemo.png, thinlet.midp.examples.calculator.Calculator
 MIDlet-Name: ThinletDemo
 MIDlet-Vendor: Sun Microsystems
 MIDlet-Version: 1.0

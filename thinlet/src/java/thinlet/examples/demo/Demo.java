@@ -1,4 +1,4 @@
-package examples.demo;
+package thinlet.examples.demo;
 
 import java.awt.*;
 import java.awt.event.*;

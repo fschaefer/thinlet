@@ -1,4 +1,4 @@
-package examples.demo;
+package thinlet.examples.demo;
 import thinlet.*;
 
 public class Calculator extends Thinlet {

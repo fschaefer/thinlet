@@ -1,4 +1,4 @@
-package examples.amazon.browser;
+package thinlet.examples.amazon.browser;
 
 import java.awt.*;
 import java.io.*;

@@ -1,17 +1,17 @@
-package thinlet.midp.calculator;
+package thinlet.midp.examples.demo;
 
 import javax.microedition.lcdui.*;
 import javax.microedition.midlet.*;
 
 import thinlet.midp.*;
 
-public class Calculator extends MIDlet {
+public class Demo extends MIDlet {
 	
 	Display display;
 
 	protected void startApp() throws MIDletStateChangeException {
 		display = Display.getDisplay(this);
-		CalculatorCanvas canvas = new CalculatorCanvas(this); 
+		DemoCanvas canvas = new DemoCanvas(this); 
 		display.setCurrent(canvas);
 	}
 
@@ -30,15 +30,15 @@ public class Calculator extends MIDlet {
 	}
 }
 
-class CalculatorCanvas extends Thinlet {
+class DemoCanvas extends Thinlet {
 	
 	private static final Command exitcommand = new Command("Exit", Command.EXIT, 0);
-	private Calculator midlet;
+	private Demo midlet;
 
-	public CalculatorCanvas(Calculator midlet) {
+	public DemoCanvas(Demo midlet) {
 		this.midlet = midlet;
 		try {
-			add(parse("calculator.xml"));
+			add(parse("demo.xml"));
 		} catch (Exception exc) { exc.printStackTrace(); }
 		addCommand(exitcommand);
 	}
@@ -51,12 +51,11 @@ class CalculatorCanvas extends Thinlet {
 	}
 	
 	protected void handle(Object source, Object part, String action) {
-		if ("calculate".equals(action)) {
-			try {
-				int number1 = Integer.parseInt(getString(find("number1"), "text"));
-				int number2 = Integer.parseInt(getString(find("number2"), "text"));
-				setString(find("result"), "text", String.valueOf(number1 + number2));
-			} catch (NumberFormatException nfe) {}
+		if ("selectlist".equals(action)) {
+			int index = getInteger(find("selectmode"), "selected");
+			setBoolean(find("demolist"), "visible", index == 0);
+			setBoolean(find("demotree"), "visible", index == 1);
+			setBoolean(find("demotable"), "visible", index == 2);
 		}
 	}
 }

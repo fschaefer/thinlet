@@ -1,1 +1,0 @@
-Main-Class: thinlet.amazon.explorer.AmazonExplorer
