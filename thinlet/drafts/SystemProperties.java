@@ -1,5 +1,7 @@
 package thinlet.drafts;
 
+import java.applet.*;
+import java.awt.*;
 import java.util.*;
 import thinlet.*;
 
@@ -48,5 +50,40 @@ public class SystemProperties {
 		thinlet.setString(valuecell, "text", value);
 		thinlet.add(row, valuecell);
 		thinlet.add(table, row);
+	}
+	
+	/**
+	 *
+	 */
+	public void updateMeter(Thinlet thinlet, Object free, Object total, Object meter) {
+		Runtime runtime = Runtime.getRuntime();
+		long fm = runtime.freeMemory();
+		long tm = runtime.totalMemory();
+		thinlet.setString(free, "text", String.valueOf(fm));
+		thinlet.setString(total, "text", String.valueOf(tm));
+		thinlet.setInteger(meter, "value", (int) ((tm - fm) * 100L / tm));
+	}
+	
+	/**
+	 *
+	 */
+	public void collectGarbage(Thinlet thinlet, Object free, Object total, Object meter) {
+		Runtime.getRuntime().gc();
+		updateMeter(thinlet, free, total, meter);
+	}
+	
+	/**
+	 *
+	 */
+	public void loadApplet(Thinlet thinlet, Object codebase, Object docbase, Object locale) {
+		for (Component comp = thinlet.getParent(); comp != null; comp = comp.getParent()) {
+			if (comp instanceof Applet) {
+				Applet applet = (Applet) comp;
+				thinlet.setString(codebase, "text", applet.getCodeBase().toString());
+				thinlet.setString(docbase, "text", applet.getDocumentBase().toString());
+				thinlet.setString(locale, "text", applet.getLocale().toString());
+				break;
+			}
+		}
 	}
 }

@@ -2,13 +2,16 @@
 <splitpane divider="120">
 	<tree action="loadDraft(this, preview)">
 		<node text="Components">
-			<node text="TabbedPane"
+			<node text="Tabbed pane"
 					property="ui=tabbedpane.xml"
 					property="logic=thinlet.drafts.TabbedPane" />
+			<node text="MDI"
+					property="ui=mdi.xml"
+					property="logic=thinlet.drafts.MDI" />
+			<node text="Class explorer"
+					property="ui=classexplorer.xml"
+					property="logic=thinlet.drafts.ClassExplorer" />
 		</node>
-		<node text="MDI"
-				property="ui=mdi.xml"
-				property="logic=thinlet.drafts.MDI" />
 		<node text="Style"
 				property="ui=style.xml"
 				property="logic=thinlet.drafts.Style" />
@@ -16,6 +19,9 @@
 			<node text="Properties"
 					property="ui=systemproperties.xml"
 					property="logic=thinlet.drafts.SystemProperties" />
+			<node text="Colors"
+					property="ui=systemcolors.xml"
+					property="logic=thinlet.drafts.SystemColors" />
 		</node>
 	</tree>
 	<panel name="preview" border="true" top="1" left="1" bottom="1" right="1" />

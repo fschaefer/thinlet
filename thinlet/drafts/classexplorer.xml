@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<panel columns="1" gap="4"
+		top="4" left="4" bottom="4" right="4" weightx="1" weighty="1"
+		 init="initClass(thinlet, class, explorer)">
+	<combobox name="class" editable="false" weightx="1"
+			action="loadClass(thinlet, this.text, explorer)" />
+	<tree name="explorer" weighty="1" />
+</panel>

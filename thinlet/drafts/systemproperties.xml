@@ -1,7 +1,32 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <panel columns="1" top="4" left="4" bottom="4" right="4" gap="4" weightx="1" weighty="1">
-	<table init="loadProperties(thinlet, this)" weightx="1" weighty="1">
-		<column text="Key" />
-		<column text="Value" />
-	</table>
+	<tabbedpane weightx="1" weighty="1">
+		<tab text="System" />
+		<table init="loadProperties(thinlet, this)">
+			<column text="Key" width="120" />
+			<column text="Value" />
+		</table>
+		<tab text="Runtime" />
+		<panel columns="2" top="4" left="4" bottom="4" right="4" gap="4"
+				init="updateMeter(thinlet, free, total, meter)">
+			<label text="Free memory:" />
+			<textfield name="free" editable="false" weightx="1" />
+			<label text="Total memory:" />
+			<textfield name="total" editable="false" />
+			<label />
+			<progressbar name="meter" />
+			<label />
+			<panel gap="4">
+				<button text="Update" action="updateMeter(thinlet, free, total, meter)" />
+				<button text="GC" action="collectGarbage(thinlet, free, total, meter)" />
+			</panel>
+		</panel>
+		<tab text="Applet" />
+		<panel columns="2" top="4" left="4" bottom="4" right="4" gap="4"
+				init="loadApplet(thinlet, codebase, docbase, locale)">
+			<label text="Code base:" /><textfield name="codebase" editable="false" weightx="1" />
+			<label text="Document base:" /><textfield name="docbase" editable="false" />
+			<label text="Locale:" /><textfield name="locale" editable="false" />
+		</panel>
+	</tabbedpane>
 </panel>

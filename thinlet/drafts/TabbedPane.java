@@ -12,8 +12,8 @@ public class TabbedPane {
 	 */
 	public void changePlacement(Thinlet thinlet, Object combobox, Object tabbedpane) {
 		int index = thinlet.getInteger(combobox, "selected");
-		thinlet.setChoice(tabbedpane, "placement",
-			new String[] { "top", "left", "bottom", "right" }[index]);
+		String[] placements = { "top", "left", "bottom", "right" };
+		thinlet.setChoice(tabbedpane, "placement", placements[index]);
 	}
 	
 	/**
