@@ -132,7 +132,10 @@ public class Demo extends Thinlet {
         int r = c.getRed();
         int g = c.getGreen();
         int b = c.getBlue();
-        int val = getInteger(spin, "value");
+        int val = 0;
+	try {
+		val = Integer.parseInt(getString(spin, "text"));
+	} catch (Exception e) {};
         if (name.endsWith("r")) {
             r = val;
         } else if (name.endsWith("g")) {

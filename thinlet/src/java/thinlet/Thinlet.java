@@ -103,9 +103,10 @@ public class Thinlet extends Container
 			AWTEvent.FOCUS_EVENT_MASK | AWTEvent.KEY_EVENT_MASK |
 			AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | WHEEL_MASK);
 			// EVM has larger fillRect, fillOval, and drawImage(part), others are correct
-			// contributed by Ibsen Ramos-Bonilla
+			// contributed by Ibsen Ramos-Bonilla and AK
 			try {
-				if (System.getProperty("java.vendor").indexOf("Insignia") != -1) { evm = -1; }
+				if ((System.getProperty("java.vendor").indexOf("Insignia") != -1) &&
+					System.getProperty("os.name").indexOf("Windows CE") == -1) { evm = -1; }
 			} catch (Exception exc) { /* never */ }
 	}
 
@@ -279,7 +280,7 @@ public class Thinlet extends Container
 		}
 		else if (("panel" == classname) || (classname == "dialog")) {
 			int gap = getInteger(component, "gap", 0);
-			int[][] grid = getGrid(component, gap);
+			int[][] grid = getGrid(component);
 			int top = 0; int left = 0;
 			int contentwidth = 0; int contentheight = 0;
 			if (grid != null) { // has subcomponents
@@ -1127,7 +1128,7 @@ public class Thinlet extends Container
 			size.height += getInteger(component, "top", 0) + getInteger(component, "bottom", 0);
 			// add content preferred size
 			int gap = getInteger(component, "gap", 0);
-			int[][] grid = getGrid(component, gap);
+			int[][] grid = getGrid(component);
 			if (grid != null) { // has components
 				size.width += getSum(grid[0], 0, grid[0].length, gap, false);
 				size.height += getSum(grid[1], 0, grid[1].length, gap, false);
@@ -1197,12 +1198,11 @@ public class Thinlet extends Container
 		if ("bean" == classname) {
 				return ((Component) get(component, "bean")).getPreferredSize();
 		}
-		throw new IllegalArgumentException((String) classname);
+		throw new IllegalArgumentException(classname);
 	}
 
 	/**
 	 * @param component a container
-	 * @param gap space between components
 	 * @return null for zero visible subcomponent, otherwise an array contains the following lists:
 	 * <ul><li>columnwidths, preferred width of grid columns</li>
 	 * <li>rowheights, preferred heights of grid rows</li>
@@ -1213,7 +1213,7 @@ public class Thinlet extends Container
 	 * <li>gridwidth, column spans</li>
 	 * <li>gridheight, row spans</li></ul>
 	 */
-	private int[][] getGrid(Object component, int gap) {
+	private int[][] getGrid(Object component) {
 		int count = 0; // count of the visible subcomponents
 		for (Object comp = get(component, ":comp"); comp != null;
 				comp = get(comp, ":next")) {
@@ -1364,7 +1364,6 @@ public class Thinlet extends Container
 	 *
 	 */
 	private Dimension getFieldSize(Object component) {
-		String text = getString(component, "text", "");
 		int columns = getInteger(component, "columns", 0);
 		Font currentfont = (Font) get(component, "font");
 		FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
@@ -1444,33 +1443,6 @@ public class Thinlet extends Container
 		//System.out.println(System.currentTimeMillis() - time);
 		//g.setClip(0, 0, getSize().width, getSize().height);
 		//g.setColor(Color.red); g.drawRect(clip.x, clip.y, clip.width - 1, clip.height - 1);
-	}
-	
-	/**
-	 * Fill a given part of a MemoryImageSource with gradient
-	 * @param pix arrays of source pixels
-	 * @param offset image width 
-	 * @param x gradient left location
-	 * @param y fill top location
-	 * @param width gradient width size
-	 * @param height fill height size
-	 * @param color1 top/left color
-	 * @param color2 bottom/right color
-	 * @param horizontal horizontal if true, vertical otherwise
-	 */
-	private static void fillGradient(int[] pix, int offset, int x, int y, int width, int height,
-			int color1, int color2, boolean horizontal) {
-		int r1 = (color1 >> 16) & 0xff; int rd = ((color2 >> 16) & 0xff) - r1;
-		int g1 = (color1 >> 8) & 0xff; int gd = ((color2 >> 8) & 0xff) - g1;
-		int b1 = color1 & 0xff; int bd = (color2 & 0xff) - b1;
-		int gs = horizontal ? width : height; int fs = horizontal ? height : width;
-		for (int i = 0; i < gs; i++) {
-			int color = 0xff000000 | ((r1 + rd * i / gs) << 16) |
-				((g1 + gd * i / gs) << 8) | (b1 + bd * i / gs);
-			for (int j = 0; j < fs; j++) {
-				pix[x + (horizontal ? i : j) + (y + (horizontal ? j : i)) * offset] = color;
-			}
-		}
 	}
 
 	/**
@@ -1577,8 +1549,7 @@ public class Thinlet extends Container
 				Image icon = getIcon(component, "icon", null);
 				int left = (icon != null) ? icon.getWidth(this) : 0;
 				paintField(g, clipx, clipy, clipwidth, clipheight, component,
-					bounds.width - block, bounds.height,
-					inside, pressed, focus, enabled, false, left);
+					bounds.width - block, bounds.height, focus, enabled, false, left);
 				if (icon != null) {
 					g.drawImage(icon, 2, (bounds.height - icon.getHeight(this)) / 2, this);
 				}
@@ -1595,16 +1566,15 @@ public class Thinlet extends Container
 			}
 		}
 		else if (":combolist" == classname) {
-			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+			paintScroll(component, classname, pressed, inside, focus, enabled,
 				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if (("textfield" == classname) || ("passwordfield" == classname)) {
 			paintField(g, clipx, clipy, clipwidth, clipheight, component,
-				bounds.width, bounds.height,
-				inside, pressed, focus, enabled, ("passwordfield" == classname), 0);
+				bounds.width, bounds.height, focus, enabled, ("passwordfield" == classname), 0);
 		}
 		else if ("textarea" == classname) {
-			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+			paintScroll(component, classname, pressed, inside, focus, enabled,
 				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if ("tabbedpane" == classname) {
@@ -1669,16 +1639,15 @@ public class Thinlet extends Container
 					1, 2, 1, 2, false, 'g', "left", false, false);
 				int controlx = bounds.width - titleheight - 1;
 				if (getBoolean(component, "closable", false)) {
-					paint(component, controlx, 3, titleheight - 2, titleheight - 2,
-						g, true, true, true, true, 'g'); controlx -= titleheight;
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'c');
+					controlx -= titleheight;
 				}
 				if (getBoolean(component, "maximizable", false)) {
-					paint(component, controlx, 3, titleheight - 2, titleheight - 2,
-						g, true, true, true, true, 'g'); controlx -= titleheight;
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'm');
+					controlx -= titleheight;
 				}
 				if (getBoolean(component, "iconifiable", false)) {
-					paint(component, controlx, 3, titleheight - 2, titleheight - 2,
-						g, true, true, true, true, 'g');
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'i');
 				}
 				paintRect(g, 0, 3 + titleheight, bounds.width, bounds.height - 3 - titleheight,
 					c_border, c_press, false, true, true, true, true); // lower part excluding titlebar
@@ -1695,7 +1664,7 @@ public class Thinlet extends Container
 			}
 			
 			if (get(component, ":port") != null) {
-				paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+				paintScroll(component, classname, pressed, inside, focus, enabled,
 					g, clipx, clipy, clipwidth, clipheight);
 			}
 			else {
@@ -1722,8 +1691,7 @@ public class Thinlet extends Container
 		}
 		else if ("spinbox" == classname) {
 			paintField(g, clipx, clipy, clipwidth, clipheight, component,
-				bounds.width - block, bounds.height,
-				inside, pressed, focus, enabled, false, 0);
+				bounds.width - block, bounds.height, focus, enabled, false, 0);
 			paintArrow(g, bounds.width - block, 0, block, bounds.height / 2,
 					'N', enabled, inside, pressed, "up", true, false, false, true, true);
 			paintArrow(g, bounds.width - block, bounds.height / 2,
@@ -1801,7 +1769,7 @@ public class Thinlet extends Container
 		}
 		else if (("list" == classname) ||
 				("table" == classname) || ("tree" == classname)) {
-			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+			paintScroll(component, classname, pressed, inside, focus, enabled,
 				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if ("separator" == classname) {
@@ -1891,7 +1859,7 @@ public class Thinlet extends Container
 				((Component) get(component, "bean")).paint(g);
 				g.setClip(clipx, clipy, clipwidth, clipheight);
 		}
-		else throw new IllegalArgumentException((String) classname);
+		else throw new IllegalArgumentException(classname);
 		g.translate(-bounds.x, -bounds.y);
 		clipx += bounds.x; clipy += bounds.y;
 	}
@@ -1920,7 +1888,7 @@ public class Thinlet extends Container
 	 */
 	private void paintField(Graphics g,
 			int clipx, int clipy, int clipwidth, int clipheight, Object component,
-			int width, int height, boolean inside, boolean pressed,
+			int width, int height,
 			boolean focus, boolean enabled, boolean hidden, int left) {
 		boolean editable = getBoolean(component, "editable", true);
 		paintRect(g, 0, 0, width, height, enabled ? c_border : c_disable,
@@ -1972,7 +1940,6 @@ public class Thinlet extends Container
 	/**
 	 * @param component scrollable widget
 	 * @param classname
-	 * @param bounds
 	 * @param pressed
 	 * @param inside
 	 * @param focus
@@ -1986,8 +1953,7 @@ public class Thinlet extends Container
 	 * @param topborder bordered on the top if true
 	 * @param border define left, bottom, and right border if true
 	 */
-	private void paintScroll(Object component,
-			String classname, Rectangle bounds,
+	private void paintScroll(Object component, String classname,
 			boolean pressed, boolean inside, boolean focus, boolean enabled,
 			Graphics g, int clipx, int clipy, int clipwidth, int clipheight) {
 		Rectangle port = getRectangle(component, ":port");
@@ -2098,7 +2064,7 @@ public class Thinlet extends Container
 			g.translate(port.x - view.x, port.y - view.y);
 			
 			paint(component, classname, focus, enabled,
-				g, view.x - port.x + x1, view.y - port.y + y1, x2 - x1, y2 - y1, port.width, port.height, view.width);
+				g, view.x - port.x + x1, view.y - port.y + y1, x2 - x1, y2 - y1, port.width, view.width);
 			
 			g.translate(view.x - port.x, view.y - port.y);
 			g.setClip(clipx, clipy, clipwidth, clipheight);
@@ -2112,7 +2078,7 @@ public class Thinlet extends Container
 	private void paint(Object component,
 			String classname, boolean focus, boolean enabled,
 			Graphics g, int clipx, int clipy, int clipwidth, int clipheight,
-			int portwidth, int portheight, int viewwidth) {
+			int portwidth, int viewwidth) {
 		if ("textarea" == classname) {
 			char[] chars = (char[]) get(component, ":text");
 			int start = focus ? getInteger(component, "start", 0) : 0;
@@ -2408,7 +2374,33 @@ public class Thinlet extends Container
 			if (mode != 'x') { g.fillRect(x, y, width + evm, height + evm); } 
 		}
 	}
-	
+
+	/**
+	 *
+	 */
+	private void paint(Object component, Graphics g,
+			int x, int y, int width, int height, char type) {
+		paint(component, x, y, width, height, g, true, true, true, true, 'g');
+		g.setColor(Color.black);
+		switch (type) {
+			case 'c': // closable dialog button
+				g.drawLine(x + 3, y + 4, x + width - 5, y + height - 4);
+				g.drawLine(x + 3, y + 3, x + width - 4, y + height - 4);
+				g.drawLine(x + 4, y + 3, x + width - 4, y + height - 5);
+				g.drawLine(x + width - 5, y + 3, x + 3, y + height - 5);
+				g.drawLine(x + width - 4, y + 3, x + 3, y + height - 4);
+				g.drawLine(x + width - 4, y + 4, x + 4, y + height - 4);
+				break;
+			case 'm': // maximizable dialog button
+				g.drawRect(x + 3, y + 3, width - 7, height - 7);
+				g.drawLine(x + 4, y + 4, x + width - 5, y + 4);
+				break;
+			case 'i': // iconifiable dialog button
+				g.fillRect(x + 3, y + height - 5, width - 6, 2);
+				break;
+		}
+	}
+
 	/**
 	 * Paint component icon and text (using default or custom font)
 	 * @param mnemonic find mnemonic index and underline text
@@ -2953,7 +2945,7 @@ public class Thinlet extends Container
 			}
 		}
 		else if (("list" == classname) || ("table" == classname)) {
-			return processList(component, shiftdown, controldown, keychar, keycode, modifiers, false);
+			return processList(component, shiftdown, controldown, keychar, keycode, false);
 		}
 		else if ("tree" == classname) {
 			//? clear childs' selection, select this is its 	subnode was selected
@@ -2993,7 +2985,7 @@ public class Thinlet extends Container
 					return true;
 				}
 			}
-			return processList(component, shiftdown, controldown, keychar, keycode, modifiers, true);
+			return processList(component, shiftdown, controldown, keychar, keycode, true);
 		}
 		else if (("menubar" == classname) || ("popupmenu" == classname)) {
 			// find the last open :popup and the previous one
@@ -3221,7 +3213,7 @@ public class Thinlet extends Container
 				insert = filter(insert, multiline);
 			}
 		}
-		if (filter) {
+		if (filter && (insert != null)) { // contributed by Michael Nascimento
 			for (int i = insert.length() - 1; i >= 0; i--) {
 				if (!Character.isDigit(insert.charAt(i))) { return false; }
 			}
@@ -3283,7 +3275,7 @@ public class Thinlet extends Container
 	 *
 	 */
 	private boolean processList(Object component, boolean shiftdown, boolean controldown,
-			int keychar, int keycode, int modifiers, boolean recursive) {
+			int keychar, int keycode, boolean recursive) {
 		if ((keycode == KeyEvent.VK_UP) || // select previous/next/first/... item
 				(keycode == KeyEvent.VK_DOWN) || (keycode == KeyEvent.VK_PAGE_UP) ||
 				(keycode == KeyEvent.VK_PAGE_DOWN) ||
@@ -3566,7 +3558,7 @@ public class Thinlet extends Container
 				int left = ((id == MouseEvent.MOUSE_PRESSED) &&
 					((icon = getIcon(component, "icon", null)) != null)) ?
 						icon.getWidth(this) : 0;
-				processField(x, y, clickcount, id, component, part, false, false, left);
+				processField(x, y, clickcount, id, component, false, false, left);
 			}
 			else if (part != "icon") { // part = "down"
 				if (((id == MouseEvent.MOUSE_ENTERED) ||
@@ -3608,12 +3600,12 @@ public class Thinlet extends Container
 			}
 		}
 		else if (("textfield" == classname) || ("passwordfield" == classname)) {
-			processField(x, y, clickcount, id, component, part,
+			processField(x, y, clickcount, id, component,
 				false, ("passwordfield" == classname), 0);
 		}
 		else if ("textarea" == classname) {
 			if (!processScroll(x, y, id, component, part)) {
-				processField(x, y, clickcount, id, component, part, true, false, 0);
+				processField(x, y, clickcount, id, component, true, false, 0);
 			}
 		}
 		else if ("panel" == classname) {
@@ -3631,7 +3623,7 @@ public class Thinlet extends Container
 		}
 		else if ("spinbox" == classname) {
 			if (part == null) {
-				processField(x, y, clickcount, id, component, part, false, false, 0);
+				processField(x, y, clickcount, id, component, false, false, 0);
 			}
 			else { // part = "up" || "down"
 				if ((id == MouseEvent.MOUSE_ENTERED) ||
@@ -3990,7 +3982,7 @@ public class Thinlet extends Container
 	 */
 	private void processField(int x, int y, int clickcount,
 			int id, Object component,
-			Object part, boolean multiline, boolean hidden, int left) {
+			boolean multiline, boolean hidden, int left) {
 		if (id == MouseEvent.MOUSE_PRESSED) {
 			//+ middle=alt paste clipboard content
 			setReference(component, 2 + left, 2);
@@ -4214,7 +4206,7 @@ public class Thinlet extends Container
 	private boolean invoke(Object component, Object part, String event) {
 		Object method = get(component, event);
 		if (method != null) {
-			invokeImpl(method, component, part);
+			invokeImpl(method, part);
 			return true;
 		}
 		return false;
@@ -4223,7 +4215,7 @@ public class Thinlet extends Container
 	/**
 	 *
 	 */
-	private void invokeImpl(Object method, Object component, Object part) {
+	private void invokeImpl(Object method, Object part) {
 		Object[] data = (Object[]) method;
 		Object[] args = (data.length > 2) ? new Object[(data.length - 2) / 3] : null;
 		if (args != null) for (int i = 0; i < args.length; i++) {
@@ -4322,24 +4314,28 @@ public class Thinlet extends Container
 		else if (("panel" == classname) || ("desktop" == classname) ||
 				("dialog" == classname)) {
 			if ("dialog" == classname) {
-				if (getBoolean(component, "resizable", false)) {
-					if (x < 4) {
-						insidepart = (y < block) ? ":nw" :
-							(y >= bounds.height - block) ? ":sw" : ":w";
-					} else if (y < 4) {
-						insidepart = (x < block) ? ":nw" :
-							(x >= bounds.width - block) ? ":ne" : ":n";
-					} else if (x >= bounds.width - 4) {
-						insidepart = (y < block) ? ":ne" :
-							(y >= bounds.height - block) ? ":se" : ":e";
-					} else if (y >= bounds.height - 4) {
-						insidepart = (x < block) ? ":sw" :
-							(x >= bounds.width - block) ? ":se" : ":s";
-					}
+				boolean resizable = getBoolean(component, "resizable", false);
+				if (resizable && (x < 4)) {
+					insidepart = (y < block) ? ":nw" :
+						(y >= bounds.height - block) ? ":sw" : ":w";
 				}
-				if ((insidepart == null) &&
-						(y < 4 + getInteger(component, ":titleheight", 0))) {
-					insidepart = "header";
+				else if (resizable && (y < 4)) {
+					insidepart = (x < block) ? ":nw" :
+						(x >= bounds.width - block) ? ":ne" : ":n";
+				}
+				else if (resizable && (x >= bounds.width - 4)) {
+					insidepart = (y < block) ? ":ne" :
+						(y >= bounds.height - block) ? ":se" : ":e";
+				}
+				else if (resizable && (y >= bounds.height - 4)) {
+					insidepart = (x < block) ? ":sw" :
+						(x >= bounds.width - block) ? ":se" : ":s";
+				}
+				else {
+					int titleheight = getInteger(component, ":titleheight", 0);
+					if (y < 4 + titleheight) {
+						insidepart = "header";
+					}
 				}
 			}
 			if ((insidepart == null) && !findScroll(component, x, y)) {
@@ -5632,7 +5628,7 @@ public class Thinlet extends Container
 				if ("method" == definition[0]) {
 					Object[] method = getMethod(component, value, root, handler);
 					if ("init" == definition[1]) {
-						invokeImpl(method, component, null);
+						invokeImpl(method, null);
 					}
 					else {
 						set(component, definition[1], method);
@@ -5796,7 +5792,8 @@ public class Thinlet extends Container
 		}
 		else if ("bean" == definition[0]) {
 			try {
-				set(component, key, (Component) Class.forName(value).newInstance());
+				Component bean = (Component) Class.forName(value).newInstance();
+				set(component, key, bean);
 			} catch (Exception exc) { throw new IllegalArgumentException(value); }
 		}
 		else throw new IllegalArgumentException((String) definition[0]);
@@ -5914,7 +5911,7 @@ public class Thinlet extends Container
 	 */
 	public void setIcon(Object component, String key, Image icon) {
 		Object[] definition = getDefinition(getClass(component), key, "icon");
-		if (set(component, (String) definition[1], icon)) {
+		if (set(component, definition[1], icon)) {
 			update(component, definition[2]);
 		}
 	}
@@ -5935,6 +5932,17 @@ public class Thinlet extends Container
 		setKeystrokeImpl(component, (String) definition[1], value);
 		update(component, definition[2]);
 	}
+	
+	/**
+	 * Get the AWT component of the given (currently <i>bean</i>) widget
+	 *
+	 * @param component a <i>bean</i> widget
+	 * @param key the identifier of the parameter
+	 * @return an AWT component, or null
+	 */
+	public Component getComponent(Object component, String key) {
+		return (Component) get(component, key, "bean");
+	}
 
 	/**
 	 * Set custom font on a component, 
@@ -5952,7 +5960,7 @@ public class Thinlet extends Container
 	 */
 	public void setFont(Object component, String key, Font font) {
 		Object[] definition = getDefinition(getClass(component), key, "font");
-		if (set(component, (String) definition[1], font)) {
+		if (set(component, definition[1], font)) {
 			update(component, definition[2]);
 		}
 	}
@@ -5972,7 +5980,21 @@ public class Thinlet extends Container
 	 */
 	public void setColor(Object component, String key, Color color) {
 		Object[] definition = getDefinition(getClass(component), key, "color");
-		if (set(component, (String) definition[1], color)) {
+		if (set(component, definition[1], color)) {
+			update(component, definition[2]);
+		}
+	}
+	
+	/**
+	 * Set the AWT component for the given (currently <i>bean</i>) widget
+	 *
+	 * @param component a <i>bean</i> widget
+	 * @param key the identifier of the parameter
+	 * @param bean an AWT component, or null
+	 */
+	public void setComponent(Object component, String key, Component bean) {
+		Object[] definition = getDefinition(getClass(component), key, "bean");
+		if (set(component, definition[1], font)) {
 			update(component, definition[2]);
 		}
 	}
@@ -6017,7 +6039,7 @@ public class Thinlet extends Container
 	 */
 	private static Object get(Object component, String key, String type) {
 		Object[] definition = getDefinition(getClass(component), key, type);
-		Object value = get(component, (String) definition[1]);
+		Object value = get(component, definition[1]);
 		return (value != null) ? value : definition[3];
 	}
 	
@@ -6175,7 +6197,7 @@ public class Thinlet extends Container
 				((key == "text") || (key == "tooltip"))) {
 			putProperty(component, "i18n." + key, null); // for I18N
 		}
-		return set(component, key, value);
+		return set(component, key, value); // use defaultvalue
 	}
 
 	/**
@@ -6320,14 +6342,6 @@ public class Thinlet extends Container
 	/**
 	 *
 	 */
-	private boolean setIcon(Object component,
-			String key, String path, Image defaultvalue) {
-		return set(component, key, (path != null) ? getIcon(path) : defaultvalue);
-	}
-
-	/**
-	 *
-	 */
 	private Image getIcon(Object component, String key, Image defaultvalue) {
 		Object value = get(component, key);
 		return (value == null) ? defaultvalue : (Image) value;
@@ -6442,7 +6456,7 @@ public class Thinlet extends Container
 			MediaTracker mediatracker = new MediaTracker(this);
 			mediatracker.addImage(image, 1);
 			try {
-				mediatracker.waitForID(1, 50);
+				mediatracker.waitForID(1, 5000);
 			} catch (InterruptedException ie) { }
 			//imagepool.put(path, image);
 		} 

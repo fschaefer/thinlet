@@ -91,7 +91,7 @@
 							<item text="List item F" />
 							<item text="List item G" />
 						</list>
-						<tree selection="multiple">
+						<tree selection="multiple" angle="true" line="false">
 							<popupmenu>
 								<menuitem text="one"/>
 								<menuitem text="two"/>
@@ -174,7 +174,7 @@
 				<textfield name="tf_brightness" text="0.0" editable="false" />
 				<progressbar name="pb_brightness" valign="center" />
 				<separator colspan="3"/>
-				<label colspan="3" name="rgb_label" valign="fill" weighty="1" background="#000000"/>
+				<label colspan="3" name="rgb_label" valign="fill" weighty="1" background="#000000" text="Thinlet!" font="40 bold italic" alignment="center"/>
 				
 			</panel>
 		</tab>
