@@ -5,8 +5,10 @@
 		<label name="offerings" />
 	</panel>
 	<table name="detailslist" weighty="1" action="resultSelected(this, detailsbutton)">
-		<column text="Seller" width="140" />
-		<column text="Offering Price" />
+		<header>
+			<column text="Seller" width="140" />
+			<column text="Offering Price" />
+		</header>
 	</table>
 	<panel gap="4" halign="right">
 		<button name="detailsbutton" text="Details" icon="/icons/history.gif" enabled="false" action="showMarketDetails(detailslist)" />

@@ -29,12 +29,11 @@ public class AppletLauncher extends Applet implements Runnable {
 			content = (Thinlet) Class.forName(getParameter("class")).newInstance();
 			removeAll();
 			add(content, BorderLayout.CENTER);
-			repaint();
 		} catch (Throwable exc) {
 			removeAll();
 			add(new Label(exc.getMessage()), BorderLayout.CENTER);
 		}
-		doLayout();
+		doLayout(); repaint();
 	}
 	
 	/**

@@ -56,13 +56,6 @@ public class Thinlet extends Container //java
 	//midp private transient Color c_ctrl;
 	private transient int block;
 	private transient Image hgradient, vgradient; //java
-	{
-		setFont(new Font("SansSerif", Font.PLAIN, 12)); //java
-		//setFont((Font) getToolkit().getDesktopProperty("win.messagebox.font"));
-		//midp setFont(Font.getDefaultFont());
-		setColors(0xe6e6e6, 0x000000, 0xffffff,
-			0x909090, 0xb0b0b0, 0xededed, 0xb9b9b9, 0x89899a, 0xc5c5dd);
-	}
 
 	private transient Thread timer;
 	private transient long watchdelay;
@@ -99,6 +92,12 @@ public class Thinlet extends Container //java
 		} catch (Exception exc) { /* not 1.4 */ }
 	}
 	{
+		setFont(new Font("SansSerif", Font.PLAIN, 12)); //java
+		//setFont((Font) getToolkit().getDesktopProperty("win.messagebox.font"));
+		//midp setFont(Font.getDefaultFont());
+		setColors(0xe6e6e6, 0x000000, 0xffffff,
+			0x909090, 0xb0b0b0, 0xededed, 0xb9b9b9, 0x89899a, 0xc5c5dd);
+			
 		// disable global focus-manager for this component in 1.4
 		if (MOUSE_WHEEL != 0) {
 			try {
@@ -184,7 +183,7 @@ public class Thinlet extends Container //java
 			else {
 				int selected = getInteger(component, "selected", -1);
 				if (selected != -1) {
-					Object choice = getItem(component, "choice", selected);
+					Object choice = getItem(component, selected);
 					set(component, "text", get(choice, "text"));
 					set(component, "icon", get(choice, "icon"));
 				}
@@ -237,19 +236,25 @@ public class Thinlet extends Container //java
 			Rectangle bounds = getRectangle(component, "bounds");
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
-			int tabd = 0;
-			int tabsize = 0;
-			for (Object comp = get(component, "tab");
-					comp != null; comp = get(comp, ":next")) {
-				Dimension d = getSize(comp, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
-				setRectangle(comp, "bounds",
+			
+			// draw up tabs in row/column
+			int tabd = 0; // x/y location of tab left/top
+			int tabsize = 0; // max height/width of tabs
+			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
+				setRectangle(tab, "bounds",
 					horizontal ? tabd : 0, horizontal ? 0 : tabd, d.width, d.height);
 				tabd += (horizontal ? d.width : d.height) - 3;
 				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
 			}
-			for (Object comp = get(component, "tab");
-					comp != null; comp = get(comp, ":next")) {
-				Rectangle r = getRectangle(comp, "bounds");
+			
+			// match tab height/width, set tab content size
+			int cx = (placement == "left") ? (tabsize + 1) : 2;
+			int cy = (placement == "top") ? (tabsize + 1) : 2;
+			int cwidth = bounds.width - (horizontal ? 4 : (tabsize + 3));
+			int cheight = bounds.height - (horizontal ? (tabsize + 3) : 4);
+			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+				Rectangle r = getRectangle(tab, "bounds");
 				if (horizontal) {
 					if (placement == "bottom") { r.y = bounds.height - tabsize; }
 					r.height = tabsize;
@@ -257,16 +262,12 @@ public class Thinlet extends Container //java
 					if (placement == "right") { r.x = bounds.width - tabsize; }
 					r.width = tabsize;
 				}
-			}
-			int cx = (placement == "left") ? (tabsize + 1) : 2;
-			int cy = (placement == "top") ? (tabsize + 1) : 2;
-			int cwidth = bounds.width - (horizontal ? 4 : (tabsize + 3));
-			int cheight = bounds.height - (horizontal ? (tabsize + 3) : 4);
-			for (Object comp = get(component, "component");
-					comp != null; comp = get(comp, ":next")) {
-				if (!getBoolean(comp, "visible", true)) { continue; }
-				setRectangle(comp, "bounds", cx, cy, cwidth, cheight);
-				doLayout(comp);
+				
+				Object comp = get(tab, ":comp"); // relative to the tab location
+				if ( (comp != null) && getBoolean(comp, "visible", true)) {
+					setRectangle(comp, "bounds", cx - r.x, cy - r.y, cwidth, cheight);
+					doLayout(comp);
+				}
 			}
 		}
 		else if (("panel" == classname) || (classname == "dialog")) {
@@ -300,7 +301,7 @@ public class Thinlet extends Container //java
 				}
 
 				int i = 0;
-				for (Object comp = get(component, "component");
+				for (Object comp = get(component, ":comp");
 						comp != null; comp = get(comp, ":next")) {
 					if (!getBoolean(comp, "visible", true)) { continue; }
 					int ix = left + getSum(grid[0], 0, grid[4][i], gap, true);
@@ -332,7 +333,7 @@ public class Thinlet extends Container //java
 		}
 		else if ("desktop" == classname) {
 			Rectangle bounds = getRectangle(component, "bounds");
-			for (Object comp = get(component, "component");
+			for (Object comp = get(component, ":comp");
 					comp != null; comp = get(comp, ":next")) {
 				String iclass = getClass(comp);
 				if (iclass == "dialog") {
@@ -359,7 +360,7 @@ public class Thinlet extends Container //java
 			int divider = getInteger(component, "divider", -1);
 			int maxdiv = (horizontal ? bounds.width : bounds.height) - 5;
 
-			Object comp1 = get(component, "component");
+			Object comp1 = get(component, ":comp");
 			boolean visible1 = (comp1 != null) && getBoolean(comp1, "visible", true);
 			if (divider == -1) {
 				int d1 = 0;
@@ -393,24 +394,24 @@ public class Thinlet extends Container //java
 			int width = 0;
 			int columnheight = 0;
 			if ("table" == classname) {
-				for (Object column = get(component, "column");
-						column != null; column = get(column, ":next")) {
-					width += getInteger(column, "width", 80);
-					Dimension d = getSize(column, 2, 2, "left");
-					columnheight = Math.max(columnheight, d.height);
+				Object header = get(component, "header");
+				if (header != null) {
+					for (Object column = get(header, ":comp");
+							column != null; column = get(column, ":next")) {
+						width += getInteger(column, "width", 80);
+						Dimension d = getSize(column, 2, 2, "left");
+						columnheight = Math.max(columnheight, d.height);
+					}
 				}
 			}
-			String itemname = ("list" == classname) ? "item" :
-				(("table" == classname) ? "row" : "node");
 			int y = 0;
 			int level = 0;
-			for (Object item = get(component, itemname); item != null;) {
+			for (Object item = get(component, ":comp"); item != null;) {
 				int x = 0;
 				int iwidth = 0; int iheight = 0;
 				if ("table" == classname) {
 					iwidth = width;
-					for (Object cell = get(item, "cell");
-							cell != null; cell = get(cell, ":next")) {
+					for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
 						Dimension d = getSize(cell, 2, 3, "left");
 						iheight = Math.max(iheight, d.height);
 					}
@@ -426,7 +427,7 @@ public class Thinlet extends Container //java
 				setRectangle(item, "bounds", x, y, iwidth, iheight);
 				y += iheight;
 				if ("tree" == classname) {
-					Object next = get(item, "node");
+					Object next = get(item, ":comp");
 					if ((next != null) && getBoolean(item, "expanded", true)) {
 						level++;
 					} else {
@@ -445,7 +446,7 @@ public class Thinlet extends Container //java
 		else if ("menubar" == classname) { 
 			Rectangle bounds = getRectangle(component, "bounds");
 			int x = 0;
-			for (Object menu = get(component, "menu");
+			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Dimension d = getSize(menu, 8, 4, "left");
 				setRectangle(menu, "bounds", x, 0, d.width, bounds.height);
@@ -456,7 +457,7 @@ public class Thinlet extends Container //java
 			boolean combo = (":combolist" == classname);
 			int pw = 0; int ph = 0; int pxy = combo ? 0 : 1;
 			Object pr = get(component, combo ? "combobox" : "menu");
-			for (Object item = get(pr, combo ? "choice" : "menu");
+			for (Object item = get(pr, ":comp");
 					item != null; item = get(item, ":next")) {
 				String itemclass = combo ? null : getClass(item);
 				Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
@@ -575,7 +576,7 @@ public class Thinlet extends Container //java
 				if (get(popupmenu, "menu") == selected) { return null; }
 				set(popupmenu, "selected", null);
 				set(popupmenu, "menu", null);
-				removeItemImpl(content, "component", popupmenu);
+				removeItemImpl(content, popupmenu);
 				repaint(popupmenu);
 				set(popupmenu, ":parent", null);
 				set(component, ":popup", null);
@@ -609,7 +610,7 @@ public class Thinlet extends Container //java
 		if (("menubar" == classname) || ("combobox" == classname)) {
 			popupowner = component;
 		}
-		insertItem(content, "component", popup, 0);
+		insertItem(content, ":comp", popup, 0);
 		set(popup, ":parent", content);
 		while (component != content) {
 			Rectangle r = getRectangle(component, "bounds");
@@ -632,12 +633,12 @@ public class Thinlet extends Container //java
 			setInteger(combobox, "end", 0, 0);
 			set(combobox, "icon", get(item, "icon"));
 			validate(combobox);
-			setInteger(combobox, "selected", getIndex(combobox, "choice", item), -1);
+			setInteger(combobox, "selected", getIndex(combobox, item), -1);
 			invoke(combobox, item, "action");
 		}
 		set(combolist, "combobox", null);
 		set(combobox, ":combolist", null);
-		removeItemImpl(content, "component", combolist);
+		removeItemImpl(content, combolist);
 		repaint(combolist);
 		set(combolist, ":parent", null);
 		popupowner = null;
@@ -838,8 +839,7 @@ public class Thinlet extends Container //java
 			} else {
 				int selected = getInteger(component, "selected", -1);
 				return getSize((selected != -1) ?
-					getItemImpl(component, "choice", selected) :
-					get(component, "choice"), 4 + block, 4, "left");
+					getItem(component, selected) : get(component, ":comp"), 4 + block, 4, "left");
 			}
 		}
 		if (("textfield" == classname) || ("passwordfield" == classname)) {
@@ -856,19 +856,19 @@ public class Thinlet extends Container //java
 		if ("tabbedpane" == classname) {
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
-			int tabsize = 0;	
-			int contentwidth = 0; int contentheight = 0;
-			for (Object comp = get(component, "tab");
-					comp != null; comp = get(comp, ":next")) {
-				Dimension d = getSize(comp, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
+			int tabsize = 0; // max tab height/width
+			int contentwidth = 0; int contentheight = 0; // max content size
+			for (Object tab = get(component, ":comp");
+					tab != null; tab = get(tab, ":next")) {
+				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
 				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
-			}
-			for (Object comp = get(component, "component");
-					comp != null; comp = get(comp, ":next")) {
-				if (!getBoolean(comp, "visible", true)) { continue; }
-				Dimension d = getPreferredSize(comp);
-				contentwidth = Math.max(contentwidth, d.width);
-				contentheight = Math.max(contentheight, d.height);
+				
+				Object comp = get(tab, ":comp");
+				if ((comp != null) && getBoolean(comp, "visible", true)) {
+					Dimension dc = getPreferredSize(comp);
+					contentwidth = Math.max(contentwidth, dc.width);
+					contentheight = Math.max(contentheight, dc.height);
+				}
 			}
 			return new Dimension(contentwidth + (horizontal ? 4 : (tabsize + 3)),
 				contentheight + (horizontal ? (tabsize + 3) : 4));
@@ -892,7 +892,7 @@ public class Thinlet extends Container //java
 		}
 		else if ("desktop" == classname) {
 			Dimension size = new Dimension();
-			for (Object comp = get(component, "component");
+			for (Object comp = get(component, ":comp");
 					comp != null; comp = get(comp, ":next")) {
 				String iclass = getClass(comp);
 				if ((iclass != "dialog") && (iclass != ":popup") &&
@@ -919,7 +919,7 @@ public class Thinlet extends Container //java
 		}
 		if ("splitpane" == classname) {
 			boolean horizontal = ("vertical" != get(component, "orientation"));
-			Object comp1 = get(component, "component");
+			Object comp1 = get(component, ":comp");
 			Dimension size = ((comp1 == null) || !getBoolean(comp1, "visible", true)) ?
 				new Dimension() : getPreferredSize(comp1);
 			Object comp2 = get(comp1, ":next");
@@ -942,7 +942,7 @@ public class Thinlet extends Container //java
 		}
 		if ("menubar" == classname) { 
 			Dimension size = new Dimension(0, 0);
-			for (Object menu = get(component, "menu");
+			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Dimension d = getSize(menu, 8, 4, "left");
 				size.width += d.width;
@@ -963,7 +963,7 @@ public class Thinlet extends Container //java
 	 */
 	private int[][] getGrid(Object component, int gap) {
 		int count = 0;
-		for (Object comp = get(component, "component"); comp != null;
+		for (Object comp = get(component, ":comp"); comp != null;
 				comp = get(comp, ":next")) {
 			if (getBoolean(comp, "visible", true)) { count++; }
 		}
@@ -981,7 +981,7 @@ public class Thinlet extends Container //java
 
 		int i = 0; int x = 0; int y = 0;
 		int nextsize = 0;
-		for (Object comp = get(component, "component");
+		for (Object comp = get(component, ":comp");
 				comp != null; comp = get(comp, ":next")) {
 			if (!getBoolean(comp, "visible", true)) { continue; }
 			int colspan = ((columns != 0) && (columns < count)) ?
@@ -1188,9 +1188,6 @@ public class Thinlet extends Container //java
 			hgradient = createImage(new MemoryImageSource(block, block, pix[0], 0, block));
 			vgradient = createImage(new MemoryImageSource(block, block, pix[1], 0, block));
 		}
-	
-		//((Graphics2D) g).setRenderingHint(
-			//RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		//g.setColor(Color.orange);
 		//g.fillRect(0, 0, getSize().width, getSize().height);
 		//long time = System.currentTimeMillis();
@@ -1344,7 +1341,7 @@ public class Thinlet extends Container //java
 				int ly = clipy - viewport.y - 1;
 				int yfrom = view.y + Math.max(0, ly);
 				int yto = view.y + Math.min(viewport.height - 2, ly + clipheight);
-				for (Object choice = get(get(component, "combobox"), "choice");
+				for (Object choice = get(get(component, "combobox"), ":comp");
 						choice != null; choice = get(choice, ":next")) {
 					Rectangle r = getRectangle(choice, "bounds");
 					if (yto <= r.y) { break; }
@@ -1423,24 +1420,26 @@ public class Thinlet extends Container //java
 			int dx = horizontal ? 6 : ((placement == "left") ? 5 : 4),
 				dy = horizontal ? ((placement == "top") ? 3 : 2) : 4,
 				dw = horizontal ? 12 : 9, dh = horizontal ? 5 : 8;
-			for (Object comp = get(component, "tab");
-					comp != null; comp = get(comp, ":next")) {
+			// paint tabs except the selected one
+			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
 				if (selected != i) {
-					boolean hover = inside && 	(mousepressed == null) && (insidepart == comp);
-					boolean tabenabled = enabled && getBoolean(comp, "enabled", true);
-					Rectangle r = getRectangle(comp, "bounds");
+					boolean hover = inside && 	(mousepressed == null) && (insidepart == tab);
+					boolean tabenabled = enabled && getBoolean(tab, "enabled", true);
+					Rectangle r = getRectangle(tab, "bounds");
 					paintRect(g, r.x + bx, r.y + by, r.width - bw, r.height - bh,
 						enabled ? c_border : c_disable,
 						tabenabled ? (hover ? c_hover : c_ctrl) : c_ctrl,
 						(placement != "bottom"), (placement != "right"),
 						(placement != "top"), (placement != "left"), true);
-					paintContent(comp, g, clipx, clipy, clipwidth, clipheight,
+					paintContent(tab, g, clipx, clipy, clipwidth, clipheight,
 						r.x + dx, r.y + dy, r.width - dw, r.height - dh,
 						tabenabled ? c_text : c_disable, "left", true);
 				}
-				else { selectedtab = comp; }
+				else { selectedtab = tab; }
 				i++;
 			}
+			
+			// paint selected tab and its content
 			if (selectedtab != null) {
 				Rectangle r = getRectangle(selectedtab, "bounds");
 				// paint tabbedpane border
@@ -1461,10 +1460,13 @@ public class Thinlet extends Container //java
 				paintContent(selectedtab, g, clipx, clipy, clipwidth, clipheight,
 					r.x + dx, r.y + dy, r.width - dw, r.height - dh,
 					enabled ? c_text : c_disable, "left", true);
-			}
-			Object tabcontent = getItemImpl(component, "component", selected);
-			if (tabcontent != null) {
-				paint(g, clipx, clipy, clipwidth, clipheight, tabcontent, enabled);
+					
+				Object comp = get(selectedtab, ":comp");
+				if ((comp != null) && getBoolean(comp, "visible", true)) {
+					clipx -= r.x; clipy -= r.y; g.translate(r.x, r.y); // relative to tab
+					paint(g, clipx, clipy, clipwidth, clipheight, comp, enabled);
+					clipx += r.x; clipy += r.y; g.translate(-r.x, -r.y);
+				}
 			}
 		}
 		else if (("panel" == classname) || ("dialog" == classname)) {
@@ -1487,7 +1489,7 @@ public class Thinlet extends Container //java
 					g.drawRect(0, 0, bounds.width - 1, bounds.height - 1);
 				}
 			}
-			for (Object comp = get(component, "component");
+			for (Object comp = get(component, ":comp");
 					comp != null; comp = get(comp, ":next")) {
 				paint(g, clipx, clipy, clipwidth, clipheight, comp, enabled);
 			}
@@ -1496,7 +1498,7 @@ public class Thinlet extends Container //java
 			paintRect(g, 0, 0, bounds.width, bounds.height,
 				c_border, c_bg, false, false, false, false, true);
 			paintReverse(g, clipx, clipy, clipwidth, clipheight,
-				get(component, "component"), enabled);
+				get(component, ":comp"), enabled);
 			//g.setColor(Color.red); if (clip != null) g.drawRect(clipx, clipy, clipwidth, clipheight);
 			if ((tooltipowner != null) && (component == content)) {
 				Rectangle r = getRectangle(tooltipowner, ":tooltipbounds");
@@ -1578,7 +1580,7 @@ public class Thinlet extends Container //java
 				if (horizontal) { g.drawLine(i, xy1, i, xy2); }
 					else { g.drawLine(xy1, i, xy2, i); }
 			}
-			Object comp1 = get(component, "component");
+			Object comp1 = get(component, ":comp");
 			if (comp1 != null) {
 				paint(g, clipx, clipy, clipwidth, clipheight, comp1, enabled);
 				Object comp2 = get(comp1, ":next");
@@ -1596,26 +1598,29 @@ public class Thinlet extends Container //java
 			int xfrom = view.x + Math.max(0, lx);
 			int xto = view.x + Math.min(viewport.width - 2, lx + clipwidth);
 			if ("table" == classname) {
-				columnwidths = new int[getItemCountImpl(component, "column")];
-				int i = 0; int x = 0; boolean drawheader = (clipy < viewport.y);
-				if (drawheader) { g.setClip(viewport.x, 0, viewport.width, viewport.y); }
-				for (Object column = get(component, "column");
-						column != null; column = get(column, ":next")) {
-					boolean lastcolumn = (i == columnwidths.length - 1);
-					int width = getInteger(column, "width", 80);
-					if (lastcolumn) { width = Math.max(width, viewport.width - x); }
-					columnwidths[i] = width;
-					if (drawheader && (xfrom < x + width) && (xto > x)) {
-						paintRect(g, x - view.x, 0, width, viewport.y,
-							enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
-							true, true, false, lastcolumn, true);
-						paintContent(column, g, clipx, clipy, clipwidth, clipheight,
-							x + 2 - view.x, 1, width - 2,
-							viewport.y - 2, enabled ? c_text : c_disable, "left", false);
+				Object header = get(component, "header");
+				if (header != null) {
+					columnwidths = new int[getItemCountImpl(header, ":comp")];
+					int i = 0; int x = 0; boolean drawheader = (clipy < viewport.y);
+					if (drawheader) { g.setClip(viewport.x, 0, viewport.width, viewport.y); }
+					for (Object column = get(header, ":comp");
+							column != null; column = get(column, ":next")) {
+						boolean lastcolumn = (i == columnwidths.length - 1);
+						int width = getInteger(column, "width", 80);
+						if (lastcolumn) { width = Math.max(width, viewport.width - x); }
+						columnwidths[i] = width;
+						if (drawheader && (xfrom < x + width) && (xto > x)) {
+							paintRect(g, x - view.x, 0, width, viewport.y,
+								enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
+								true, true, false, lastcolumn, true);
+							paintContent(column, g, clipx, clipy, clipwidth, clipheight,
+								x + 2 - view.x, 1, width - 2,
+								viewport.y - 2, enabled ? c_text : c_disable, "left", false);
+						}
+						i++; x += width;
 					}
-					i++; x += width;
+					if (drawheader) { g.setClip(clipx, clipy, clipwidth, clipheight); }
 				}
-				if (drawheader) { g.setClip(clipx, clipy, clipwidth, clipheight); }
 			}
 			paintRect(g, viewport.x, viewport.y, viewport.width, viewport.height,
 				enabled ? c_border : c_disable, c_textbg, true, true, true, true, true);
@@ -1625,15 +1630,14 @@ public class Thinlet extends Container //java
 				int ly = clipy - viewport.y - 1;
 				int yfrom = view.y + Math.max(0, ly);
 				int yto = view.y + Math.min(viewport.height - 2, ly + clipheight);
-				for (Object item = get(component, ("list" == classname) ? "item" :
-						(("table" == classname) ? "row" : "node")); item != null;) {
+				for (Object item = get(component, ":comp"); item != null;) {
 					Rectangle r = getRectangle(item, "bounds");
 					if (lead == null) {
 						set(component, ":lead", lead = item); // draw first item focused when lead is null
 					}
 					if (yto <= r.y) { break; } // the clip bounds are above
 
-					Object next = ("tree" == classname) ? get(item, "node") : null;
+					Object next = ("tree" == classname) ? get(item, ":comp") : null;
 					boolean expanded = (next != null) &&
 							getBoolean(item, "expanded", true);
 					if (yfrom < r.y + r.height) { // the clip rectangle is not bellow the current item
@@ -1646,8 +1650,7 @@ public class Thinlet extends Container //java
 						}
 						if ("table" == classname) {
 							int x = 0; int i = 0;
-							for (Object cell = get(item, "cell");
-									cell != null; cell = get(cell, ":next")) {
+							for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
 								if (xto <= x) { break; }
 								int iwidth = (i < columnwidths.length) ? columnwidths[i] : 80;
 								if (xfrom < x + iwidth) {
@@ -1706,7 +1709,7 @@ public class Thinlet extends Container //java
 		else if ("menubar" == classname) {
 			Object selected = get(component, "selected");
 			int lastx = 0;
-			for (Object menu = get(component, "menu");
+			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Rectangle mb = getRectangle(menu, "bounds");
 				if (clipx + clipwidth <= mb.x) { break; }
@@ -1730,7 +1733,7 @@ public class Thinlet extends Container //java
 			paintRect(g, 0, 0, bounds.width, bounds.height,
 				c_border, c_bg, true, true, true, true, true);
 			Object selected = get(component, "selected");
-			for (Object menu = get(get(component, "menu"), "menu");
+			for (Object menu = get(get(component, "menu"), ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Rectangle r = getRectangle(menu, "bounds");
 				if (clipy + clipheight <= r.y) { break; }
@@ -2339,7 +2342,7 @@ public class Thinlet extends Container //java
 							Object menubar = findMenubar(getParent(focusowner), focusowner);
 							System.out.println("menubar=" + menubar);
 							if (menubar != null) {
-								Object firstmenu = get(menubar, "menu"); // only enabled
+								Object firstmenu = get(menubar, ":comp"); // only enabled
 								if (firstmenu != null) {
 									closeup();
 									set(menubar, "selected", firstmenu);
@@ -2388,7 +2391,7 @@ public class Thinlet extends Container //java
 	/*private Object findMenubar(Object component, Object from) {
 		if (component == null) { return null; }
 		if (getClass(component) == "menubar") { return component; }
-		for (Object comp = get(component, "component");
+		for (Object comp = get(component, ":comp");
 				comp != null; comp = get(comp, ":next")) {
 			if (comp != from) {
 				Object found = findMenubar(comp, null);
@@ -2404,7 +2407,7 @@ public class Thinlet extends Container //java
 	/*private boolean processKeyPress(Object component,
 			KeyEvent e, int keycode, Object invoker) {
 		if (processKeyPress(component, e, keycode)) { return true; }
-		for (Object comp = get(component, "component");
+		for (Object comp = get(component, ":comp");
 				comp != null; comp = get(comp, ":next")) {
 			if ((comp != invoker) && processKeyPress(comp, e, keycode, null)) {
 				return true;
@@ -2458,8 +2461,7 @@ public class Thinlet extends Container //java
 					combolist = popup(component, classname);
 					int selected = getInteger(component, "selected", -1);
 					set(combolist, ":inside", (selected != -1) ?
-						getItemImpl(component, "choice", selected) :
-						get(component, "choice")); //scroll to it!
+						getItem(component, selected) : get(component, ":comp")); //scroll to it!
 				}
 				else return false;
 			} else {
@@ -2468,8 +2470,7 @@ public class Thinlet extends Container //java
 						(keycode == KeyEvent.VK_PAGE_DOWN) ||
 						(keycode == KeyEvent.VK_HOME) || (keycode == KeyEvent.VK_END)) {
 					Object selected = get(combolist, ":inside");
-					Object next = getListItem(component, combolist,
-						keycode, selected, "choice", null);
+					Object next = getListItem(component, combolist, keycode, selected, false);
 					if (next != null) {
 						set(combolist, ":inside", next);
 						Rectangle r = getRectangle(next, "bounds");
@@ -2540,17 +2541,17 @@ public class Thinlet extends Container //java
 				int selected = getInteger(component, "selected", 0);
 				boolean increase = (keycode == KeyEvent.VK_RIGHT) || (keycode == KeyEvent.VK_DOWN);
 				int newvalue = selected;
-				int n = increase ? getItemCountImpl(component, "tab") : 0;
+				int n = increase ? getItemCountImpl(component, ":comp") : 0;
 				int d = (increase ? 1 : -1);						
 				for (int i = selected + d; increase ? (i < n)  : (i >= 0); i += d) {
-					if (getBoolean(getItemImpl(component, "tab", i), "enabled", true)) {
+					if (getBoolean(getItem(component, i), "enabled", true)) {
 						newvalue = i; break;
 					}	
 				}
 				if (newvalue != selected) {
 					setInteger(component, "selected", newvalue, 0);
 					repaint(component);
-					invoke(component, getItemImpl(component, "component", newvalue), "action");
+					invoke(component, getItem(component, newvalue), "action");
 				}
 			}
 		}
@@ -2615,19 +2616,16 @@ public class Thinlet extends Container //java
 				validate(component);
 			}
 		}
-		else if ("list" == classname) {
-			return processList(component, shiftdown, controldown, keychar, keycode, "item", null);
-		}
-		else if ("table" == classname) {
-			return processList(component, shiftdown, controldown, keychar, keycode, "row", null);
+		else if (("list" == classname) || ("table" == classname)) {
+			return processList(component, shiftdown, controldown, keychar, keycode, false);
 		}
 		else if ("tree" == classname) {
 			//? clear childs' selection, select this is its 	subnode was selected
 			if (keycode == KeyEvent.VK_LEFT) {
 				Object lead = get(component, ":lead");
-				if ((get(lead, "node") != null) && getBoolean(lead, "expanded", true)) {
+				if ((get(lead, ":comp") != null) && getBoolean(lead, "expanded", true)) {
 					setBoolean(lead, "expanded", false, true);
-					selectItem(component, lead, "node", "node");
+					selectItem(component, lead, true);
 					validate(component);
 					invoke(component, lead, "collapse"); //lead
 					return true;
@@ -2635,7 +2633,7 @@ public class Thinlet extends Container //java
 				else {
 					Object parent = getParent(lead);
 					if (parent != component) {
-						selectItem(component, parent, "node", "node");
+						selectItem(component, parent, true);
 						setLead(component, lead, parent);
 						return true;
 					}
@@ -2644,22 +2642,22 @@ public class Thinlet extends Container //java
 			//? for interval mode select its all subnode or deselect all after
 			else if (keycode == KeyEvent.VK_RIGHT) {
 				Object lead = get(component, ":lead");
-				Object node = get(lead, "node");
+				Object node = get(lead, ":comp");
 				if (node != null) {
 					if (getBoolean(lead, "expanded", true)) {
-						selectItem(component, node, "node", "node");
+						selectItem(component, node, true);
 						setLead(component, lead, node);
 					}
 					else {
 						setBoolean(lead, "expanded", true, true);
-						selectItem(component, lead, "node", "node");
+						selectItem(component, lead, true);
 						validate(component);
 						invoke(component, lead, "expand"); //lead
 					}
 					return true;
 				}
 			}
-			return processList(component, shiftdown, controldown, keychar, keycode, "node", "node");
+			return processList(component, shiftdown, controldown, keychar, keycode, true);
 		}
 		else if ("menubar" == classname) {
 			Object previous = null; Object last = null;
@@ -2700,12 +2698,12 @@ public class Thinlet extends Container //java
 			}
 			else if (keycode == KeyEvent.VK_RIGHT) {
 				if ((previous != null) && (selected == null)) {
-					set(last, "selected", get(get(last, "menu"), "menu"));
+					set(last, "selected", get(get(last, "menu"), ":comp"));
 					repaint(last); // , selected
 				}
 				else if ((selected != null) && (getClass(selected) == "menu")) {
 					Object popup = popup(last, ":popup");
-					set(popup, "selected", get(get(popup, "menu"), "menu"));
+					set(popup, "selected", get(get(popup, "menu"), ":comp"));
 				}
 				else {
 					selected = getMenu(component, get(component, "selected"), true, false);
@@ -2739,8 +2737,8 @@ public class Thinlet extends Container //java
 		String group = getString(component, "group", null);
 		if (group != null) {
 			if (getBoolean(component, "selected", false)) { return false; }
-			for (Object comp = get(getParent(component),
-					box ? "component" : "menu"); comp != null; comp = get(comp, ":next")) {
+			for (Object comp = get(getParent(component), ":comp");
+					comp != null; comp = get(comp, ":next")) {
 				if (comp == component) {
 					setBoolean(component, "selected", true);
 				}
@@ -2767,11 +2765,11 @@ public class Thinlet extends Container //java
 		if (forward) {
 			if (part != null) { part = get(part, ":next"); }
 			if (part == null) {
-				part = get(popup ? get(component, "menu") : component, "menu");
+				part = get(popup ? get(component, "menu") : component, ":comp");
 			}
 		}
 		else {
-			Object prev = get(popup ? get(component, "menu") : component, "menu");
+			Object prev = get(popup ? get(component, "menu") : component, ":comp");
 			for (Object next = get(prev, ":next");
 					(next != null) && (next != part); next = get(next, ":next")) {
 				prev = next;
@@ -2934,21 +2932,20 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private boolean processList(Object component, boolean shiftdown, boolean controldown,
-			int keychar, int keycode, String itemname, String leafname) {
+			int keychar, int keycode, boolean recursive) {
 		if ((keycode == KeyEvent.VK_UP) ||
 				(keycode == KeyEvent.VK_DOWN) || (keycode == KeyEvent.VK_PAGE_UP) ||
 				(keycode == KeyEvent.VK_PAGE_DOWN) ||
 				(keycode == KeyEvent.VK_HOME) || (keycode == KeyEvent.VK_END)) {
 			Object lead = get(component, ":lead");
-			Object row = getListItem(component, component,
-				keycode, lead, itemname, leafname);
+			Object row = getListItem(component, component, keycode, lead, recursive);
 			if (row != null) {
 				String selection = getString(component, "selection", "single");
 				if (shiftdown && (selection != "single") && (lead != null)) {
-					extend(component, lead, row, itemname, leafname);
+					extend(component, lead, row, recursive);
 				}
 				else if (!controldown) {
-					selectItem(component, row, itemname, leafname);
+					selectItem(component, row, recursive);
 				}
 				setLead(component, lead, row);
 				Rectangle r = getRectangle(row, "bounds");
@@ -2957,18 +2954,17 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (keychar == KeyEvent.VK_SPACE) {
-			select(component, get(component, ":lead"),
-				itemname, leafname, shiftdown, controldown); //...
+			select(component, get(component, ":lead"), recursive, shiftdown, controldown); //...
 			return true;
 		}
 		else if (controldown) {
 			if (((keycode == KeyEvent.VK_A) || (keycode == 0xBF)) && //KeyEvent.VK_SLASH
 					(getString(component, "selection", "single") != "single")) {
-				selectAll(component, true, itemname, leafname);
+				selectAll(component, true, recursive);
 				return true;
 			}
 			else if (keycode == 0xDC) { //KeyEvent.VK_BACK_SLASH
-				selectAll(component, false, itemname, leafname);
+				selectAll(component, false, recursive);
 				return true;
 			}
 		}
@@ -2979,17 +2975,17 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private Object getListItem(Object component, Object scrollpane,
-			int keycode, Object lead, String itemname, String leafname) {
+			int keycode, Object lead, boolean recursive) {
 		Object row = null;
 		if (keycode == KeyEvent.VK_UP) {
-			for (Object prev = get(component, itemname); prev != lead;
-					prev = getNextItem(component, prev, leafname)) {
+			for (Object prev = get(component, ":comp"); prev != lead;
+					prev = getNextItem(component, prev, recursive)) {
 				row = prev; // component -> getParent(lead)
 			}
 		}
 		else if (keycode == KeyEvent.VK_DOWN) {
-			row = (lead == null) ? get(component, itemname) :
-				getNextItem(component, lead, leafname);
+			row = (lead == null) ? get(component, ":comp") :
+				getNextItem(component, lead, recursive);
 		}
 		else if ((keycode == KeyEvent.VK_PAGE_UP) ||
 				(keycode == KeyEvent.VK_PAGE_DOWN)) {
@@ -3006,8 +3002,8 @@ public class Thinlet extends Container //java
 					(rl != null) && (rl.y + rl.height >= view.y + port.height - 2)) {
 				vy += port.height - 2;
 			}
-			for (Object item = get(component, itemname); item != null;
-					item = getNextItem(component, item, leafname)) {
+			for (Object item = get(component, ":comp"); item != null;
+					item = getNextItem(component, item, recursive)) {
 				Rectangle r = getRectangle(item, "bounds");
 				if (keycode == KeyEvent.VK_PAGE_UP) {
 					row = item;
@@ -3019,11 +3015,11 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (keycode == KeyEvent.VK_HOME) {
-			row = get(component, itemname);
+			row = get(component, ":comp");
 		}
 		else if (keycode == KeyEvent.VK_END) {
 			for (Object last = lead; last != null;
-					last = getNextItem(component, last, leafname)) {
+					last = getNextItem(component, last, recursive)) {
 				row = last;
 			}
 		}
@@ -3031,13 +3027,16 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 *
+	 * Select all the items
+	 * @param component a list/tree/table
+	 * @param selected selects or deselects items
+	 * @param recursive true for tree
 	 */
 	private void selectAll(Object component,
-			boolean selected, String itemname, String leafname) {
+			boolean selected, boolean recursive) {
 		boolean changed = false;
-		for (Object item = get(component, itemname);
-				item != null; item = getNextItem(component, item, leafname)) {
+		for (Object item = get(component, ":comp");
+				item != null; item = getNextItem(component, item, recursive)) {
 			if (setBoolean(item, "selected", selected, false)) {
 				repaint(component, null, item); changed = true;
 			}
@@ -3047,13 +3046,15 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 *
+	 * Select a single given item, deselect others
+	 * @param component a list/tree/table
+	 * @param row the item/node/row to select
+	 * @param recursive true for tree
 	 */
-	private void selectItem(Object component,
-			Object row, String itemname, String leafname) {
+	private void selectItem(Object component, Object row, boolean recursive) {
 		boolean changed = false;
-		for (Object item = get(component, itemname);
-				item != null; item = getNextItem(component, item, leafname)) {
+		for (Object item = get(component, ":comp");
+				item != null; item = getNextItem(component, item, recursive)) {
 			if (setBoolean(item, "selected", (item == row), false)) {
 				repaint(component, null, item); changed = true;
 			}
@@ -3066,12 +3067,12 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private void extend(Object component, Object lead,
-			Object row, String itemname, String leafname) {
+			Object row, boolean recursive) {
 		Object anchor = get(component, ":anchor");
 		if (anchor == null) { set(component, ":anchor", anchor = lead); }
 		char select = 'n'; boolean changed = false;
-		for (Object item = get(component, itemname); // anchor - row
-				item != null; item = getNextItem(component, item, leafname)) {
+		for (Object item = get(component, ":comp"); // anchor - row
+				item != null; item = getNextItem(component, item, recursive)) {
 			if (item == anchor) select = (select == 'n') ? 'y' : 'r';
 			if (item == row) select = (select == 'n') ? 'y' : 'r';
 			if (setBoolean(item, "selected", (select != 'n'), false)) {
@@ -3234,21 +3235,21 @@ public class Thinlet extends Container //java
 			if ((id == MouseEvent.MOUSE_ENTERED) ||
 					(id == MouseEvent.MOUSE_EXITED)) {
 				if ((part != null) && getBoolean(part, "enabled", true) &&
-						(getInteger(component, "selected", 0) != getIndex(component, "tab", part))) {
+						(getInteger(component, "selected", 0) != getIndex(component, part))) {
 					repaint(component, "tabbedpane", part);
 				}
 			}
 			else if ((part != null) && (id == MouseEvent.MOUSE_PRESSED) &&
 					getBoolean(part, "enabled", true)) {
 				int selected = getInteger(component, "selected", 0);
-				int current = getIndex(component, "tab", part);
+				int current = getIndex(component, part);
 				if (selected == current) {
 					setFocus(component);
 					repaint(component, "tabbedpane", part);
 				}
 				else {
 					setInteger(component, "selected", current, 0);
-					//Object tabcontent = getItemImpl(component, "component", current);
+					//Object tabcontent = getItem(component, current);
 					//setFocus((tabcontent != null) ? tabcontent : component);
 					setNextFocusable(component, false);
 					repaint(component);
@@ -3320,10 +3321,7 @@ public class Thinlet extends Container //java
 					Rectangle view = getRectangle(component, ":view");
 					Rectangle viewport = getRectangle(component, ":port");
 					int my = y + view.y - referencey;
-					String itemname = ("list" == classname) ? "item" :
-						(("table" == classname) ? "row" : "node");
-					String subitem = ("tree" == classname) ? "node" : null;
-					for (Object item = get(component, itemname); item != null;) {
+					for (Object item = get(component, ":comp"); item != null;) {
 						Rectangle r = getRectangle(item, "bounds");
 						if (my < r.y + r.height) {
 							if (id == MouseEvent.MOUSE_DRAGGED) { //!!!
@@ -3332,10 +3330,10 @@ public class Thinlet extends Container //java
 							else if ("tree" == classname) {
 								int mx = x + view.x - referencex;
 								if (mx < r.x) {
-									if ((mx >= r.x - block) && (get(item, "node") != null)) {
+									if ((mx >= r.x - block) && (get(item, ":comp") != null)) {
 										boolean expanded = getBoolean(item, "expanded", true);
 										setBoolean(item, "expanded", !expanded, 	true);
-										selectItem(component, item, "node", "node");
+										selectItem(component, item, true);
 										setLead(component, get(component, ":lead"), item);
 										setFocus(component);
 										validate(component);
@@ -3349,11 +3347,11 @@ public class Thinlet extends Container //java
 								if (id != MouseEvent.MOUSE_DRAGGED) {
 									if (setFocus(component)) { repaint(component, classname, item); } //?
 								}
-								select(component, item, itemname, subitem, shiftdown, controldown);
+								select(component, item, ("tree" == classname), shiftdown, controldown);
 							}
 							break;
 						}
-						item = getNextItem(component, item, subitem);
+						item = getNextItem(component, item, ("tree" == classname));
 					}
 				}
 		 	}
@@ -3424,9 +3422,9 @@ public class Thinlet extends Container //java
 					Rectangle bounds = getRectangle(component, "bounds");
 					referencex = x - bounds.x; referencey = y - bounds.y;
 					Object parent = getParent(component);
-					if (get(parent, "component") != component) { // to front
-						removeItemImpl(parent, "component", component);
-						insertItem(parent, "component", component, 0);
+					if (get(parent, ":comp") != component) { // to front
+						removeItemImpl(parent, component);
+						insertItem(parent, ":comp", component, 0);
 						set(component, ":parent", parent);
 						repaint(component); // to front always...
 						setNextFocusable(component, false);
@@ -3465,13 +3463,13 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private void select(Object component, Object row, String first,
-			String child, boolean shiftdown, boolean controldown) {
+	private void select(Object component, Object row,
+			boolean recursive, boolean shiftdown, boolean controldown) {
 		String selection = getString(component, "selection", "single");
 		Object lead = null;
 		if (shiftdown && (selection != "single") &&
 				((lead = get(component, ":lead")) != null)) {
-			extend(component, lead, row, first, child);
+			extend(component, lead, row, recursive);
 		}
 		else {
 			if (controldown && (selection == "multiple")) {
@@ -3483,7 +3481,7 @@ public class Thinlet extends Container //java
 			}
 			else if (controldown && getBoolean(row, "selected", false)) {
 				for (Object item = row;
-						item != null; item = getNextItem(component, item, child)) {
+						item != null; item = getNextItem(component, item, recursive)) {
 					if (setBoolean(item, "selected", false, false)) {
 						repaint(component, null, item);
 					}
@@ -3492,19 +3490,23 @@ public class Thinlet extends Container //java
 				set(component, ":anchor", null);
 			}
 			else {
-				selectItem(component, row, first, child);
+				selectItem(component, row, recursive);
 			}
 		}
 		setLead(component, (lead != null) ? lead : get(component, ":lead"), row);
 	}
 
 	/**
-	 *
+	 * Find the next item after the given
+	 * @param component a list/tree/table widget
+	 * @param item the next item after this, or the first if null
+	 * @param recursive true if tree
+	 * @return next (or first) item
 	 */
 	private Object getNextItem(Object component,
-			Object item, String subitem) {
-		if (subitem == null) { return get(item, ":next"); }
-		Object next = get(item, subitem);
+			Object item, boolean recursive) {
+		if (!recursive) { return get(item, ":next"); }
+		Object next = get(item, ":comp");
 		if ((next == null) || !getBoolean(item, "expanded", true)) {
 			while ((item != component) && ((next = get(item, ":next")) == null)) {
 				item = getParent(item);
@@ -3828,7 +3830,7 @@ public class Thinlet extends Container //java
 		else if (":combolist" == classname) {
 			if (!findScrollPane(component, x, y, bounds)) {
 				y += getRectangle(component, ":view").y;
-				for (Object choice = get(get(component, "combobox"), "choice");
+				for (Object choice = get(get(component, "combobox"), ":comp");
 						choice != null; choice = get(choice, ":next")) {
 					Rectangle r = getRectangle(choice, "bounds");
 					if ((y >= r.y) && (y < r.y + r.height)) {
@@ -3841,17 +3843,21 @@ public class Thinlet extends Container //java
 			findScrollPane(component, x, y, bounds);
 		}
 		else if ("tabbedpane" == classname) {
-			Object tabcontent = getItemImpl(component,
-				"component", getInteger(component, "selected", 0));
-			if ((tabcontent == null) || !findComponent(tabcontent, x, y)) {
-				for (Object comp = get(component, "tab");
-						comp != null; comp = get(comp, ":next")) {
-					Rectangle r = getRectangle(comp, "bounds");
-					if (r.contains(x, y)) { //java
-					//midp if ((x >= r.x) && (x - r.x < r.width) && (y >= r.y) && (y - r.y < r.height)) {
-						insidepart = comp; break;
+			int selected = getInteger(component, "selected", 0);
+			int i = 0;
+			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+				Rectangle r = getRectangle(tab, "bounds");
+				if (i == selected) {
+					Object tabcontent = get(tab, ":comp");
+					if ((tabcontent != null) && findComponent(tabcontent, x - r.x, y - r.y)) {
+						break;
 					}
 				}
+				if (r.contains(x, y)) { //java
+				//midp if ((x >= r.x) && (x - r.x < r.width) && (y >= r.y) && (y - r.y < r.height)) {
+					insidepart = tab; break;
+				}
+				i++;
 			}
 		}
 		else if (("panel" == classname) || ("desktop" == classname) ||
@@ -3860,7 +3866,7 @@ public class Thinlet extends Container //java
 					(y < 4 + getInteger(component, ":titleheight", 0))) {
 				insidepart = "header";
 			} else {
-				for (Object comp = get(component, "component");
+				for (Object comp = get(component, ":comp");
 						comp != null; comp = get(comp, ":next")) {
 					if (findComponent(comp, x, y)) { break; }
 					if (("desktop" == classname) &&
@@ -3873,7 +3879,7 @@ public class Thinlet extends Container //java
 				((y <= bounds.height / 2) ? "up" : "down");
 		}
 		else if ("splitpane" == classname) { 
-			Object comp1 = get(component, "component");
+			Object comp1 = get(component, ":comp");
 			if (comp1 != null) {
 				if (!findComponent(comp1, x, y)) {
 					Object comp2 = get(comp1, ":next");
@@ -3893,7 +3899,7 @@ public class Thinlet extends Container //java
 			findScrollPane(component, x, y, bounds);
 		}
 		else if ("menubar" == classname) {
-			for (Object menu = get(component, "menu");
+			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Rectangle r = getRectangle(menu, "bounds");
 				if ((x >= r.x) && (x < r.x + r.width)) {
@@ -3902,7 +3908,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (":popup" == classname) {
-			for (Object menu = get(get(component, "menu"), "menu");
+			for (Object menu = get(get(component, "menu"), ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Rectangle r = getRectangle(menu, "bounds");
 				if ((y >= r.y) && (y < r.y + r.height)) {
@@ -4043,15 +4049,6 @@ public class Thinlet extends Container //java
 		repaint(x, y, width, height);
 	}
 
-	/*private void clip(Graphics g,
-			Rectangle clip, int x, int y, int width, int height) {
-		int x1 = Math.max(clip.x, x); 
-		int y1 = Math.max(clip.y, y);
-		int x2 = Math.min(clip.x + clip.width, x + width);
-		int y2 = Math.min(clip.y + clip.height, y + height);
-		g.setClip(x1, y1, x2 - x1, y2 - y1);
-	}*/
-
 	/**
 	 * Requests that both the <i>Thinlet</i> component,
 	 * and the given widget get the input focus
@@ -4093,7 +4090,7 @@ public class Thinlet extends Container //java
 	private boolean setNextFocusable(Object current, boolean outgo) {
 		boolean consumed = true;
 		for (Object next = null, component = current; true; component = next) {
-			next = get(component, "component"); // check first subcomponent
+			next = get(component, ":comp"); // check first subcomponent
 			if (next == null) { next = get(component, ":next"); } // check next component
 			while (next == null) { // find the next of the parents, or the topmost
 				component = getParent(component); // current is not on the desktop
@@ -4148,7 +4145,7 @@ public class Thinlet extends Container //java
 				previous = getPreviousFocusable(get(component, ":next"), block, false, false, backward, outgo);
 			}
 			if ((previous == null) && ((upward && backward) || (!start && !upward))) {
-				previous = getPreviousFocusable(get(component, "component"), block, false, false, backward, outgo);
+				previous = getPreviousFocusable(get(component, ":comp"), block, false, false, backward, outgo);
 				if ((previous == null) && checkFocusable(component, false)) {
 					previous = component;
 				}
@@ -4181,8 +4178,8 @@ public class Thinlet extends Container //java
 					return false;
 				}
 				Object parent = getParent(comp);
-				if ((getClass(parent) == "tabbedpane") && (getItemImpl(parent,
-					"component", getInteger(parent, "selected", 0)) != comp)) { return false; }
+				if ((getClass(comp) == "tab") && (getItem(parent,
+					getInteger(parent, "selected", 0)) != comp)) { return false; }
 				comp = parent;
 			}
 			return true;
@@ -4292,21 +4289,7 @@ public class Thinlet extends Container //java
 	 * @return the number of components in this component
 	 */
 	public int getCount(Object component) {
-		return getCount(component, null);
-	}
-
-	/**
-	 * Gets the count of subcomponents in the list of the given component
-	 *
-	 * @param component a widget
-	 * @param key the list is identified by the key name for <i>tabbed pane</i>
-	 * (<i>tab</i>, or <i>component</i>) or <i>table</i>
-	 * (<i>column</i>, or <i>row</i>) The <i>component</i> and the <i>row</i>
-	 * is the default key
-	 * @return the number of components in this component
-	 */
-	public int getCount(Object component, String key) {
-		return getItemCountImpl(component, getComponentName(component, key));
+		return getItemCountImpl(component, ":comp");
 	}
 	
 	/**
@@ -4326,11 +4309,10 @@ public class Thinlet extends Container //java
 	 * @return the first selected index or -1
 	 */
 	public int getSelectedIndex(Object component) {
-		int i = 0;
-		for (Object item = get(component, getComponentName(component, null));
-				item != null; item = get(item, ":next")) {
+		Object item = get(component, ":comp");
+		for (int i = 0; item != null; i++) {
 			if (getBoolean(item, "selected", false)) { return i; }
-			i++;
+			item = get(item, ":next");
 		}
 		return -1;
 	}
@@ -4377,11 +4359,10 @@ public class Thinlet extends Container //java
 	 */
 	private Object findNextItem(Object component, String classname, Object item) {
 		if (item == null) { // first item
-			String itemname = ("list" == classname) ? "item" : (("table" == classname) ? "row" : "node");
-			return get(component, itemname);
+			return get(component, ":comp");
 		}
 		else if ("tree" == classname) { // next tree node
-			Object next = get(item, "node");
+			Object next = get(item, ":comp");
 			if ((next == null) || !getBoolean(item, "expanded", true)) { // no subnode or collapsed
 				while ((item != component) && ((next = get(item, ":next")) == null)) {
 					item = getParent(item); //next node of in backward path
@@ -4395,27 +4376,13 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 * Removes all the components from this container
+	 * Removes all the components from this container's specified list
 	 *
 	 * @param component the specified container
 	 */
 	public void removeAll(Object component) {
-		removeAll(component, null);
-	}
-
-	/**
-	 * Removes all the components from this container's specified list
-	 *
-	 * @param component the specified container
-	 * @param key the list is identified by the key name for <i>tabbed pane</i>
-	 * (<i>tab</i>, or <i>component</i>) or <i>table</i>
-	 * (<i>column</i>, or <i>row</i>) The <i>component</i> and the <i>row</i>
-	 * is the default key
-	 */
-	public void removeAll(Object component, String key) {
-		String list = getComponentName(component, key);
-		if (get(component, list) != null) {
-			set(component, list, null);
+		if (get(component, ":comp") != null) {
+			set(component, ":comp", null);
 			update(component, "validate");
 		}
 	}
@@ -4423,24 +4390,23 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private int getItemCountImpl(Object component, Object key) {
+	private int getItemCountImpl(Object component, String key) {
 		int i = 0;
-		for (component = get(component, key); component != null;
-				component = get(component, ":next")) {
+		for (Object comp = get(component, key); comp != null; comp = get(comp, ":next")) {
 			i++;
 		}
 		return i;
 	}
 
 	/**
-	 * Returns the subcomponent of the given component at the specified index
+	 * Returns the subcomponent of the given component's specified list at the given index
 	 *
 	 * @param component a specified container
 	 * @param index the index of the component to get
 	 * @return the index<sup>th</sup> component in this container
 	 */
 	public Object getItem(Object component, int index) {
-		return getItem(component, null, index);
+		return getItemImpl(component, ":comp", index);
 	}
 	
 	/**
@@ -4450,46 +4416,21 @@ public class Thinlet extends Container //java
 	 * @return an array of all the components in this container
 	 */
 	public Object[] getItems(Object component) {
-		return getItems(component, null);
-	}
-
-	/**
-	 * Returns the subcomponent of the given component's specified list at the given index
-	 *
-	 * @param component a specified container
-	 * @param key the list is identified by the key name
-	 * @param index the index of the component to get
-	 * @return the index<sup>th</sup> component in this container
-	 */
-	public Object getItem(Object component, String key, int index) {
-		return getItemImpl(component, getComponentName(component, key), index);
-	}
-
-	/**
-	 * Gets all the components in this container's specified list
-	 *
-	 * @param component a specified container
-	 * @param key the list is identified by the key name
-	 * @return an array of all the components in this container
-	 */
-	public Object[] getItems(Object component, String key) {
-		key = getComponentName(component, key);
-		Object[] items = new Object[getItemCountImpl(component, key)];
-		component = get(component, key);
+		Object[] items = new Object[getItemCountImpl(component, ":comp")];
+		Object comp = get(component, ":comp");
 		for (int i = 0; i < items.length; i++) {
-			items[i] = component;
-			component = get(component, ":next");
+			items[i] = comp;
+			comp = get(comp, ":next");
 		}
 		return items;
 	}
 
 	/**
-	 *
+	 * Referenced by DOM, replace by getItem for others
 	 */
 	private Object getItemImpl(Object component, Object key, int index) {
 		int i = 0;
-		for (Object item = get(component, key);
-				item != null; item = get(item, ":next")) {
+		for (Object item = get(component, key); item != null; item = get(item, ":next")) {
 			if (i == index) { return item; }
 			i++;
 		}
@@ -4499,10 +4440,9 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private int getIndex(Object component, Object key, Object value) {
+	private int getIndex(Object component, Object value) {
 		int index = 0;
-		for (Object item = get(component, key);
-				item != null; item = get(item, ":next")) {
+		for (Object item = get(component, ":comp"); item != null; item = get(item, ":next")) {
 			if (value == item) { return index; }
 			index++;
 		}
@@ -4545,14 +4485,7 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 *
-	 */
-	private void addItem(Object parent, Object key, Object component) {
-		insertItem(parent, key, component, -1);
-	}
-
-	/**
-	 *
+	 * Referenced by DOM
 	 */
 	private void insertItem(Object parent,
 			Object key, Object component, int index) {
@@ -4575,26 +4508,11 @@ public class Thinlet extends Container //java
 	 * Removes the specified component from its parent
 	 *
 	 * @param component the component to be removed
-	 * @throws java.lang.IllegalArgumentException
 	 */
 	public void remove(Object component) {
 		Object parent = getParent(component);
-		String parentclass = getClass(parent);
-		String classname = getClass(component);
-		String listkey = ("combobox" == parentclass) ? "choice" :
-			(("tabbedpane" == parentclass) && ("tab" == classname)) ? "tab" :
-			("list" == parentclass) ? "item" :
-			(("table" == parentclass) && ("column" == classname)) ? "column" :
-			(("table" == parentclass) && ("row" == classname)) ? "row" :
-			("row" == parentclass) ? "cell" :
-			(("tree" == parentclass) || ("node" == parentclass)) ? "node" :
-			(("menubar" == parentclass) || ("menu" == parentclass)) ? "menu" :
-			(("panel" == parentclass) || ("desktop" == parentclass) ||
-				("splitpane" == parentclass) || ("dialog" == parentclass) ||
-				("tabbedpane" == parentclass)) ? "component" : null;
-		if (listkey == null) { throw new IllegalArgumentException("unknown " + classname); }
 		update(component, "validate");
-		removeItemImpl(parent, listkey, component);
+		removeItemImpl(parent, component);
 		// reuest focus for its parent if the component (or subcomponent) is currently focused
 		for (Object comp = focusowner; comp != null; comp = getParent(comp)) {
 			if (comp == component) {
@@ -4606,7 +4524,8 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private void removeItemImpl(Object parent, Object key, Object component) {
+	private void removeItemImpl(Object parent, Object component) {
+		String key = ":comp";
 		Object target = get(parent, key);
 		while (target != component) {
 			target = get(parent = target, key = ":next"); // (target != null)
@@ -4614,43 +4533,6 @@ public class Thinlet extends Container //java
 		set(parent, key, get(target, ":next"));
 		set(target, ":next", null);
 		set(target, ":parent", null);
-	}
-
-	/*
-	private void removeItemImpl(Object parent, String key, int index) {
-		Object target = get(parent, key);
-		for (int i = 0; i < index; i++) {
-			target = get(parent = target, key = ":next");
-		}
-		set(parent, key, get(target, ":next"));
-		set(target, ":next", null);
-	}*/
-
-	/**
-	 *
-	 * @throws java.lang.IllegalArgumentException
-	 */
-	private String getComponentName(Object parent, Object classname) {
-		String parentclass = getClass(parent);
-		String compname = ("combobox" == parentclass) ? "choice" :
-			("list" == parentclass) ? "item" :
-			("row" == parentclass) ? "cell" :
-			(("tree" == parentclass) || ("node" == parentclass)) ? "node" :
-			(("menubar" == parentclass) || ("menu" == parentclass)) ? "menu" :
-			(("panel" == parentclass) || ("desktop" == parentclass) ||
-				("splitpane" == parentclass) || ("dialog" == parentclass)) ?
-				"component" : null;
-		if ((compname != null) && ((classname == null) ||
-				compname.equals(classname))) { return compname; }
-		if ("tabbedpane" == parentclass) {
-			if ("tab".equals(classname)) { return "tab"; }
-			if ((classname == null) || "component".equals(classname)) { return "component"; }
-		}
-		else if ("table" == parentclass) {
-			if ("column".equals(classname)) { return "column"; }
-			if ((classname == null) || "row".equals(classname)) { return "row"; }
-		}
-		throw new IllegalArgumentException("unknown " + classname);
 	}
 
 	/**
@@ -4672,24 +4554,9 @@ public class Thinlet extends Container //java
 	 */
 	public Object find(Object component, String name) {
 		if (name.equals(get(component, "name"))) { return component; }
-		String classname = getClass(component);
-		String childname = null; String childname2 = null;
-		if (("panel" == classname) || ("desktop" == classname) ||
-				("splitpane" == classname) || ("dialog" == classname)) { childname = "component"; }
-		else if ("combobox" == classname) { childname = "choice"; }
-		else if ("tabbedpane" == classname) { childname = "tab"; childname2 = "component"; }
-		else if ("list" == classname) { childname = "item"; }
-		else if ("table" == classname) { childname = "column"; childname2 = "row"; }
-		else if ("row" == classname) { childname = "cell"; }
-		else if (("tree" == classname) || ("node" == classname)) { childname = "node"; }
-		else if (("menubar" == classname) || ("menu" == classname)) { childname = "menu"; }
-		while (childname != null) {
-			for (Object comp = get(component, childname);
-					comp != null; comp = get(comp, ":next")) {
-				Object found = find(comp, name);
-				if (found != null) { return found; }
-			}
-			childname = childname2; childname2 = null;
+		for (Object comp = get(component, ":comp"); 	comp != null; comp = get(comp, ":next")) {
+			Object found = find(comp, name);
+			if (found != null) { return found; }
 		}
 		return null;
 	}
@@ -5152,44 +5019,49 @@ public class Thinlet extends Container //java
 	}*/
 
 	/**
+	 * Add the component to the parent's ':comp' list, and set its ':parent'
+	 * or set single components
 	 *
+	 * @param index add at the specified index
 	 * @throws java.lang.IllegalArgumentException
 	 */
 	private void addImpl(Object parent, Object component, int index) {
 		String parentclass = getClass(parent);
 		String classname = getClass(component);
-		//System.out.println("add " + classname + " -> " + parentclass);
 		if ((("combobox" == parentclass) && ("choice" == classname)) ||
-					(("tabbedpane" == parentclass) && ("tab" == classname)) ||
-					(("list" == parentclass) && ("item" == classname)) ||
-					(("table" == parentclass) && (("column" == classname) || ("row" == classname))) ||
-					(("row" == parentclass) && ("cell" == classname)) ||
-					((("tree" == parentclass) || ("node" == parentclass)) && ("node" == classname)) ||
-					(("menubar" == parentclass) && ("menu" == classname))) {
-				classname = classname; // compiler bug
+				(("tabbedpane" == parentclass) && ("tab" == classname)) ||
+				(("list" == parentclass) && ("item" == classname)) ||
+				(("table" == parentclass) && ("row" == classname)) ||
+				(("header" == parentclass) && ("column" == classname)) ||
+				(("row" == parentclass) && ("cell" == classname)) ||
+				((("tree" == parentclass) || ("node" == parentclass)) && ("node" == classname)) ||
+				(("menubar" == parentclass) && ("menu" == classname)) ||
+				(("menu" == parentclass) && (("menu" == classname) || ("menuitem" == classname) ||
+					("checkboxmenuitem" == classname) || ("separator" == classname))) ||
+				((("panel" == parentclass) || ("desktop" == parentclass) ||
+					("splitpane" == parentclass) || ("dialog" == parentclass) ||
+					("tab" == parentclass)) && instance(classname, "component"))) {
+			insertItem(parent, ":comp", component, index);
+			set(component, ":parent", parent);
 		}
-		else if (("menu" == parentclass) && (("menu" == classname) || ("menuitem" == classname) ||
-				("checkboxmenuitem" == classname) || ("separator" == classname))) {
-			classname = "menu";
-		}
-		else if (("panel" == parentclass) || ("desktop" == parentclass) ||
-				("splitpane" == parentclass) || ("dialog" == parentclass) ||
-				("tabbedpane" == parentclass)) {
-			while ("component" != classname) {
-				String extendclass = null;
-				for (int i = 0; i < dtd.length; i += 3) {
-					if (classname == dtd[i]) {
-						extendclass = (String) dtd[i + 1]; break;
-					}
-				}
-				if (extendclass == null) throw new IllegalArgumentException(classname + " not component");
-				classname = extendclass;
-			}
+		else if (("table" == parentclass) && ("header" == classname)) {
+			set(parent, classname, component);
+			set(component, ":parent", parent);
 		}
 		else throw new IllegalArgumentException(classname + " add " + parentclass);
-		insertItem(parent, (String) classname, component, index);
-		set(component, ":parent", parent);
-		//if (parent == content) System.out.println(getClass(parent) + ".add(" + getClass(component) + ") : " + classname);
+	}
+	
+	/**
+	 *
+	 */
+	private boolean instance(Object classname, Object extendclass) {
+		if (classname == extendclass) { return true; }
+		for (int i = 0; i < dtd.length; i += 3) {
+				if (classname == dtd[i]) {
+					return instance(dtd[i + 1], extendclass);
+				}
+		}
+		return false;
 	}
 
 	/**
@@ -5266,12 +5138,14 @@ public class Thinlet extends Container //java
 			for (int i = 0; i < dtd.length; i += 3) {
 				if (dtd[i] == classname) {
 					Object[][] attributes = (Object[][]) dtd[i + 2];
-					for (int j = 0; j < attributes.length; j++) {
-						if (attributes[j][1].equals(key)) {
-							if ((type != null) && (type != attributes[j][0])) {
-								throw new IllegalArgumentException(attributes[j][0].toString());
+					if (attributes != null) {
+						for (int j = 0; j < attributes.length; j++) {
+							if (attributes[j][1].equals(key)) {
+								if ((type != null) && (type != attributes[j][0])) {
+									throw new IllegalArgumentException(attributes[j][0].toString());
+								}
+								return attributes[j];
 							}
-							return attributes[j];
 						}
 					}
 					classname = dtd[i + 1];
@@ -5505,8 +5379,7 @@ public class Thinlet extends Container //java
 				parent = get(parent, ":popup");
 			}
 			else if (("paint" == mode) && ("tabbedpane" == classname)) {
-				if (getItemImpl(parent, "component",
-						getInteger(parent, "selected", 0)) != component) { break; }
+				if (getItem(parent, getInteger(parent, "selected", 0)) != component) { break; }
 			}
 			if (("layout" == mode) || (("validate" == mode) &&
 					(("list" == classname) || ("table" == classname) ||
@@ -5773,7 +5646,7 @@ public class Thinlet extends Container //java
 				{ "boolean", "selected", "paint", Boolean.FALSE }, //...group
 				{ "string", "group", "paint", null }, //...group
 				{ "method", "action", "", null } },
-			"togglebutton", "checkbox", new Object[][] {},
+			"togglebutton", "checkbox", null,
 			"combobox", "textfield", new Object[][] {
 				{ "icon", "icon", "validate", null },
 				{ "integer", "selected", "layout", integer_1 } },
@@ -5792,7 +5665,7 @@ public class Thinlet extends Container //java
 				{ "integer", "start", "layout", integer0 },
 				{ "integer", "end", "layout", integer0 },
 				{ "method", "action", "", null } },
-			"passwordfield", "textfield", new Object[][] {},
+			"passwordfield", "textfield", null,
 			"textarea", "textfield", new Object[][] {
 				{ "integer", "rows", "validate", integer0 },
 				{ "boolean", "wrap", "layout", Boolean.FALSE } },
@@ -5813,12 +5686,12 @@ public class Thinlet extends Container //java
 				{ "string", "text", "validate", null },
 				{ "icon", "icon", "validate", null },
 				{ "boolean", "border", "validate", Boolean.FALSE } },
-			"desktop", "component", new Object[][] {},
+			"desktop", "component", null,
 			"dialog", "panel", new Object[][] {
 				{ "string", "text", "", null },
 				{ "icon", "icon", "", null },
 				{ "boolean", "modal", "", Boolean.FALSE } },
-			"spinbox", "textfield", new Object[][] {}, //...
+			"spinbox", "textfield", null, //...
 			"progressbar", "component", new Object[][] {
 				{ "choice", "orientation", "validate", orientation },
 				{ "integer", "minimum", "paint", integer0 }, //...checkvalue
@@ -5847,11 +5720,12 @@ public class Thinlet extends Container //java
 					new String[] { "singlerow", "rowinterval", "multiplerow",
 						"cell", "cellinterval",
 						"singlecolumn", "columninterval", "multiplecolumn" } }*/ },
+			"header", null, null,
 			"column", "choice", new Object[][] {
 				{ "integer", "width", "", new Integer(80) }},
 			"row", null, new Object[][] {
 				{ "boolean", "selected", "", Boolean.FALSE } },
-			"cell", "choice", new Object[][] {},
+			"cell", "choice", null,
 			"tree", "component", new Object[][] {
 				{ "choice", "selection", "paint", selections },
 				{ "method", "action", "", null },
@@ -5860,8 +5734,8 @@ public class Thinlet extends Container //java
 			"node", "choice", new Object[][] {
 				{ "boolean", "selected", "", Boolean.FALSE },
 				{ "boolean", "expanded", "", Boolean.TRUE } },
-			"separator", "component", new Object[][] {},
-			"menubar", "component", new Object[][] {},
+			"separator", "component", null,
+			"menubar", "component", null,
 			"menu", "choice", new Object[][] {
 				{ "integer", "mnemonic", "paint", integer_1 } },
 			"menuitem", "choice", new Object[][] {

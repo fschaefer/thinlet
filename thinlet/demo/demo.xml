@@ -33,113 +33,119 @@
 		</menu>
 	</menubar>
 	<tabbedpane selected="1" weightx="1" weighty="1">
-		<tab text="Texts" />
-		<panel columns="5" top="4" left="4" bottom="4" right="4" gap="4">
-			<label text="Find in the text:" mnemonic="10" />
-			<button name="b_finddialog" text="Search" tooltip="Search..."
-					icon="/icons/find.gif" mnemonic="1" action="showDialog()" />
-			<label weightx="1" />
-			<checkbox name="cb_editable" text="Editable" mnemonic="4"
-					selected="true" action="changeEditable(this.selected, textarea)" />
-			<checkbox name="cb_enabled" text="Enabled" selected="true"
-					action="changeEnabled(this.selected, textarea)" />
-			<textarea name="textarea" init="loadText(this)" colspan="5" weighty="1" />
-		</panel>
-
-		<tab text="Lists" mnemonic="0" />
-		<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4">
-			<panel gap="4">
-				<label text="Update list:" />
-				<button icon="/icons/new.gif" tooltip="Add new item" action="insertList(list)" />
-				<button name="delete" icon="/icons/delete.gif"
-						tooltip="Delete selected items" action="deleteList(this, list)" />
-				<label text=" &amp; selection:" />
-				<combobox name="selection" selected="2" editable="false"
-						valign="center" action="setSelection(list, this.text, delete)">
-					<choice text="single" />
-					<choice text="interval" />
-					<choice text="multiple" />
-				</combobox>
+		<tab text="Texts">
+			<panel columns="5" top="4" left="4" bottom="4" right="4" gap="4">
+				<label text="Find in the text:" mnemonic="10" />
+				<button name="b_finddialog" text="Search" tooltip="Search..."
+						icon="/icons/find.gif" mnemonic="1" action="showDialog()" />
+				<label weightx="1" />
+				<checkbox name="cb_editable" text="Editable" mnemonic="4"
+						selected="true" action="changeEditable(this.selected, textarea)" />
+				<checkbox name="cb_enabled" text="Enabled" selected="true"
+						action="changeEnabled(this.selected, textarea)" />
+				<textarea name="textarea" init="loadText(this)" colspan="5" weighty="1" />
 			</panel>
-			<splitpane orientation="vertical" divider="100" weightx="1" weighty="1">
-				<splitpane divider="120">
-					<list name="list" selection="multiple" action="changeSelection(this, delete)"
-							colspan="4" weightx="1" weighty="1">
-						<item text="List item A" />
-						<item text="List item B" icon="/icons/bookmarks.gif" selected="true" />
-						<item text="List item C" enabled="false" />
-						<item text="List item D" icon="/icons/bookmarks.gif" />
-						<item text="List item E" />
-						<item text="List item F" />
-						<item text="List item G" />
-					</list>
-					<tree selection="multiple">
-						<node text="Tree node A" icon="/icons/open.gif">
-							<node text="Tree node" icon="/icons/open.gif" selected="true">
-								<node text="Tree node" icon="/icons/new.gif" />
+		</tab>
+
+		<tab text="Lists" mnemonic="0">
+			<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4">
+				<panel gap="4">
+					<label text="Update list:" />
+					<button icon="/icons/new.gif" tooltip="Add new item" action="insertList(list)" />
+					<button name="delete" icon="/icons/delete.gif"
+							tooltip="Delete selected items" action="deleteList(this, list)" />
+					<label text=" &amp; selection:" />
+					<combobox name="selection" selected="2" editable="false"
+							valign="center" action="setSelection(list, this.text, delete)">
+						<choice text="single" />
+						<choice text="interval" />
+						<choice text="multiple" />
+					</combobox>
+				</panel>
+				<splitpane orientation="vertical" divider="100" weightx="1" weighty="1">
+					<splitpane divider="120">
+						<list name="list" selection="multiple" action="changeSelection(this, delete)"
+								colspan="4" weightx="1" weighty="1">
+							<item text="List item A" />
+							<item text="List item B" icon="/icons/bookmarks.gif" selected="true" />
+							<item text="List item C" enabled="false" />
+							<item text="List item D" icon="/icons/bookmarks.gif" />
+							<item text="List item E" />
+							<item text="List item F" />
+							<item text="List item G" />
+						</list>
+						<tree selection="multiple">
+							<node text="Tree node A" icon="/icons/open.gif">
+								<node text="Tree node" icon="/icons/open.gif" selected="true">
+									<node text="Tree node" icon="/icons/new.gif" />
+								</node>
 							</node>
-						</node>
-						<node text="Tree node B" enabled="false" icon="/icons/new.gif" />
-						<node text="Tree node C" icon="/icons/open.gif" expanded="false">
-							<node text="Tree node C1" icon="/icons/new.gif" />
-						</node>
-					</tree>
+							<node text="Tree node B" enabled="false" icon="/icons/new.gif" />
+							<node text="Tree node C" icon="/icons/open.gif" expanded="false">
+								<node text="Tree node C1" icon="/icons/new.gif" />
+							</node>
+						</tree>
+					</splitpane>
+					<table selection="multiple">
+						<header>
+							<column text="Column" icon="/icons/bookmarks.gif" width="120" />
+							<column text="Column" alignment="center" />
+							<column text="Column" alignment="center" />
+						</header>
+						<row>
+							<cell text="Cell" />
+							<cell text="Cell" />
+							<cell text="Cell" icon="/icons/bookmarks.gif" />
+						</row>
+						<row selected="true">
+							<cell text="Cell" icon="/icons/bookmarks.gif" />
+							<cell text="Cell" />
+							<cell text="Cell" />
+						</row>
+						<row>
+							<cell text="Cell" />
+							<cell text="Cell" icon="/icons/bookmarks.gif" enabled="false" />
+							<cell text="Cell" />
+						</row>
+					</table>
 				</splitpane>
-				<table selection="multiple">
-					<column text="Column" icon="/icons/bookmarks.gif" width="120" />
-					<column text="Column" alignment="center" />
-					<column text="Column" alignment="center" />
-					<row>
-						<cell text="Cell" />
-						<cell text="Cell" />
-						<cell text="Cell" icon="/icons/bookmarks.gif" />
-					</row>
-					<row selected="true">
-						<cell text="Cell" icon="/icons/bookmarks.gif" />
-						<cell text="Cell" />
-						<cell text="Cell" />
-					</row>
-					<row>
-						<cell text="Cell" />
-						<cell text="Cell" icon="/icons/bookmarks.gif" enabled="false" />
-						<cell text="Cell" />
-					</row>
-				</table>
-			</splitpane>
-		</panel>
+			</panel>
+		</tab>
 		
-		<tab text="Values" />
-		<panel columns="3" top="4" left="4" gap="4">
-			<label text="Red, green, and blue values" colspan="3" />
-			<label text="Red:" alignment="right" />
-			<slider name="sl_red" maximum="255" valign="center"
-					action="sliderChanged(this.value, sb_red)" />
-			<spinbox name="sb_red" text="0" columns="3"
-					action="spinboxChanged(this.text, sl_red)" />
-			<label text="Green:" alignment="right" />
-			<slider name="sl_green" maximum="255" valign="center"
-					action="sliderChanged(this.value, sb_green)" />
-			<spinbox name="sb_green" text="0" columns="3"
-					action="spinboxChanged(this.text, sl_green)" />
-			<label text="Blue:" alignment="right" />
-			<slider name="sl_blue" maximum="255" valign="center"
-					action="sliderChanged(this.value, sb_blue)" />
-			<spinbox name="sb_blue" text="0" columns="3"
-					action="spinboxChanged(this.text, sl_blue)" />
-			
-			<separator colspan="3" />
-			
-			<label text="Hue, saturation, and brightness values" colspan="3" />
-			<label text="Hue:" alignment="right" />
-			<textfield name="tf_hue" text="0.0" editable="false" />
-			<progressbar name="pb_hue" valign="center" />
-			<label text="Saturation:" alignment="right" />
-			<textfield name="tf_saturation" text="0.0" editable="false" />
-			<progressbar name="pb_saturation" valign="center" />
-			<label text="Brightness:" alignment="right" />
-			<textfield name="tf_brightness" text="0.0" editable="false" />
-			<progressbar name="pb_brightness" valign="center" />
-			
-		</panel>
+		<tab text="Values">
+			<panel columns="3" top="4" left="4" gap="4"
+					init="storeWidgets(sl_red, sl_green, sl_blue, tf_hue, tf_saturation, tf_brightness, pb_hue, pb_saturation, pb_brightness)">
+				<label text="Red, green, and blue values" colspan="3" />
+				<label text="Red:" alignment="right" />
+				<slider name="sl_red" maximum="255" valign="center"
+						action="sliderChanged(this.value, sb_red)" />
+				<spinbox name="sb_red" text="0" columns="3"
+						action="spinboxChanged(this.text, sl_red)" />
+				<label text="Green:" alignment="right" />
+				<slider name="sl_green" maximum="255" valign="center"
+						action="sliderChanged(this.value, sb_green)" />
+				<spinbox name="sb_green" text="0" columns="3"
+						action="spinboxChanged(this.text, sl_green)" />
+				<label text="Blue:" alignment="right" />
+				<slider name="sl_blue" maximum="255" valign="center"
+						action="sliderChanged(this.value, sb_blue)" />
+				<spinbox name="sb_blue" text="0" columns="3"
+						action="spinboxChanged(this.text, sl_blue)" />
+				
+				<separator colspan="3" />
+				
+				<label text="Hue, saturation, and brightness values" colspan="3" />
+				<label text="Hue:" alignment="right" />
+				<textfield name="tf_hue" text="0.0" editable="false" />
+				<progressbar name="pb_hue" valign="center" />
+				<label text="Saturation:" alignment="right" />
+				<textfield name="tf_saturation" text="0.0" editable="false" />
+				<progressbar name="pb_saturation" valign="center" />
+				<label text="Brightness:" alignment="right" />
+				<textfield name="tf_brightness" text="0.0" editable="false" />
+				<progressbar name="pb_brightness" valign="center" />
+				
+			</panel>
+		</tab>
 	</tabbedpane>
 </panel>

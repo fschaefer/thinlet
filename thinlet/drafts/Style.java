@@ -69,8 +69,9 @@ public class Style {
 					0xd6dff5, 0x9caae5, 0x666666, 0x003399, 0xff3333, 0x666666);
 				break;
 			case 3: //xp background text textbackground border disable hover press focus select
-				thinlet.setColors(0xece9d8, 0x000000, 0xffffe1,
-					0x808080, 0xaca899, 0xf1efe2, 0x716f64, 0x000080, 0x316ac5);
+				thinlet.setFont(new Font("Tahoma", Font.PLAIN, 11));
+				thinlet.setColors(0xe6ead8, 0x000000, 0xffffff,
+					0x909090, 0xb0b0b0, 0xededed, 0xc7c5b2, 0xe68b2c, 0xf2c977);
 		}
 	}
 }

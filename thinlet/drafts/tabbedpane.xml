@@ -3,10 +3,10 @@
 		top="4" left="4" bottom="4" right="4">
 	<label text="TabbedPane demo" />
 	<tabbedpane name="tabbed" weightx="1">
-		<tab text="One" /><textarea text="One" />
-		<tab text="Two" /><textarea text="Two" />
-		<tab text="Three" /><textarea text="Three" />
-		<tab text="Four" /><textarea text="Four" />
+		<tab text="One"><textarea text="One" /></tab>
+		<tab text="Two"><textarea text="Two" /></tab>
+		<tab text="Three"><textarea text="Three" /></tab>
+		<tab text="Four"><textarea text="Four" /></tab>
 	</tabbedpane>
 	<panel gap="4">
 		<label text="Placement:" />

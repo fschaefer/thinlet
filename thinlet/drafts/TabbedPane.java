@@ -20,7 +20,7 @@ public class TabbedPane {
 	 *
 	 */
 	public void changeEnabled(Thinlet thinlet, boolean selected, Object tabbedpane, int tabindex) {
-		Object tab = thinlet.getItem(tabbedpane, "tab", tabindex);
+		Object tab = thinlet.getItem(tabbedpane, tabindex);
 		thinlet.setBoolean(tab, "enabled", selected);
 	}
 	

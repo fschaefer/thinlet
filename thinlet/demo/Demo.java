@@ -202,13 +202,24 @@ public class Demo extends Thinlet {
 	/**
 	 *
 	 */
+	public void storeWidgets(Object sl_red, Object sl_green, Object sl_blue,
+			Object tf_hue, Object tf_saturation, Object tf_brightness,
+			Object pb_hue, Object pb_saturation, Object pb_brightness) {
+		this.sl_red = sl_red;
+		this.sl_green = sl_green;
+		this.sl_blue = sl_blue;
+		this.tf_hue = tf_hue;
+		this.tf_saturation = tf_saturation;
+		this.tf_brightness = tf_brightness;
+		this.pb_hue = pb_hue;
+		this.pb_saturation = pb_saturation;
+		this.pb_brightness = pb_brightness;
+	}
+	
+	/**
+	 *
+	 */
 	private void hsbChanged() {
-		if (sl_red == null) {
-			sl_red = find("sl_red"); sl_green = find("sl_green"); sl_blue = find("sl_blue");
-			tf_hue = find("tf_hue"); tf_saturation = find("tf_saturation"); tf_brightness = find("tf_brightness");
-			pb_hue = find("pb_hue"); pb_saturation = find("pb_saturation"); pb_brightness = find("pb_brightness");
-		}
-		
 		int red = getInteger(sl_red, "value");
 		int green = getInteger(sl_green, "value");
 		int blue = getInteger(sl_blue, "value");
