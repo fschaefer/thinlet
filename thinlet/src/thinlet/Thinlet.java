@@ -4635,6 +4635,10 @@ public class Thinlet extends Container
 	 * @return the first selected index or -1
 	 */
 	public int getSelectedIndex(Object component) {
+		String classname = getClass(component);
+		if (classname == "tabbedpane" || classname == "combobox") {
+			return getInteger(component, "selected");
+		}
 		Object item = get(component, ":comp");
 		for (int i = 0; item != null; i++) {
 			if (getBoolean(item, "selected", false)) { return i; }
@@ -4651,6 +4655,9 @@ public class Thinlet extends Container
 	 */
 	public Object getSelectedItem(Object component) {
 		String classname = getClass(component);
+		if (classname == "tabbedpane" || classname == "combobox") {
+			return getItemImpl(component, ":comp", getInteger(component, "selected"));
+		}
 		for (Object item = findNextItem(component, classname, null); item != null;
 				item = findNextItem(component, classname, item)) {
 			if (getBoolean(item, "selected", false)) { return item; }
