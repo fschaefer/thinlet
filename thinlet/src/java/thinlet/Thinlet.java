@@ -2235,9 +2235,9 @@ public class Thinlet extends Container implements Runnable, Serializable {
                  // ("tree"
             // == classname))
             Object lead = get(component, ":lead");
-            if (getIndex(component, lead) == -1) {
-               set(component, ":lead", lead = null);
-            }
+            //if (getIndex(component, lead) == -1) {
+            //   set(component, ":lead", lead = null);
+            //}
             int[] columnwidths = ("table" == classname) ? ((int[]) get(component, ":widths")) : null;
             boolean line = getBoolean(component, "line", true);
             int iline = line ? 1 : 0;
@@ -3460,9 +3460,9 @@ public class Thinlet extends Container implements Runnable, Serializable {
                 (keycode == KeyEvent.VK_DOWN) || (keycode == KeyEvent.VK_PAGE_UP) || (keycode == KeyEvent.VK_PAGE_DOWN)
                 || (keycode == KeyEvent.VK_HOME) || (keycode == KeyEvent.VK_END)) {
             Object lead = get(component, ":lead");
-            if (getIndex(component, lead) == -1) {
-                set(component, ":lead", lead = null);
-            }
+            //if (getIndex(component, lead) == -1) {
+            //    set(component, ":lead", lead = null);
+            //}
             Object row = getListItem(component, component, keycode, lead, recursive);
             if (row != null) {
                 String selection = getString(component, "selection", "single");
