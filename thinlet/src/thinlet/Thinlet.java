@@ -1012,7 +1012,7 @@ public class Thinlet extends Container
 			return getSize(component, 0, 0);
 		} 
 		if (("button" == classname) || ("togglebutton" == classname)) {
-			if (getBoolean(component, "link", false))
+			if (getChoice(component, "type") == "link")
 				return getSize(component, ITEM.left + ITEM.right,
 					ITEM.top + ITEM.bottom);
 			else
@@ -1489,7 +1489,7 @@ public class Thinlet extends Container
 		}
 		else if (("button" == classname) || ("togglebutton" == classname)) {
 			boolean toggled = ("togglebutton" == classname) && getBoolean(component, "selected", false);
-			boolean link = ("button" == classname) && getBoolean(component, "link", false);
+			boolean link = ("button" == classname) && (getChoice(component, "type") == "link");
 			if (link) {
                             g.setColor(enabled ? ((inside != pressed) ? c_hover : (pressed ? c_press : c_bg)) : c_bg);
                             g.fillRect(0, 0, bounds.width, bounds.height);
@@ -1500,7 +1500,7 @@ public class Thinlet extends Container
 					enabled ? ((inside != pressed) ? c_hover : ((pressed || toggled) ? c_press : c_ctrl)) :
 					(toggled ? c_press : c_bg), true, true, true, true, true);
 			}
-			if (focus && !link) {
+			if (focus) {
 				g.setColor(c_focus);
 				g.drawRect(2, 2, bounds.width - 5, bounds.height - 5);
 			}
@@ -2198,7 +2198,7 @@ public class Thinlet extends Container
 					if ("tree" == classname) {
 						int x = r.x - block / 2; int y = r.y + (r.height - 1) / 2;
 						g.setColor(c_bg);
-						g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x, y);
+						//g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x, y);
 						if (subnode) {
 							paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
 								itemenabled ? c_ctrl : c_bg, true, true, true, true, true);
@@ -2213,6 +2213,8 @@ public class Thinlet extends Container
 					for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
 						if (clipx + clipwidth <= x) { break; }
 						int iwidth = columnwidths[i];
+						boolean lastcolumn = (i == columnwidths.length - 1);
+						if (lastcolumn) { iwidth = Math.max(iwidth, viewwidth - x); }
 						if (clipx < x + iwidth) {
 							boolean cellenabled = enabled && getBoolean(cell, "enabled", true);
 							paintContent(cell, g, clipx, clipy, clipwidth, clipheight,
@@ -2344,7 +2346,7 @@ public class Thinlet extends Container
 		String text = getString(component, "text", null);
 		Image icon = getIcon(component, "icon", null);
 		if ((text == null) && (icon == null)) { return; }
-                boolean link = getBoolean(component, "link", false);
+                boolean link = (getClass(component) == "button") && (getChoice(component, "type") == "link");
 		String alignment = getString(component, "alignment", defaultalignment);
 		Font customfont = (text != null) ? (Font) get(component, "font") : null;
 		if (customfont != null) { g.setFont(customfont); }
@@ -3430,6 +3432,16 @@ public class Thinlet extends Container
 					}
 					else invoke(component, null, "action");
 				}
+				// hand cursor for links ...
+				else if ( "button" == classname && (getChoice(component, "type") == "link") ) {
+					if ((id == MouseEvent.MOUSE_ENTERED) && (mousepressed == null) ) {
+						setCursor(Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ));
+					}
+					else if (((id == MouseEvent.MOUSE_EXITED) && (mousepressed == null)) ||
+							((id == MouseEvent.MOUSE_RELEASED) && (mouseinside != component))) {
+						setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+					}
+				}
 				repaint(component);
 			}
 		}
@@ -4497,7 +4509,7 @@ public class Thinlet extends Container
 				(classname == "tabbedpane") || (forced && (classname == "splitpane"))) {
 			for (Object comp = component; comp != null;) {
 				// component and parents are enabled and visible
-				if (!getBoolean(comp, "enabled", true) || !getBoolean(comp, "visible", true) || getBoolean(comp, "link", false)) {
+				if (!getBoolean(comp, "enabled", true) || !getBoolean(comp, "visible", true) ) {
 					return false;
 				}
 				Object parent = getParent(comp);
@@ -6074,9 +6086,8 @@ public class Thinlet extends Container
 			 	{ "component", "for", "", null } },
 			"button", "label", new Object[][] {
 			 	{ "choice", "alignment", "validate", new String[] { "center", "left", "right" } },
-				{ "boolean", "link", "", Boolean.FALSE },
 				{ "method", "action", "", null },
-				{ "choice", "type", "", new String[] { "normal", "default", "cancel" } }
+				{ "choice", "type", "", new String[] { "normal", "default", "cancel" , "link"} }
 			},
 			"checkbox", "label", new Object[][] {
 				{ "boolean", "selected", "paint", Boolean.FALSE }, //...group
