@@ -13,7 +13,7 @@
  * 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 0212111-1307 USA */
 package thinlet;
 
 import java.awt.*;
@@ -144,7 +144,7 @@ public class Thinlet extends Container
 		hgradient = vgradient = null;
 		repaint();
 	}
-	
+
 	//setDesktopProperty+
 
 	/**
@@ -1638,16 +1638,17 @@ public class Thinlet extends Container
 					g, clipx, clipy, clipwidth, clipheight, true, true, false, true,
 					1, 2, 1, 2, false, 'g', "left", false, false);
 				int controlx = bounds.width - titleheight - 1;
-				if (getBoolean(component, "closable", false)) {
-					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'c');
+				// close dialog button
+				if (get(component, "close") != null) {
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'c', pressedpart==":closebutton"?'p':insidepart==":closebutton"?'h':'g');
 					controlx -= titleheight;
 				}
 				if (getBoolean(component, "maximizable", false)) {
-					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'm');
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'm', 'g');
 					controlx -= titleheight;
 				}
 				if (getBoolean(component, "iconifiable", false)) {
-					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'i');
+					paint(component, g, controlx, 3, titleheight - 2, titleheight - 2, 'i', 'g');
 				}
 				paintRect(g, 0, 3 + titleheight, bounds.width, bounds.height - 3 - titleheight,
 					c_border, c_press, false, true, true, true, true); // lower part excluding titlebar
@@ -1662,7 +1663,7 @@ public class Thinlet extends Container
 					g, clipx, clipy, clipwidth, clipheight, false, false, false, false,
 					0, 3, 0, 3, false, enabled ? 'x' : 'd', "left", false, false);
 			}
-			
+
 			if (get(component, ":port") != null) {
 				paintScroll(component, classname, pressed, inside, focus, enabled,
 					g, clipx, clipy, clipwidth, clipheight);
@@ -1687,7 +1688,7 @@ public class Thinlet extends Container
 				String text = getString(tooltipowner, "tooltip", null);
 				g.setColor(c_text);
 				g.drawString(text, r.x + 2, r.y + g.getFontMetrics().getAscent() + 2); //+nullpointerexception
-			}			
+			}
 		}
 		else if ("spinbox" == classname) {
 			paintField(g, clipx, clipy, clipwidth, clipheight, component,
@@ -1949,9 +1950,6 @@ public class Thinlet extends Container
 	 * @param clipy y location of the cliping area relative to the component
 	 * @param clipwidth width of the cliping area
 	 * @param clipheight height of the cliping area
-	 * @param header column height
-	 * @param topborder bordered on the top if true
-	 * @param border define left, bottom, and right border if true
 	 */
 	private void paintScroll(Object component, String classname,
 			boolean pressed, boolean inside, boolean focus, boolean enabled,
@@ -2038,14 +2036,14 @@ public class Thinlet extends Container
 						if (i != 0) { column = get(column, ":next"); }
 						boolean lastcolumn = (i == columnwidths.length - 1);
 						int width = lastcolumn ? (view.width - x + 2) : columnwidths[i];
-						
+						//pressed (p), hovered (h), selected (b), default (g) or disabled (d)
 						paint(column, x - view.x, 0, width, port.y - 1,
 							g, clipx, clipy, clipwidth, clipheight,
 							true, true, false, lastcolumn, 1, 1, 0, 0, false,
-							enabled ? 'g' : 'd', "left", false, false);
-						
+							enabled ? (pressedpart==column?'p':(insidepart==column?'h':(getBoolean(column,"selected")?'b':'g'))) : 'd', "left", false, false);
+
 						Object sort = get(column, "sort"); // "none", "ascent", "descent"
-						if (sort != null) {
+						if (sort != null && sort != "none") {
 							paintArrow(g, x - view.x + width - block, 0, block, port.y,
 								(sort == "ascent") ? 'S' : 'N');
 						}
@@ -2062,15 +2060,15 @@ public class Thinlet extends Container
 		if ((x2 > x1) && (y2 > y1)) {
 			g.clipRect(x1, y1, x2 - x1, y2 - y1);
 			g.translate(port.x - view.x, port.y - view.y);
-			
+
 			paint(component, classname, focus, enabled,
 				g, view.x - port.x + x1, view.y - port.y + y1, x2 - x1, y2 - y1, port.width, view.width);
-			
+
 			g.translate(view.x - port.x, view.y - port.y);
 			g.setClip(clipx, clipy, clipwidth, clipheight);
 		}
 	}
-	
+
 	/**
 	 * Paint scrollable content
 	 * @param component a panel
@@ -2376,12 +2374,12 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 *
+	 * Paints the dialog close, maximize and iconify buttons
 	 */
 	private void paint(Object component, Graphics g,
-			int x, int y, int width, int height, char type) {
-		paint(component, x, y, width, height, g, true, true, true, true, 'g');
-		g.setColor(Color.black);
+			int x, int y, int width, int height, char type, char mode) {
+		paint(component, x, y, width, height, g, true, true, true, true, mode);
+		g.setColor(c_text);
 		switch (type) {
 			case 'c': // closable dialog button
 				g.drawLine(x + 3, y + 4, x + width - 5, y + height - 4);
@@ -2681,7 +2679,6 @@ public class Thinlet extends Container
 					((keychar >= 0x7f) && (keychar <= 0x9f)) ||
 					(keychar >= 0xffff) || ke.isControlDown();
 				int keycode = control ? ke.getKeyCode() : 0;
-				
 				if ((control == (id == KeyEvent.KEY_PRESSED)) &&
 					processKeyPress((popupowner != null) ? popupowner : focusowner,
 						ke.isShiftDown(), ke.isControlDown(), ke.getModifiers(),
@@ -3523,7 +3520,123 @@ public class Thinlet extends Container
 		}
 		if (!getBoolean(component, "enabled", true)) { return; }
 		String classname = getClass(component);
-		if (("button" == classname) ||
+
+		if (("list" == classname) ||
+			("table" == classname) || ("tree" == classname)) {
+				// check if we need to change the column selection and invoke the header's action
+				Object header = get(component, "header");
+				boolean noScroll = false;
+				if (header != null && get(header, ":resizecomponent") != null) {
+					noScroll = true;
+					if (id == MouseEvent.MOUSE_PRESSED) {
+						referencex = x;
+						set(header, ":resizing", "true");
+					} else if (id == MouseEvent.MOUSE_DRAGGED) {
+						//resize the column, but limit its minimum size to a width of 10
+						Object column = get(header,":resizecomponent");
+						int newSize = getInteger(column, "width") + x - referencex;
+						if (newSize > 10) {
+							setInteger(column, "width", newSize);
+							referencex = x;
+							doLayout(component);
+							repaint(component);
+						}
+					}
+					else if (id == MouseEvent.MOUSE_RELEASED) set(header, ":resizing", null);
+					else if (id == MouseEvent.MOUSE_ENTERED) setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+				}
+				if (header != null && get(header, ":resizecomponent") == null) {
+					set(header, ":resizing", null);
+					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+				if (header != null && get(header, "action") != null) {
+					if (insidepart != null && insidepart instanceof Object[] && "column" == getClass(insidepart)) {
+						noScroll = true;
+						if (id == MouseEvent.MOUSE_ENTERED ||
+							id == MouseEvent.MOUSE_PRESSED ||
+							id == MouseEvent.MOUSE_RELEASED ) {
+							if (id == MouseEvent.MOUSE_RELEASED && mouseinside == component) {
+								//set selected column its sort and selected property
+								//and set the sort of all other columns to none (null)
+								Object column = get(get(component, "header"), ":comp");
+								Object sort = null;
+								while (column != null) {
+									if (column == insidepart) {
+										sort = get(column, "sort");
+										if (null == sort || "none" == sort || "descent" == sort) sort = "ascent";
+										else if ("ascent" == sort) sort = "descent";
+									} else sort = null;
+									set(column, "sort", sort);
+									setBoolean(column, "selected", sort != null && sort != "none");
+									column = get(column, ":next");
+								}
+								invoke(header, null, "action");
+							}
+							repaint(component);
+						}
+					}
+					else if (id == MouseEvent.MOUSE_EXITED) repaint(component);
+				}
+				if (!noScroll && !processScroll(x, y, id, component, part)) {
+					if (((id == MouseEvent.MOUSE_PRESSED) ||
+						((id == MouseEvent.MOUSE_DRAGGED) &&
+						!shiftdown && !controldown))) {
+						//Rectangle view = getRectangle(component, ":view");
+						Rectangle port = getRectangle(component, ":port");
+						int my = y + port.y - referencey;
+						for (Object item = get(component, ":comp"); item != null;) {
+							Rectangle r = getRectangle(item, "bounds");
+							if (my < r.y + r.height) {
+								if (id == MouseEvent.MOUSE_DRAGGED) { //!!!
+									scrollToVisible(component, r.x, r.y, 0, r.height);
+								}
+							else if ("tree" == classname) {
+								int mx = x + port.x - referencex;
+								if (mx < r.x) {
+									if ((mx >= r.x - block) && (get(item, ":comp") != null)) {
+										boolean expanded = getBoolean(item, "expanded", true);
+										setBoolean(item, "expanded", !expanded, 	true);
+										selectItem(component, item, true);
+										setLead(component, get(component, ":lead"), item);
+										setFocus(component);
+										validate(component);
+										invoke(component, item, expanded ? "collapse" : "expand"); //item
+									}
+									break;
+								}
+							}
+							if ((id != MouseEvent.MOUSE_DRAGGED) ||
+								!getBoolean(item, "selected", false)) {
+								if (id != MouseEvent.MOUSE_DRAGGED) {
+									if (setFocus(component)) { repaint(component, classname, item); } //?
+								}
+								select(component, item, ("tree" == classname), shiftdown, controldown);
+								if (clickcount == 2) { invoke(component, item, "perform"); }
+							}
+							break;
+						}
+						item = getNextItem(component, item, ("tree" == classname));
+					}
+				}
+			}
+		}
+		else if ("bean" == classname) {
+			Component bean = (Component) get(component, "bean");
+			int modifiers = 0;
+			if(shiftdown) modifiers|=KeyEvent.SHIFT_MASK;
+			if(controldown) modifiers|=KeyEvent.CTRL_MASK;
+			if(id==MouseEvent.MOUSE_PRESSED ||
+				id==MouseEvent.MOUSE_RELEASED ||
+				id==MouseEvent.MOUSE_EXITED ||
+				id==MouseEvent.MOUSE_ENTERED ||
+				id==MouseEvent.MOUSE_MOVED ||
+				id==MouseEvent.MOUSE_DRAGGED) {
+					bean.dispatchEvent(new MouseEvent(this,id,System.currentTimeMillis(),modifiers,
+					((Integer)get(component, ":mousex")).intValue(),
+					((Integer)get(component, ":mousey")).intValue(), clickcount, popuptrigger));
+			}
+		}
+		else if (("button" == classname) ||
 				("checkbox" == classname) || ("togglebutton" == classname)) {
 			if ((id == MouseEvent.MOUSE_ENTERED) ||
 					(id == MouseEvent.MOUSE_EXITED) ||
@@ -3723,51 +3836,6 @@ public class Thinlet extends Container
 				setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 			}
 		}
-		else if (("list" == classname) ||
-				("table" == classname) || ("tree" == classname)) {
-			if (!processScroll(x, y, id, component, part)) {
-				if (((id == MouseEvent.MOUSE_PRESSED)||
-						((id == MouseEvent.MOUSE_DRAGGED) &&
-							!shiftdown && !controldown))) { 
-					//Rectangle view = getRectangle(component, ":view");
-					Rectangle port = getRectangle(component, ":port");
-					int my = y + port.y - referencey;
-					for (Object item = get(component, ":comp"); item != null;) {
-						Rectangle r = getRectangle(item, "bounds");
-						if (my < r.y + r.height) {
-							if (id == MouseEvent.MOUSE_DRAGGED) { //!!!
-								scrollToVisible(component, r.x, r.y, 0, r.height);
-							}
-							else if ("tree" == classname) {
-								int mx = x + port.x - referencex;
-								if (mx < r.x) {
-									if ((mx >= r.x - block) && (get(item, ":comp") != null)) {
-										boolean expanded = getBoolean(item, "expanded", true);
-										setBoolean(item, "expanded", !expanded, 	true);
-										selectItem(component, item, true);
-										setLead(component, get(component, ":lead"), item);
-										setFocus(component);
-										validate(component);
-										invoke(component, item, expanded ? "collapse" : "expand"); //item
-									}
-									break;
-								}
-							}
-							if ((id != MouseEvent.MOUSE_DRAGGED) ||
-									!getBoolean(item, "selected", false)) {
-								if (id != MouseEvent.MOUSE_DRAGGED) {
-									if (setFocus(component)) { repaint(component, classname, item); } //?
-								}
-								select(component, item, ("tree" == classname), shiftdown, controldown);
-								if (clickcount == 2) { invoke(component, item, "perform"); }
-							}
-							break;
-						}
-						item = getNextItem(component, item, ("tree" == classname));
-					}
-				}
-			}
-		}
 		else if ("menubar" == classname) {
 			Object selected = get(component, "selected");
 			if (((id == MouseEvent.MOUSE_ENTERED) || (id == MouseEvent.MOUSE_EXITED)) &&
@@ -3854,6 +3922,16 @@ public class Thinlet extends Container
 					}
 				}
 			}
+			// close dialog button
+			else if ( part == ":closebutton" ) {
+				if ( id == MouseEvent.MOUSE_ENTERED ||
+				id == MouseEvent.MOUSE_EXITED ||
+				id == MouseEvent.MOUSE_PRESSED ||
+				id == MouseEvent.MOUSE_RELEASED ) {
+					if ( id == MouseEvent.MOUSE_RELEASED && mouseinside == component ) invoke( component, null, "close" );
+					repaint( component );
+				}
+			}
 			else if (!processScroll(x, y, id, component, part) && (part != null)) {
 				if (id == MouseEvent.MOUSE_PRESSED) {
 					referencex = x; referencey = y;
@@ -3892,7 +3970,7 @@ public class Thinlet extends Container
 				}
 			}
 		}
-		
+
 		if (popuptrigger) {// && (id == MouseEvent.MOUSE_RELEASED)) {
 			Object popupmenu = get(component, "popupmenu");
 			if (popupmenu != null) {
@@ -3905,7 +3983,7 @@ public class Thinlet extends Container
 	 * Calculate the given point in a component relative to the thinlet desktop and
 	 * set as reference value
 	 * @param component a widget
-	 * @param x reference point relative to the component left edge 
+	 * @param x reference point relative to the component left edge
 	 * @param y relative to the top edge
 	 */
 	private void setReference(Object component, int x, int y) {
@@ -4279,6 +4357,10 @@ public class Thinlet extends Container
 				insidepart = "down";
 			}
 		}
+		else if ("bean" == classname) {
+			set(component,":mousex",new Integer(x));
+			set(component,":mousey",new Integer(y));
+		}
 		else if (":combolist" == classname) {
 			if (!findScroll(component, x, y)) {
 				y += getRectangle(component, ":view").y;
@@ -4314,6 +4396,7 @@ public class Thinlet extends Container
 		else if (("panel" == classname) || ("desktop" == classname) ||
 				("dialog" == classname)) {
 			if ("dialog" == classname) {
+				int titleheight = getInteger(component, ":titleheight", 0);
 				boolean resizable = getBoolean(component, "resizable", false);
 				if (resizable && (x < 4)) {
 					insidepart = (y < block) ? ":nw" :
@@ -4332,10 +4415,15 @@ public class Thinlet extends Container
 						(x >= bounds.width - block) ? ":se" : ":s";
 				}
 				else {
-					int titleheight = getInteger(component, ":titleheight", 0);
 					if (y < 4 + titleheight) {
 						insidepart = "header";
 					}
+				}
+				// close dialog button
+				if (get(component, "close") != null) {
+					int buttonX = bounds.width - titleheight -1;
+					int buttonY = 3 ;
+					if (x > buttonX && x < buttonX + titleheight - 2 && y > buttonY && y < buttonY + titleheight - 2) insidepart = ":closebutton";
 				}
 			}
 			if ((insidepart == null) && !findScroll(component, x, y)) {
@@ -4356,7 +4444,7 @@ public class Thinlet extends Container
 			insidepart = (x <= bounds.width - block) ? null :
 				((y <= bounds.height / 2) ? "up" : "down");
 		}
-		else if ("splitpane" == classname) { 
+		else if ("splitpane" == classname) {
 			Object comp1 = get(component, ":comp");
 			if (comp1 != null) {
 				if (!findComponent(comp1, x, y)) {
@@ -4371,8 +4459,43 @@ public class Thinlet extends Container
 			findScroll(component, x, y);
 		}
 		else if ("table" == classname) {
-			if (!findScroll(component, x, y)) {
+			// check if we are inside the header, then if we have an action on this header or it is a
+			// resizable one, do further checks to see if we need to change the column drawing states or
+			// even need to invoke the action or to resize the column. We do not need to make this whole
+			// block if we are resizing a column right now
+			Object header = get(component, "header");
+			if (header != null && get(header, ":resizing") == null) {
+				boolean isResizable = getBoolean(header, "resizable");
+				boolean hasAction = null != get(header, "action");
+				if (isResizable || hasAction) {
+					Rectangle view = getRectangle(component, ":view");
+					Rectangle port = getRectangle(component, ":port");
+					if (0 < x && x < port.width && 0 < y && y < port.y - 1) {
+						int[] columnwidths = (int []) get(component, ":widths");
+						Object column = get(header, ":comp");
+						int left = -view.x;
+						for (int i = 0; i < columnwidths.length; i++) {
+							if (i != 0) column = get(column, ":next");
+							int width = (i == columnwidths.length - 1) ? (view.width - left + 2) : columnwidths[i];
+							if (isResizable && ((x > left + width - 4 && x < left + width) || (i < columnwidths.length - 1 && x >= left + width && x < left + width + 4))) {
+								set(header, ":resizecomponent", column);
+								break;
+							} else {
+								set(header, ":resizecomponent", null);
+								if (hasAction && getCount(component) > 0 && left < x && x < left + width) {
+									insidepart = column;
+									break;
+								}
+							}
+							left += width;
+						}
+					} else if (isResizable) {
+						set(header, ":resizecomponent", null);
+						set(header, ":resizing", null);
+					}
+				}
 			}
+			if (insidepart == null && get(header, ":resizecomponent") == null) findScroll(component, x, y);
 		}
 		else if ("tree" == classname) {
 			findScroll(component, x, y);
@@ -4742,7 +4865,7 @@ public class Thinlet extends Container
 	/**
 	 *
 	 */
-	private static boolean set(Object component, Object key, Object value) {
+	static boolean set(Object component, Object key, Object value) {
 		Object[] previous = (Object[]) component;
 		for (Object[] entry = previous; entry != null;
 				entry = (Object[]) entry[2]) {
@@ -4768,9 +4891,11 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 *
+	 * Get a specified sub-component or component part. Key is e.g. "header" (table header), 
+	 * ":parent" (parent component), ":comp" (head of a component list),
+	 * ":next" (next component in a list), "popupmenu" is a popupmenu, etc ...
 	 */
-	private static Object get(Object component, Object key) {
+	static Object get(Object component, Object key) {
 		for (Object[] entry = (Object[]) component; entry != null;
 				entry = (Object[]) entry[2]) {
 			if (entry[0] == key) {
@@ -4781,7 +4906,7 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the count of subcomponents in the list of the given component
+	 * Gets the count of sub-components in the list of the given component
 	 *
 	 * @param component a widget
 	 * @return the number of components in this component
@@ -4803,7 +4928,7 @@ public class Thinlet extends Container
 	/**
 	 * Gets the index of the first selected item in the given component
 	 *
-	 * @param component a widget (combobox, tabbedpane, list, table, or tree)
+	 * @param component a widget (combobox, tabbedpane, list, table, header, or tree)
 	 * @return the first selected index or -1
 	 */
 	public int getSelectedIndex(Object component) {
@@ -4811,7 +4936,7 @@ public class Thinlet extends Container
 		if ((classname == "combobox") || (classname == "tabbedpane")) {
 			return getInteger(component, "selected", (classname == "combobox") ? -1 : 0);
 		}
-		if ((classname == "list") || (classname == "table") || (classname == "tree")) {
+		if ((classname == "list") || (classname == "table") || (classname == "header") || (classname == "tree")) {
 			Object item = get(component, ":comp");
 			for (int i = 0; item != null; i++) {
 				if (getBoolean(item, "selected", false)) { return i; }
@@ -4821,11 +4946,11 @@ public class Thinlet extends Container
 		}
 		throw new IllegalArgumentException(classname);
 	}
-	
+
 	/**
 	 * Gets the first selected item of the given component
 	 *
-	 * @param component a widget (combobox, tabbedpane, list, table, or tree)
+	 * @param component a widget (combobox, tabbedpane, list, table, header or tree)
 	 * @return the first selected item or null
 	 */
 	public Object getSelectedItem(Object component) {
@@ -4835,7 +4960,7 @@ public class Thinlet extends Container
 				(classname == "combobox") ? -1 : 0);
 			return (index != -1) ? getItemImpl(component, ":comp", index) : null;
 		}
-		if ((classname == "list") || (classname == "table") || (classname == "tree")) {
+		if ((classname == "list") || (classname == "table") || (classname == "header") || (classname == "tree")) {
 			for (Object item = findNextItem(component, classname, null); item != null;
 					item = findNextItem(component, classname, item)) {
 				if (getBoolean(item, "selected", false)) { return item; }
@@ -5101,7 +5226,8 @@ public class Thinlet extends Container
 	 * @param component
 	 * @param parent check upwards if true
 	 * @param checked this leaf is already checked
-	 * @param mnemonic
+	 * @param keycode
+	 * @param modifiers
 	 * @return true if the char was consumed
 	 */
 	private boolean checkMnemonic(Object component,
@@ -5792,7 +5918,7 @@ public class Thinlet extends Container
 		}
 		else if ("bean" == definition[0]) {
 			try {
-				Component bean = (Component) Class.forName(value).newInstance();
+				Component bean = (Component)Class.forName(value).newInstance();
 				set(component, key, bean);
 			} catch (Exception exc) { throw new IllegalArgumentException(value); }
 		}
@@ -6399,7 +6525,7 @@ public class Thinlet extends Container
 	/**
 	 *
 	 */
-	private Rectangle getRectangle(Object component, String key) {
+	Rectangle getRectangle(Object component, String key) {
 		return (Rectangle) get(component, key);
 	}
 
@@ -6576,7 +6702,7 @@ public class Thinlet extends Container
 			"dialog", "panel", new Object[][] {
 				{ "boolean", "modal", null, Boolean.FALSE },
 				{ "boolean", "resizable", null, Boolean.FALSE },
-				{ "boolean", "closable", "paint", Boolean.FALSE },
+				{ "method", "close" },
 				{ "boolean", "maximizable", "paint", Boolean.FALSE },
 				{ "boolean", "iconifiable", "paint", Boolean.FALSE } },
 			"spinbox", "textfield", new Object[][] {
@@ -6612,7 +6738,9 @@ public class Thinlet extends Container
 					new String[] { "singlerow", "rowinterval", "multiplerow",
 						"cell", "cellinterval",
 						"singlecolumn", "columninterval", "multiplecolumn" } }*/ },
-			"header", null, null,
+			"header", null, new Object[][] {
+				{ "method", "action" },
+				{ "boolean", "resizable", null, Boolean.TRUE } },
 				// reordering allowed
 				// autoresize mode: off next (column boundries) subsequents last all columns
 				// column row selection
@@ -6620,7 +6748,8 @@ public class Thinlet extends Container
 				// editing row/column
 			"column", "choice", new Object[][] {
 				{ "integer", "width", null, new Integer(80) },
-				{ "choice", "sort", null, new String[] { "none", "ascent", "descent" } } },
+				{ "choice", "sort", null, new String[] { "none", "ascent", "descent" } },
+				{ "boolean", "selected", null, Boolean.FALSE } },
 			"row", null, new Object[][] {
 				{ "boolean", "selected", null, Boolean.FALSE } },
 			"cell", "choice", null,
