@@ -5808,7 +5808,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * @return the value, or null
      */
     protected static String getDOMAttribute(Object node, String key) {
-        return (String) get(node, key.intern());
+        return (String) get(node, key);
     }
 
     /**
@@ -5829,7 +5829,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * @return the number of tags
      */
     protected static int getDOMCount(Object node, String key) {
-        return getItemCountImpl(node, key.intern());
+        return getItemCountImpl(node, key);
     }
 
     /**
@@ -5841,7 +5841,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * @return the found tag, or null
      */
     protected static Object getDOMNode(Object node, String key, int index) {
-        return getItemImpl(node, key.intern(), index);
+        return getItemImpl(node, key, index);
     }
 
     /**
@@ -5953,7 +5953,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
                         } else {
                             if (dom) {
                                 Object parent = current;
-                                current = createImpl(tagname = tagname.intern());
+                                current = createImpl(tagname);
                                 if (parent != null) {
                                     insertItem(parent, tagname, current, -1);
                                     //set(current, ":parent", parent);
@@ -6036,7 +6036,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
                                     addAttribute(current, key, text.toString(), methods);
                                 } else {
                                     if (dom) {
-                                        set(current, key.intern(), text.toString());
+                                        set(current, key, text.toString());
                                     } else {
                                         if (attributelist == null) {
                                             attributelist = new Hashtable();
