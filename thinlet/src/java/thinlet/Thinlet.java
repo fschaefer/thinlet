@@ -4439,7 +4439,12 @@ public class Thinlet extends Container implements Runnable, Serializable {
     }
 
     /**
-     *  
+     * Invokes a method, such as an action, on the specified component.
+     * 
+     * @param component  the component to fire the event on, such as a textfield or table
+     * @param part  the part of the component, null for a textfield, the row for a table
+     * @param event  the event to send, such as 'action'
+     * @return true if a method object was fired
      */
     protected boolean invoke(Object component, Object part, String event) {
         Object method = get(component, event);
