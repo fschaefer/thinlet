@@ -1,6 +1,5 @@
 package thinlet.drafts;
 
-import java.awt.*;
 import thinlet.*;
 
 /**
@@ -18,6 +17,7 @@ public class EventLogger {
 	public void caret(String text, int start, int end) { log("caret " + text + " " + start + " " + end); }
 	public void perform(String text) { log("perform " + text); }
 	public void tabChanged(int selected) { log("tab changed " + selected); }
+	public void menuAction(String text) { log("menuitem selected " + text); }
 	
 	private Thinlet thinlet;
 	private Object logarea;
@@ -41,5 +41,9 @@ public class EventLogger {
 		int length = update.length(); // to scroll down
 		thinlet.setInteger(logarea, "start", length);
 		thinlet.setInteger(logarea, "end", length);
+	}
+	
+	public void showLink(Thinlet thinlet) {
+		log("link pressed");
 	}
 }

@@ -1,6 +1,5 @@
 package thinlet.drafts;
 
-import java.awt.*;
 import thinlet.*;
 
 /**

@@ -29,7 +29,7 @@
 		<panel columns="1" gap="4">
 			<list name="audiolist" weightx="1" weighty="1"
 					action="rowSelected(thinlet, this, play)" />
-			<button name="play" text="Play" icon="/icons/volume.gif" enabled="false" halign="center"
+			<button name="play" text="Play" icon="/icon/play.gif" enabled="false" halign="center"
 					action="play(thinlet, audiolist)" />
 		</panel>
 	</tab>

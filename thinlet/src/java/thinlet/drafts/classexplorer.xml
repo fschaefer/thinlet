@@ -3,5 +3,5 @@
 		 init="initClass(thinlet, class, explorer)">
 	<combobox name="class" editable="false" weightx="1"
 			action="loadClass(thinlet, this.text, explorer)" />
-	<tree name="explorer" weighty="1" />
+	<tree name="explorer" angle="true" line="false" weighty="1" />
 </panel>

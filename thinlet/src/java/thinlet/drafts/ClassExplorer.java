@@ -15,11 +15,11 @@ public class ClassExplorer {
 	 *
 	 */
 	public void initClass(Thinlet thinlet, Object combobox, Object tree) {
-		classicon = thinlet.getIcon("/icons/webcomponent.gif");
-		methodicon = thinlet.getIcon("/icons/war.gif");
-		parametericon = thinlet.getIcon("/icons/jar.gif");
-		fieldicon = thinlet.getIcon("/icons/bean.gif");
-		exceptionicon = thinlet.getIcon("/icons/applicationdeploy.gif");
+		classicon = thinlet.getIcon("/icon/class.gif");
+		methodicon = thinlet.getIcon("/icon/method.gif");
+		parametericon = thinlet.getIcon("/icon/parameter.gif");
+		fieldicon = thinlet.getIcon("/icon/field.gif");
+		exceptionicon = thinlet.getIcon("/icon/exception.gif");
 	
 		Class thinletclass = thinlet.getClass();
 		int n = 0;

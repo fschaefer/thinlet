@@ -56,7 +56,14 @@ public class Drafts extends Thinlet {
 	/**
 	 *
 	 */
+	protected void handleException(Throwable throwable) {
+		new ExceptionDialog(this, throwable);
+	}
+	
+	/**
+	 *
+	 */
 	public static void main(String[] args) {
-		new FrameLauncher("Thinlet Drafts", new Drafts(), 480, 270);
+		new FrameLauncher("Thinlet Drafts", new Drafts(), 580, 435);
 	}
 }

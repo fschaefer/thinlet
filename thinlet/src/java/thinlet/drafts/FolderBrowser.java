@@ -63,8 +63,8 @@ public class FolderBrowser {
 		Object subnode = thinlet.create("node");
 		thinlet.setString(subnode, "text", text);
 		Image icon = directory ?
-			((foldericon == null) ? foldericon = thinlet.getIcon("/icons/open.gif") : foldericon) :
-			((fileicon == null) ? fileicon = thinlet.getIcon("/icons/new.gif") : fileicon);
+			((foldericon == null) ? foldericon = thinlet.getIcon("/icon/open.gif") : foldericon) :
+			((fileicon == null) ? fileicon = thinlet.getIcon("/icon/new.gif") : fileicon);
 		thinlet.setIcon(subnode, "icon", icon);
 		thinlet.add(node, subnode);
 		if (directory) {

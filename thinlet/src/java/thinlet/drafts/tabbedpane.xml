@@ -4,9 +4,17 @@
 	<label text="TabbedPane demo" />
 	<tabbedpane name="tabbed" weightx="1">
 		<tab text="One"><textarea text="One" /></tab>
-		<tab text="Two"><textarea text="Two" /></tab>
+		<tab text="Two"><panel columns="1">
+			<textarea name="ta2" text="Two" weightx="1" weighty="1" />
+			<checkbox text="Bordered" selected="true" action="setBorder(thinlet, this.selected, ta2)" />
+		</panel></tab>
 		<tab text="Three"><textarea text="Three" /></tab>
 		<tab text="Four"><textarea text="Four" /></tab>
+		<tab text="Five"><panel gap="4" scrollable="true">
+			<button text="Button" /><button text="Button" /><button text="Button" />
+			<button text="Button" /><button text="Button" /><button text="Button" />
+			<button text="Button" /><button text="Button" /><button text="Button" />
+		</panel></tab>
 	</tabbedpane>
 	<panel gap="4">
 		<label text="Placement:" />
@@ -16,9 +24,11 @@
 			<choice text="Left" />
 			<choice text="Bottom" />
 			<choice text="Right" />
+			<choice text="Stacked" />
 		</combobox>
 		<checkbox text="Enabled" selected="true"
 				action="changeEnabled(thinlet, this.selected, tabbed, tabbed.selected)"/>
+		<button text="Change text" action="changeText(thinlet, tabbed)" />
 	</panel>
 	
 	<panel gap="4">
