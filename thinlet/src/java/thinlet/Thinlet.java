@@ -44,8 +44,6 @@ public class Thinlet extends Container
 	private transient Color c_ctrl = null;
 	private transient int block;
 	private transient Image hgradient, vgradient;
-        private transient Stroke dash = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 1.0f, new float[]{0.5f, 1.5f}, 0.0f);
-        private transient Stroke solid = new BasicStroke(1.0f);
 
 	private transient Thread timer;
 	private transient long watchdelay;
@@ -2165,12 +2163,8 @@ public class Thinlet extends Container
 					if (angle) {
 						Object nodebelow = get(item, ":next");
 						if (nodebelow != null) { // and the next node is bellow clipy
-							((Graphics2D)g).setStroke(dash);
-							Rectangle nbr = getRectangle(nodebelow, "bounds");
-                            				if (nbr == null) nbr = new Rectangle(r.x, r.y + block, r.width, r.height);
-							g.setColor(c_text); int x = r.x - block / 2;
-							g.drawLine(x, r.y, x, nbr.y);
-							((Graphics2D)g).setStroke(solid);
+							g.setColor(c_bg); int x = r.x - block / 2;
+							g.drawLine(x, r.y, x, getRectangle(nodebelow, "bounds").y);
 						}
 					}
 					continue; // clip rectangle is bellow
@@ -2193,14 +2187,12 @@ public class Thinlet extends Container
 					if ("tree" == classname) {
 						int x = r.x - block / 2; int y = r.y + (r.height - 1) / 2;
 						if (angle) {
-							g.setColor(c_text);
-							((Graphics2D)g).setStroke(dash);
+							g.setColor(c_bg);
 							g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x - 1, y);
 							Object nodebelow = get(item, ":next");
 							if (nodebelow != null) {
 								g.drawLine(x, y, x, getRectangle(nodebelow, "bounds").y);
 							}
-							((Graphics2D)g).setStroke(solid);
 						}
 						if (subnode) {
 							paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
