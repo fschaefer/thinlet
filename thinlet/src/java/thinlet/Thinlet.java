@@ -3400,6 +3400,14 @@ public class Thinlet extends Container
 			return false;
 		}
 		if (insert != null) {
+			if (getClass(component).equals("spinbox") && !insert.equals("")) {
+				// allow only numeric values
+				try {
+					Integer.parseInt(insert);
+				} catch(NumberFormatException e) {
+					return false;
+				}
+			}
 			int min = Math.min(movestart, moveend);
 			set(component, "text", text.substring(0, min) + insert +
 				text.substring(Math.max(movestart, moveend)));
@@ -5981,6 +5989,16 @@ public class Thinlet extends Container
 	 * Gets the int attribute value of the given component by the attribute key
 	 */
 	public int getInteger(Object component, String key) {
+		String classname = getClass(component);
+		// special case for spinbox - try to parse text to get the current value
+		// if it fails, then return last good value
+		if (classname.equals("spinbox") && key.equals("value")) {
+			try {
+				return Integer.parseInt((String)get(component, "text", "string"));
+			} catch (NumberFormatException e) {
+				// fall-through
+			}
+		}
 		return ((Integer) get(component, key, "integer")).intValue();
 	}
 
