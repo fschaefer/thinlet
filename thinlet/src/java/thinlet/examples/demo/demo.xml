@@ -178,6 +178,80 @@
 				
 			</panel>
 		</tab>
+		
+		<tab text="Themes">
+			<panel columns="3" top="4" left="4" gap="4">
+				<label text="Adjust colors of the current theme" colspan="2" />
+				<button text="Reset" action="resetColors"/>
+				<label text="Color" font="bold" halign="center"/>
+				<label text="R      G      B" font="bold" halign="center"/>
+				<label text="Hex value" font="bold" halign="center"/>
+				<separator colspan="3"/>
+				<label text="Panel background" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="0_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="0_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="0_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="0_h" font="courier"/>
+				<label text="Text foreground" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="1_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="1_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="1_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="1_h" font="courier"/>
+				<label text="Text background" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="2_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="2_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="2_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="2_h" font="courier"/>
+				<label text="Border" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="3_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="3_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="3_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="3_h" font="courier"/>
+				<label text="Disabled foreground" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="4_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="4_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="4_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="4_h" font="courier"/>
+				<label text="Hover background" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="5_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="5_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="5_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="5_h" font="courier"/>
+				<label text="Pressed / gradient" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="6_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="6_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="6_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="6_h" font="courier"/>
+				<label text="Focus" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="7_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="7_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="7_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="7_h" font="courier"/>
+				<label text="Selected background" alignment="right" />
+				<panel gap="1">
+					<spinbox columns="3" name="8_r" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="8_g" maximum="255" text="0" action="adjustColors(this)" />
+					<spinbox columns="3" name="8_b" maximum="255" text="0" action="adjustColors(this)" />
+				</panel>
+				<label text="" name="8_h" font="courier"/>
+			</panel>
+		</tab>
 		<tab text="Other">
 			<panel halign="fill" weightx="1" valign="fill" weighty="1" gap="4" top="4" columns="3">
 				<panel halign="fill" weightx="1" columns="1" gap="2">

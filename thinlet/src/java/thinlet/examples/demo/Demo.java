@@ -13,6 +13,34 @@ import thinlet.*;
  */
 public class Demo extends Thinlet {
     
+    // current theme index
+    private int ct = 0;
+    // theme definitions
+    private int[][] defT = {    
+        {
+            0xece9d8, 0x000000, 0xf5f4f0,
+            0x919b9a, 0xb0b0b0, 0xededed,
+            0xb9b9b9, 0xff899a, 0xc5c5dd
+        },
+        {
+            0xe6e6e6, 0x000000, 0xffffff,
+            0x909090, 0xb0b0b0, 0xededed,
+            0xb9b9b9, 0x89899a, 0xc5c5dd
+        },
+        {
+            0xeeeecc, 0x000000, 0xffffff,
+            0x999966, 0xb0b096, 0xededcb,
+            0xcccc99, 0xcc6600, 0xffcc66
+        },
+        {
+            0x6375d6, 0xffffff, 0x7f8fdd,
+            0xd6dff5, 0x9caae5, 0x666666,
+            0x003399, 0xff3333, 0x666666
+        }
+    };
+    
+    private int[][] t = new int[4][9];
+    
     /**
      *
      */
@@ -20,13 +48,18 @@ public class Demo extends Thinlet {
         try {
             add(parse("demo.xml"));
         } catch (Exception exc) { exc.printStackTrace(); }
+        // copy values from defaults to current
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 9; j++)
+                t[i][j] = defT[i][j];
+        actionTheme("t0");
     }
     
     /**
      *
      */
     public static void main(String[] args) {
-        new FrameLauncher("Demo", new Demo(), 320, 320);
+        new FrameLauncher("Demo", new Demo(), 340, 340);
     }
     
     boolean textinit;
@@ -59,26 +92,69 @@ public class Demo extends Thinlet {
     }
     
     public void actionTheme(String idx) {
-        int index = idx.charAt(1) - '0';
-        switch (index) {
-            case 0: //xp
-                setColors(0xece9d8, 0x000000, 0xf5f4f0,
-                0x919b9a, 0xb0b0b0, 0xededed, 0xb9b9b9, 0xff899a, 0xc5c5dd);
-                break;
-            case 1: //gray
-                setColors(0xe6e6e6, 0x000000, 0xffffff,
-                0x909090, 0xb0b0b0, 0xededed, 0xb9b9b9, 0x89899a, 0xc5c5dd);
-                break;
-            case 2: //yellow
-                setColors(0xeeeecc, 0x000000, 0xffffff,
-                0x999966, 0xb0b096, 0xededcb, 0xcccc99, 0xcc6600, 0xffcc66);
-                break;
-            case 3: //blue
-                setColors(0x6375d6, 0xffffff, 0x7f8fdd,
-                0xd6dff5, 0x9caae5, 0x666666, 0x003399, 0xff3333, 0x666666);
-                break;
-        }
+        ct = idx.charAt(1) - '0';
+        setColors(
+            t[ct][0], t[ct][1], t[ct][2],
+            t[ct][3], t[ct][4], t[ct][5],
+            t[ct][6], t[ct][7], t[ct][8]);
+            
+        adjustColors(null);
+            
     }
+
+    public void resetColors() {
+        for (int i = 0; i < 9; i++)
+            t[ct][i] = defT[ct][i];
+        actionTheme("t" + ct);
+    }
+    
+    public void adjustColors(Object spin) {
+        if (spin == null) {
+            // set the spinboxes after theme change
+            for (int i = 0; i < 9; i++) {
+                Object sp = find(i + "_r");
+                setString(sp, "text", String.valueOf(new Color(t[ct][i]).getRed()));
+                sp = find(i + "_g");
+                setString(sp, "text", String.valueOf(new Color(t[ct][i]).getGreen()));
+                sp = find(i + "_b");
+                setString(sp, "text", String.valueOf(new Color(t[ct][i]).getBlue()));
+                sp = find(i + "_h");
+                setString(sp, "text", "#" + toHexString(t[ct][i]));
+            }
+            return;
+        }
+        String name = getString(spin, "name");
+        int idx = 0;
+        try {
+            idx = Integer.parseInt(name.substring(0, 1));
+        } catch (Exception e) {};
+        Color c = new Color(t[ct][idx]);
+        int r = c.getRed();
+        int g = c.getGreen();
+        int b = c.getBlue();
+        int val = getInteger(spin, "value");
+        if (name.endsWith("r")) {
+            r = val;
+        } else if (name.endsWith("g")) {
+            g = val;
+        } else b = val;
+        c = new Color(r, g, b);
+        t[ct][idx] = c.getRGB();
+        Object sp = find(idx + "_h");
+        setString(sp, "text", "#" + toHexString(t[ct][idx]));
+        setColors(
+            t[ct][0], t[ct][1], t[ct][2],
+            t[ct][3], t[ct][4], t[ct][5],
+            t[ct][6], t[ct][7], t[ct][8]);
+    }
+
+    private String toHexString(int num) {
+        String res = Integer.toHexString(0x00ffffff & num);
+        int len = res.length();
+        if (len < 6) for (int i = 0; i < 6 - len; i++) res = "0" + res;
+        return res;
+    }
+    
     /**
      *
      */
@@ -242,7 +318,6 @@ public class Demo extends Thinlet {
         this.pb_saturation = pb_saturation;
         this.pb_brightness = pb_brightness;
         this.rgb_label = rgb_label;
-        actionTheme("t0");
     }
     
     /**
