@@ -1,0 +1,113 @@
+	private static final int MOUSE_ENTERED = 1;
+	private static final int MOUSE_EXITED = 2; //
+	private static final int MOUSE_PRESSED = 3;
+	private static final int MOUSE_DRAGGED = 4;
+	private static final int MOUSE_RELEASED = 5;
+	private static final int DRAG_ENTERED = 6;
+	private static final int DRAG_EXITED = 7;
+
+	protected void pointerPressed(int x, int y) {
+		findComponent(content, x, y);
+		if (popupowner != null) {
+			String classname = getClass(mouseinside);
+			if ((popupowner != mouseinside) &&
+					(classname != ":popup") && (classname != ":combolist")) {
+				closeup();
+			}
+		}
+		handleMouseEvent(x, y, 1, false, false, false,
+			MouseEvent.MOUSE_ENTERED, mouseinside, insidepart);
+		mousepressed = mouseinside;
+		pressedpart = insidepart;
+		handleMouseEvent(x, y, 1, false, false, false,
+			MouseEvent.MOUSE_PRESSED, mousepressed, pressedpart);
+	}
+
+	protected void pointerReleased(int x, int y) {
+		Object mouserelease = mousepressed;
+		Object releasepart = pressedpart;
+		mousepressed = pressedpart = null;
+		handleMouseEvent(x, y, 1, false, false, false,
+			MouseEvent.MOUSE_RELEASED, mouserelease, releasepart);
+	}
+
+	protected void pointerDragged(int x, int y) {
+		Object previnside = mouseinside;
+		Object prevpart = insidepart;
+		findComponent(content, x, y);
+		boolean same = (previnside == mouseinside) && (prevpart == insidepart);
+		boolean isin = (mousepressed == mouseinside) && (pressedpart == insidepart);
+		boolean wasin = (mousepressed == previnside) && (pressedpart == prevpart);
+		
+		if (wasin && !isin) {
+			handleMouseEvent(x, y, 1, false, false, false,
+				MouseEvent.MOUSE_EXITED, mousepressed, pressedpart);
+		}
+		else if (!same && (popupowner != null) && !wasin) {
+			handleMouseEvent(x, y, 1, false, false, false,
+				DRAG_EXITED, previnside, prevpart);
+		}
+		if (isin && !wasin) {
+			handleMouseEvent(x, y, 1, false, false, false,
+				MouseEvent.MOUSE_ENTERED, mousepressed, pressedpart);
+		}
+		else if (!same && (popupowner != null) && !isin) {
+			handleMouseEvent(x, y, 1, false, false, false,
+				DRAG_ENTERED, mouseinside, insidepart);
+		}
+		if (isin == wasin) {
+			handleMouseEvent(x, y, 1, false, false, false,
+				MouseEvent.MOUSE_DRAGGED, mousepressed, pressedpart);
+		}
+	}
+
+	protected void keyPressed(int keyCode) {
+		if ((popupowner != null) || (focusowner != null)) {
+			hideTip();
+			if (keyCode > 0) {
+				processKeyPress((popupowner != null) ? popupowner : focusowner,
+					false, false, 1, keyCode, 0);
+			}
+			else {
+				int keychar = 0, key = 0;
+				switch (getGameAction(keyCode)) {
+					case UP: key = KeyEvent.VK_UP; break;
+					case LEFT: key = KeyEvent.VK_LEFT; break;
+					case DOWN: key = KeyEvent.VK_DOWN; break;
+					case RIGHT: key = KeyEvent.VK_RIGHT; break;
+					case FIRE: key = KeyEvent.VK_ENTER; keychar = KeyEvent.VK_SPACE; break;
+					case GAME_A: key = KeyEvent.VK_ESCAPE; break;
+				}
+				if (key != 0) {
+					processKeyPress((popupowner != null) ? popupowner : focusowner,
+						false, false, 1, keychar, key);
+				}
+				//if (keyCode == getKeyCode(LEFT)) {
+			}
+		}
+	}
+
+	protected void keyRepeated(int keyCode) {
+		keyPressed(keyCode);
+	}
+	
+	private static final Command nextcommand = new Command("Next", Command.SCREEN, 0);
+	//private static final Command prevcommand = new Command("Previous", Command.SCREEN, 0);
+	{
+		addCommand(nextcommand);
+		//addCommand(prevcommand);
+		setCommandListener(this);
+	}
+	
+	public void commandAction(Command command, Displayable displayable) {
+		if (command == nextcommand) {
+			setNextFocusable(focusowner, false);
+			repaint(focusowner);
+			closeup();
+		}
+		//else if (command == prevcommand) {
+			//setPreviousFocusable(focusowner, null, true, true, false);
+			//repaint(focusowner);
+			//closeup();
+		//}
+	}

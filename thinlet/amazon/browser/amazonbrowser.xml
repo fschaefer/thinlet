@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<panel columns="1" gap="4" top="4" left="4" bottom="4" right="4" >
+	<panel columns="3" gap="4" >
+		<label text="Product:" />
+		<combobox editable="false" selected="1" colspan="2"
+				name="product" action="productSelected">
+			<choice text="Baby" />
+			<choice text="Books" />
+			<choice text="Classical Music" />
+			<choice text="DVD" />
+			<choice text="Electronics" />
+			<choice text="Outdoor Living" />
+			<choice text="Kitchen &amp; Housewares" />
+			<choice text="Magazines" />
+			<choice text="Popular Music" />
+			<choice text="Computers" />
+			<choice text="Camera &amp; Photo" />
+			<choice text="Software" />
+			<choice text="Toys &amp; Games" />
+			<choice text="Tools &amp; Hardware" />
+			<choice text="Video" />
+			<choice text="Computer &amp; Video Games" />
+		</combobox>
+	
+		<combobox editable="false" selected="0" name="searchType">
+			<choice text="Keyword:" />
+			<choice text="ASIN/ISBN:" />
+			<choice text="Upc:" />
+			<choice text="Author:" />
+			<choice text="Artist:" />
+			<choice text="Actor:" />
+			<choice text="Director:" />
+			<choice text="Manufacturer:" />
+		</combobox>
+		<textfield name="searchText" weightx="1" />
+		<button text="Search" name="search" action="search" />
+	</panel>
+	
+	<label name="errorMessage" visible="false" />
+
+	<table name="resultList" action="resultSelected" weightx="1" weighty="1">
+		<column text="Name" width="175" />
+		<column text="Catalog" width="75" />
+		<column text="OurPrice" width="40" />
+	</table>
+
+	<panel name="detailsPanel" columns="2" weightx="1" gap="4">
+		<label name="image" />
+		<panel columns="4" weightx="1" gap="4">
+			<label text="Author:" />
+			<textfield name="authors" colspan="3" editable="false" />
+			<label name="artistsLabel" text="Artists:" />
+			<textfield name="artists" colspan="3" editable="false" />
+			<label text="Name:" />
+			<textfield name="productName" colspan="3" editable="false" />
+			<label text="Manuf.:" />
+			<textfield name="manufactured" weightx="1" editable="false" />
+			<label text="Released:" />
+			<textfield name="released" columns="6" editable="false" />
+			<separator colspan="4" />
+			<panel columns="3" colspan="4" gap="4">
+				<label text="List Price:" />
+				<label text="Our Price:" />
+				<label text="Used Price:" />
+				<textfield name="listPrice" weightx="1" editable="false" />
+				<textfield name="ourPrice" weightx="1" editable="false" />
+				<textfield name="usedPrice" weightx="1" editable="false" />
+			</panel>
+		</panel>
+	</panel>
+</panel>

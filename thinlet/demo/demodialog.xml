@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<dialog text="Find" icon="/icons/find.gif" modal="true"
+		columns="4" top="4" left="4" bottom="4" right="4" gap="4">
+	<label text="Find what:" />
+	<combobox name="ch_what" colspan="2" valign="center" />
+	<button name="b_find" text="Find next"
+			action="findText(ch_what, ch_what.text, cb_match.selected, rb_down.selected)" />
+	<label text="Direction:" alignment="right" />
+	<checkbox name="rb_up" text="Up" group="direction" />
+	<checkbox name="cb_match" text="Match case" selected="true" />
+	<button name="b_cancel" text="Cancel" action="closeDialog" />
+	<label />
+	<checkbox name="rb_down" text="Down" group="direction" selected="true" />
+</dialog>

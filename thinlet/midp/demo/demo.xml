@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<tabbedpane selected="2">
+	<tab text="Basic" />
+	<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4">
+		<label text="Label" icon="/thinlet/midp/demo/image.png" />
+		<button text="Button" icon="/thinlet/midp/demo/image.png" />
+		<checkbox text="CheckBox" selected="true" />
+		<progressbar value="50" />
+		<slider value="50" />
+	</panel>
+	<tab text="Text" />
+	<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4">
+		<textfield text="TextField" />
+		<passwordfield text="Password" />
+		<textarea text="TextArea" weightx="1" weighty="1" />
+		<spinbox text="100" />
+	</panel>
+	<tab text="List" />
+	<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4">
+		<combobox name="selectmode" editable="false" selected="1" weightx="1" action="selectlist" >
+			<choice text="List" />
+			<choice text="Tree" />
+			<choice text="Table" />
+		</combobox>
+		<list name="demolist" weighty="1" visible="false">
+			<item text="List item" />
+			<item selected="true" text="List item" />
+			<item text="List item" />
+		</list>
+		<tree name="demotree" weighty="1">
+			<node text="Tree node">
+				<node text="Tree node" />
+			</node>
+			<node text="Tree node">
+				<node selected="true" text="Tree node">
+					<node text="Tree node" />
+					<node selected="true" text="Tree node" />
+					</node>
+			</node>
+			<node text="Tree node" />
+			<node text="Tree node" />
+		</tree>
+		<table name="demotable" weighty="1" visible="false">
+			<column text="Column" /><column text="Column" />
+			<row><cell text="Cell" /><cell text="Cell" /></row>
+			<row selected="true"><cell text="Cell" /><cell text="Cell" /></row>
+			<row><cell text="Cell" /><cell text="Cell" /></row>
+		</table>
+	</panel>
+</tabbedpane>

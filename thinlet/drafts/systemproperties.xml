@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<panel columns="1" top="4" left="4" bottom="4" right="4" gap="4" weightx="1" weighty="1">
+	<table init="loadProperties(thinlet, this)" weightx="1" weighty="1">
+		<column text="Key" />
+		<column text="Value" />
+	</table>
+</panel>

@@ -1,0 +1,7 @@
+MIDlet-1: Demo, /ThinletDemo.png, thinlet.midp.demo.Demo
+MIDlet-2: Calculator, /ThinletDemo.png, thinlet.midp.calculator.Calculator
+MIDlet-Jar-Size: 37778
+MIDlet-Jar-URL: ThinletDemo.jar
+MIDlet-Name: ThinletDemo
+MIDlet-Vendor: Sun Microsystems
+MIDlet-Version: 1.0

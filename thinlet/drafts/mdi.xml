@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<panel columns="1" weightx="1" weighty="1">
+	<menubar weightx="1">
+		<menu text="File">
+			<menuitem text="New" icon="/icons/new.gif" action="newDialog(thinlet, desktop)" />
+		</menu>
+		<menu text="Edit">
+			<menuitem text="Cut" icon="/icons/cut.gif" />
+			<menuitem text="Copy" icon="/icons/copy.gif" />
+			<menuitem text="Paste" icon="/icons/paste.gif" />
+			<menuitem text="Delete" icon="/icons/delete.gif" />
+		</menu>
+	</menubar>
+	<panel gap="1" top="1" left="1" bottom="1" right="1">
+		<button icon="/icons/new.gif" tooltip="New" action="newDialog(thinlet, desktop)" />
+		<label text=" " />
+		<button icon="/icons/cut.gif" tooltip="Cut" />
+		<button icon="/icons/copy.gif" tooltip="Copy" />
+		<button icon="/icons/paste.gif" tooltip="Paste" />
+		<button icon="/icons/delete.gif" tooltip="Delete" />
+	</panel>
+	<separator />
+	<desktop name="desktop" weighty="1" />
+</panel>
