@@ -22,3 +22,6 @@ public class Widget {
 		thinlet.setString(widget, key, value);
 	}
 }
+
+//jikes -classpath \java\j2sdk1.4.1\jre\lib\rt.jar;%CLASSPATH% thinlet\drafts\*.java thinlet\designer\*.java thinlet\common\*.java
+//java -nojit thinlet.drafts.Drafts

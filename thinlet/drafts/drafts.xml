@@ -2,6 +2,9 @@
 <splitpane name="content" divider="120">
 	<tree action="loadDraft(content, this)">
 		<node text="Components">
+			<node text="Auto-fill"
+					property="ui=autofill.xml"
+					property="logic=thinlet.drafts.AutoFill" />
 			<node text="Tabbed pane"
 					property="ui=tabbedpane.xml"
 					property="logic=thinlet.drafts.TabbedPane" />
@@ -18,6 +21,9 @@
 		<node text="Style"
 				property="ui=style.xml"
 				property="logic=thinlet.drafts.Style" />
+		<node text="Event logger"
+				property="ui=eventlogger.xml"
+				property="logic=thinlet.drafts.EventLogger" />
 		<node text="System" >
 			<node text="Properties"
 					property="ui=systemproperties.xml"

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<panel gap="4" columns="1">
+	<tree init="load(thinlet, this)" expand="expand(thinlet, item)" weightx="1" weighty="1" />
+</panel>

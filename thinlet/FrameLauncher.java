@@ -26,10 +26,15 @@ public class FrameLauncher extends Frame implements WindowListener {
 		pack();
 		
 		int[] pix = new int[16 * 16];
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				//pix[j * 16 + i] = ((i == 0) || (i == 15) || (j == 0) || (j == 15)) ? 0xff000000 : 0x00ffffff;
-				pix[j * 16 + i] = (30 + ((i * j) << 24)) | 0xffffff;
+		for (int x = 0; x < 16; x++) {
+			int sx = ((x >= 1) && (x <= 9)) ? 1 : (((x >= 11) && (x <= 14)) ? 2 : 0);
+			for (int y = 0; y < 16; y++) {
+				int sy = ((y >= 1) && (y <= 9)) ? 1 : (((y >= 11) && (y <= 14)) ? 2 : 0);
+				pix[y * 16 + x] = ((sx == 0) || (sy == 0)) ? 0xffffffff :
+					((sx == 1) ? ((sy == 1) ? (((y == 2) && (x >= 2) && (x <= 8)) ? 0xffffffff :
+						(((y >= 3) && (y <= 8)) ? ((x == 5) ? 0xffffffff : (((x == 4) || (x == 6)) ?
+							0xffe8bcbd : 0xffb01416)) : 0xffb01416)) : 0xff377ca4) :
+						((sy == 1) ? 0xff3a831d : 0xfff2cc9c)); 
 			}
 		}
 		setIconImage(createImage(new MemoryImageSource(16, 16, pix, 0, 16)));
@@ -44,7 +49,7 @@ public class FrameLauncher extends Frame implements WindowListener {
 		setVisible(true);
 		//maximize: setBounds(-is.left, -is.top, ss.width + is.left + is.right, ss.height + is.top + is.bottom);
 	}
-	
+		
 	/**
 	 *
 	 */
