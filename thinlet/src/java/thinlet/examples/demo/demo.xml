@@ -298,6 +298,14 @@
 								<textarea valign="fill" weighty="1" weightx="1" halign="fill" border="false" wrap="true" editable="false" font="Serif italic bold 14" foreground="#88ff88" background="#446600" text="Most components support custom background / foreground colors and font settings"/>
 							</panel>
 						</tab>
+						<tab text="Five">
+							<panel columns="1" gap="4">
+								<label text="Text alignment:"/>
+								<textfield alignment="left" columns="15" text="left"/>
+								<textfield alignment="center" columns="15" text="center"/>
+								<textfield alignment="right" columns="15" text="right"/>
+							</panel>
+						</tab>
 					</tabbedpane>
 				</panel>
 				<separator/>

@@ -1903,28 +1903,50 @@ public class Thinlet extends Container
 		FontMetrics fm = g.getFontMetrics();
 
 		int caret = 0;
-		if (focus) { 
 			int start = getInteger(component, "start", 0); 
 			int end = getInteger(component, "end", 0);
+		if (focus) { 
 			caret = hidden ? (fm.charWidth('*') * end) :
 				fm.stringWidth(text.substring(0, end));
+		}
+
+		int fx = 2 + left - offset;
+		int fy = (height + fm.getAscent() - fm.getDescent()) / 2;
+
+        //
+        // Support alignment for textfields
+        //
+        int cursx = 1 + left - offset + caret;
+        String alignment = getChoice(component, "alignment");
+        if ("center" == alignment) {
+            int cx = (width - fm.stringWidth(text)) / 2 - 2;
+            if (cx > 0) {
+                cursx += cx - fx;
+                fx = cx;
+            }
+        }
+        else if ("right" == alignment) {
+            int cx = width - fm.stringWidth(text) - 2;
+            if (cx > 0) {
+                cursx += cx - fx;
+                fx = cx;
+            }
+        }
+
+		if (focus) {
 			if (start != end) {
 				int is = hidden ? (fm.charWidth('*') * start) :
 					fm.stringWidth(text.substring(0, start));
 				g.setColor(c_select);
-				g.fillRect(2 + left - offset + Math.min(is, caret), 1,
+				g.fillRect(fx + Math.min(is, caret), 1,
 					Math.abs(caret - is) + evm, height - 2 + evm);
 			}
-		}
 
-		if (focus) {
 			g.setColor(c_focus);
-			g.fillRect(1 + left - offset + caret, 1, 1 + evm, height - 2 + evm);
+            g.fillRect(cursx, 1, 2 + evm, height - 2 + evm);   // DAL - alignment cursx and fatter cursor
 		}
-
 		g.setColor(enabled ? c_text : c_disable);
-		int fx = 2 + left - offset;
-		int fy = (height + fm.getAscent() - fm.getDescent()) / 2;
+
 		if (hidden) {
 			int fh = fm.charWidth('*');
 			for (int i = text.length(); i > 0; i--) {
@@ -4139,6 +4161,24 @@ public class Thinlet extends Container
 				}
 			}
 		}
+
+		//
+		// Adjust for non-left alignment of text fields
+		//
+		String classname = getClass(component);
+		if ("textfield" == classname) {
+		    String alignment = getChoice(component, "alignment");
+			String t = getString(component, "text");
+			int tw = fm.stringWidth(t);
+			int w =  getRectangle(component, "bounds").width;
+			if ("center" == alignment) {
+				if (tw < w) x -= (w - tw - 2)/2;
+			}
+			else if ("right" == alignment) {
+				if (tw < w) x -= (w - tw - 2);
+			}
+		}
+
 		for (int i = linestart; i < chars.length; i++) {
 			if ((chars[i] == '\n') || (chars[i] == '\t')) { return i; }
 			int charwidth = fm.charWidth(hidden ? '*' : chars[i]);
@@ -6675,6 +6715,7 @@ public class Thinlet extends Container
 			"textfield", "component", new Object[][] {
 				{ "string", "text", "layout", "" },
 				{ "integer", "columns", "validate", integer0 },
+				{ "choice", "alignment", "validate", leftcenterright }, 
 				{ "boolean", "editable", "paint", Boolean.TRUE },
 				{ "integer", "start", "layout", integer0 },
 				{ "integer", "end", "layout", integer0 },
