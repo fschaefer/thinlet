@@ -178,7 +178,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
     /**
      *  
      */
-    private void doLayout(Object component) {
+    protected void doLayout(Object component) {
         String classname = getClass(component);
         if ("combobox" == classname) {
             if (getBoolean(component, "editable", true)) {
@@ -2242,7 +2242,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
             // == classname))
             Object lead = get(component, ":lead");
             if (getIndex(component, lead) == -1) {
-                set(component, ":lead", lead = null);
+               set(component, ":lead", lead = null);
             }
             int[] columnwidths = ("table" == classname) ? ((int[]) get(component, ":widths")) : null;
             boolean line = getBoolean(component, "line", true);
@@ -4441,7 +4441,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
     /**
      *  
      */
-    private boolean invoke(Object component, Object part, String event) {
+    protected boolean invoke(Object component, Object part, String event) {
         Object method = get(component, event);
         if (method != null) {
             if (focusowner != null && "action".equals(event)) requestFocus(component);
@@ -4869,7 +4869,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * @param component a focusable component
      * @return true if the focusowner was changed, otherwise false
      */
-    private boolean setFocus(Object component) {
+    protected boolean setFocus(Object component) {
         if (!focusinside) { // request focus for the thinlet component
             requestFocus();
         }
@@ -5278,6 +5278,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      *  
      */
     private int getIndex(Object component, Object value) {
+        if (value == null) return -1;
         int index = 0;
         for (Object item = get(component, ":comp"); item != null; item = get(item, ":next")) {
             if (value == item) {
