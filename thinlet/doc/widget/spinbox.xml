@@ -4,17 +4,19 @@
 	(increase, and decrease by 1) its integer value.</p>
 	<xul><![CDATA[<spinbox text="100" />]]></xul>
 	<parameters>
-	<parameter name="minimum" type="integer" default="0">
-			[Pending]
+		<parameter name="minimum" type="integer" default="0">
+			Minimum value (0 by default). It's not possible to
+			set the spinbox below this value.
 		</parameter>
 		<parameter name="maximum" type="integer" default="100">
-			[Pending]
+			Maximum value (100 by default). It's not possible to
+			set the spinbox above this value.
 		</parameter>
 		<parameter name="step" type="integer" default="1">
-			[Pending]
+			Increment step when using spinbox arrows. 1 by default.
 		</parameter>
 		<parameter name="value" type="integer" default="0">
-			[Pending]
+			Spinbox value. 0 by default.
 		</parameter>
 		<parameter name="action" type="method">
 			Invokes the given method when there was change in the text or a new

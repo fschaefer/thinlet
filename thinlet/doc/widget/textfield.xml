@@ -13,7 +13,7 @@
 		</parameter>
 		<parameter name="editable" type="boolean" default="true">
 			The specified boolean to indicate whether or not this textfield
-			should be editable. A not editable field is focusable, and selectable.
+			should be editable. A non-editable field is focusable, and selectable.
 		</parameter>
 		<parameter name="start" type="integer" default="0">
 			Start index of the selection.

@@ -32,19 +32,29 @@
 	</parameters>
 	<!-- - - - header - - - -->
 	<widget class="header" title="Header">
-		<p>Table header includes the column texts, these items defines the column
-		widths. The key for the list of columns is 'column'.</p>
+		<p>Table header includes the columns. They define the column
+		texts and widths. The key for the list of columns is 'column'.</p>
 	</widget>
 	<!-- - - - column - - - -->
 	<widget class="column" title="Column">
-		<p>Table header includes the column texts, these items defines the column
-		widths. The key for the list of columns is 'column'.</p>
+		<p>Table header includes the columns. They define the column
+		texts and widths. The key for the list of columns is 'column'.
+		If the total sum of column widths exceeds table bounds set by
+		a parent container, horizontal scrollbar is drawn.</p>
 		<parameters>
 			<parameter name="width" type="integer" default="80">
-				The width of the column.
+				The width of the column. The last (rightmost)
+				column always extends to fill in the remaining
+				width of the table, as determined by the parent
+				container.
 			</parameter>
 			<parameter name="sort" type="choice" default="none">
-				[Pending]
+				If present, and set to either "ascent" or "descent",
+				an arrow is drawn near right end
+				of the column, as a visual indication of
+				sorting order. NOTE: for now this is just a
+				visual decoration, application still needs to
+				do the sorting.
 			</parameter>
 			<parameter extend="label">
 				name, text, icon, and alignment parameters are described at label

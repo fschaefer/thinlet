@@ -43,7 +43,8 @@
 			Border painted if true.
 		</parameter>
 		<parameter name="scrollable" type="boolean" default="false">
-			[Pending]
+			If present and set to true, add scrollbars to the panel
+			if its contents is bigger than the panel's bounds.
 		</parameter>
 		<parameter extend="component">
 			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,

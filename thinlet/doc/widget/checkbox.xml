@@ -2,7 +2,7 @@
 <widget class="checkbox" title="CheckBox">
 	<p>The first checkbox has a short text and an icon, its state is selected.
 	The second one is a deselected radio button,
-	one of a set of buttons identified by a string id.</p>
+	one of a set of buttons identified by a group name.</p>
 	<xul><![CDATA[<checkbox text="CheckBox" icon="image.gif" selected="true"/>
 <checkbox text="RadioButton" group="group"/>]]></xul>
 	<parameters>
@@ -17,7 +17,7 @@
 			Possible values are: left, center, and right.
 		</parameter>
 		<parameter name="mnemonic" type="integer" default="-1">
-			Specifies the underlined char and the key combination
+			Specifies the index of underlined char, and the key combination
 			which change the checkboxs's state and invokes the action listener.
 		</parameter>
 		<parameter name="selected" type="boolean" default="false">
@@ -34,7 +34,7 @@
 			by mouse or keyboard event.
 		</parameter>
 		<parameter extend="component">
-			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			name, enabled, visible, tooltip, property, i18n, width, height, colspan, rowspan,
 			weightx, weighty, halign, and valign parameters are similar to component
 		</parameter>
 	</parameters>

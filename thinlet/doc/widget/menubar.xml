@@ -18,6 +18,12 @@
 	<textarea weighty="1" />
 </panel>]]></xul>
 	<parameters>
+		<parameter name="placement" type="choice" default="top">
+			Menubar may unfold the menus either downwards (default -
+			for menubars placed at the top of the container), or
+			upwards from the menubar position (placement="bottom" -
+			for menubars placed at the bottom of the container).
+		</parameter>
 		<parameter extend="component">
 			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
 			weightx, weighty, halign, and valign parameters are similar to component
@@ -25,11 +31,12 @@
 	</parameters>
 	<!-- - - - menu - - - -->
 	<widget class="menu" title="Menu">
-		<p>Menubar includes menu, and menu could contain menuitems, check or radio
+		<p>Menubar includes menu, and menu may contain menuitems, check or radio
 		button items, separators, and menus.</p>
 		<parameters>
 			<parameter name="mnemonic" type="integer" default="-1">
-				Specifies the index of the underlined char and the key combination
+				Specifies the index of the underlined char and
+				the key combination (Alt + underlined character) 
 				which selects the menu.
 			</parameter>
 			<parameter extend="choice">
@@ -62,7 +69,7 @@
 	</widget>
 	<!-- - - - checkboxmenuitem - - - -->
 	<widget class="checkboxmenuitem" title="CheckBoxMenuItem">
-		<p>A menu item that can be selected or deselected. The selecte menuitem
+		<p>A menu item that can be selected or deselected. The selected menuitem
 		appears with a checkmark next to it. A radio-button menu-item is a
 		menu item that is part of a group of menu items in which
 		only one item in the group can be selected.</p>

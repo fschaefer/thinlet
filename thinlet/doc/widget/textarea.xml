@@ -15,11 +15,18 @@
 		</parameter>
 		<parameter name="editable" type="boolean" default="true">
 			The specified boolean to indicate whether or not this textarea
-			should be editable. A not editable area is focusable, and selectable.
+			should be editable. A non-editable area is focusable, and selectable.
 		</parameter>
 		<parameter name="wrap" type="boolean" default="false">
 			If set to true the lines will be wrapped at word boundaries (whitespace)
 			if they are too long to fit within the allocated width.
+		</parameter>
+		<parameter name="border" type="boolean" default="true">
+			If set to false, no border will be drawn around the
+			textarea, and its background will be set to the default
+			background color, to visually "blend" with its
+			container. You can still override this by setting a
+			custom background color.
 		</parameter>
 		<parameter name="start" type="integer" default="0">
 			Start index of the selection.

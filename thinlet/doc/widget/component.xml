@@ -17,13 +17,21 @@
 			The text pops up when the mouse lingers inside the component.
 		</parameter>
 		<parameter name="font" type="font" default="">
-			[Pending]
+			Custom font for texts. The format of this parameter is: font="[NAME] [SIZE] [italic] [bold]", where NAME is the font name, and SIZE is integer font size in points. At least one font parameter must be present.
 		</parameter>
 		<parameter name="foreground" type="color" default="">
-			[Pending]
+			Custom foreground (text) color to use, instead of the
+			default text color set with setColors(). The format of
+			this parameter is: foreground="#RRGGBB", with RGB
+			values in hexadecimal.
 		</parameter>
 		<parameter name="background" type="color" default="">
-			[Pending]
+			Custom background color to use, instead of the
+			default background color set with setColors().
+			Parameter format is the same as for foreground.
+			NOTE: for components with gradients (buttons, menubars,
+			etc...) this means that the background will be
+			filled with SOLID color, and not a custom gradient.
 		</parameter>
 		<parameter name="width" type="integer" default="0">
 			Fixed preferred width of the component irrespectively of its content.
@@ -58,9 +66,11 @@
 		<parameter name="property" type="property">
 			Binds an arbitrary key/value client property. The format of its value
 			is key=value, both are strings and stored in a hashtable of the component.
+			Use format property="key1=value1;key2=value2" for multiple properties.
 		</parameter>
 		<parameter name="init" type="method">
-			[Pending]
+			A method to invoke when the loading of this component
+			is finished.
 		</parameter>
 		<parameter name="focuslost" type="method">
 			[Pending]
@@ -71,7 +81,7 @@
 	</parameters>
 	<!-- - - - popupmenu - - - -->
 	<widget class="popupmenu" title="PopupMenu">
-		<p>[Pending].</p>
+		<p>Popup menus resemble in functionality normal menus, and can be added to most container components. Popupmenu component can have the same sub-components as menubar. Popup menus are invoked with mouse right-click.</p>
 		<parameters>
 			<parameter name="menushown" type="method">
 				[Pending]

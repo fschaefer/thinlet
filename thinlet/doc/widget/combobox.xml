@@ -22,17 +22,17 @@
 			text, columns, and editable parameters are described at textfield
 		</parameter>
 		<parameter extend="component">
-			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			name, enabled, visible, tooltip, property, i18n, width, height, colspan, rowspan,
 			weightx, weighty, halign, and valign parameters are similar to component
 		</parameter>
 	</parameters>
 	<!-- - - - choice - - - -->
 	<widget class="choice" title="Choice">
 		<p>The drop down list of a combobox contains choices.
-		The popup combolist internally handles scrolling.</p>
+		The combolist popup internally handles scrolling.</p>
 		<parameters>
 			<parameter name="name" type="string">
-				Identifies the item.
+				Identifies the choice item.
 			</parameter>
 			<parameter name="enabled" type="boolean" default="true">
 				Enables or disables the item. A disabled item is painted gray,
@@ -53,17 +53,17 @@
 				otherwise the tooltip text of the component.
 			</parameter>
 			<parameter name="font" type="font" default="">
-				[Pending]
+				Custom font to use for text.
 			</parameter>
 			<parameter name="foreground" type="color" default="">
-				[Pending]
+				Custom foreground (text) color.
 			</parameter>
 			<parameter name="background" type="color" default="">
-				[Pending]
+				Custom background color.
 			</parameter>
 			<parameter name="property" type="property">
 				Adds an arbitrary key/value client property stored in a hashtable of the item.
-				The format of its value is key=value, both are string objects.
+				The format of its value is key=value (or key=value;key=value ... for multiple keys), both are string objects.
 			</parameter>
 		</parameters>
 	</widget>

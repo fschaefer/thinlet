@@ -20,10 +20,10 @@
 			Calls the method whenever the selection changes.
 		</parameter>
 		<parameter name="perform" type="method">
-			[Pending]
+			Calls the method whenever a perform event (double-click) occurs.
 		</parameter>
 		<parameter name="line" type="boolean" default="true">
-			[Pending]
+			If present and set to false, don't draw lines separating the list items.
 		</parameter>
 		<parameter extend="component">
 			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,

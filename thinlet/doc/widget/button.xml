@@ -8,14 +8,14 @@
 			The text string that the button displays.
 		</parameter>
 		<parameter name="icon" type="icon">
-			The icon image that the button displays.
+			The icon image that the button displays. Icons are always displayed to the left of text (if any).
 		</parameter>
 		<parameter name="alignment" type="choice" default="center">
 			The alignment of the text and image similar to label.
 			Possible values are: center, left, and right. The default value is center.
 		</parameter>
 		<parameter name="mnemonic" type="integer" default="-1">
-			Specifies the underlined char and the key combination (alt+mnemonic)
+			Specifies the index of underlined char, and the key combination (alt+mnemonic)
 			which invokes the (not necessarily focused, but enabled and visible)
 			button's action listener.
 		</parameter>
@@ -24,10 +24,11 @@
 		</parameter>
 		<parameter name="type" type="choice" default="normal">
 			Possible values are: normal, default, cancel, and link. The default value is normal.
-			Default, and cancel values are for dialog control.
+			Default, and cancel values are for dialog control. Link changes the appearance of
+			button so that it resembles HTML link.
 		</parameter>
 		<parameter extend="component">
-			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			name, enabled, visible, tooltip, property, i18n, width, height, colspan, rowspan,
 			weightx, weighty, halign, and valign parameters are similar to component
 		</parameter>
 	</parameters>

@@ -18,7 +18,7 @@
 	<parameters>
 		<parameter name="placement" type="choice" default="top">
 			The placement for the tabs relative to the content. Possible values are:
-			top, left, bottom, right, and stack. The default value, if not set, is top.
+			top, left, bottom, right, and stack. The default value, if not set, is top. The stack placement arranges tabs so that they resemble a sidebar.
 		</parameter>
 		<parameter name="selected" type="integer" default="0">
 			The index of the currently selected tab, and the visible content
