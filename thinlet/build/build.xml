@@ -71,9 +71,11 @@
                destdir="${thinlet.build.dir}" 
                optimize="${build.optimize}"
                srcdir="${thinlet.src.dir}">
-            <include name="thinlet/Thinlet*.java"/>
-            <include name="thinlet/Widget.java"/>
+            <include name="thinlet/Thinlet.java"/>
             <include name="thinlet/*Launcher.java"/>
+	    <!-- WIP - don't use for now... -->
+            <!--include name="thinlet/Widget.java"/-->
+            <!--include name="thinlet/ThinletConstants.java"/-->
         </javac>    
     </target>
     
@@ -112,8 +114,7 @@
     <target depends="compile-core" name="jar-core">
         <jar destfile="${thinlet.core.jar}">
             <fileset dir="${thinlet.build.dir}">
-                <include name="thinlet/Thinlet*.class"/>
-                <include name="thinlet/ThinletWidget.class"/>
+                <include name="thinlet/Thinlet.class"/>
                 <include name="thinlet/*Launcher.class"/>
             </fileset>        
         </jar>

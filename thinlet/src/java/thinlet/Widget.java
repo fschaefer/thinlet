@@ -3,7 +3,9 @@ package thinlet;
 import java.awt.*;
 
 /**
- *
+ * WORK IN PROGRESS - DON'T USE.
+ * Eventually this class will encapsulate most of the widget-related API
+ * now implemented in Thinlet.java.
  */
 public class Widget {
 	

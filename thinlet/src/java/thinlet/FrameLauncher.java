@@ -5,7 +5,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 
 /**
- *
+ * Useful utility class to start a Thinlet application in AWT Frame.
  */
 public class FrameLauncher extends Frame implements WindowListener {
 	
@@ -84,7 +84,9 @@ public class FrameLauncher extends Frame implements WindowListener {
 	}
 
 	/**
-	 *
+	 * This method calls Thinlet.destroy(), and exits only if that method
+	 * returns true. This provides a way for programmers to perform
+	 * cleanup tasks on exit, or disallow exiting altogether.
 	 */
 	public void windowClosing(WindowEvent e) {
 		if (content.destroy()) {
@@ -92,6 +94,7 @@ public class FrameLauncher extends Frame implements WindowListener {
 		}
 		setVisible(true);
 	}
+
 	public void windowOpened(WindowEvent e) {}
 	public void windowClosed(WindowEvent e) {}
 	public void windowIconified(WindowEvent e) {}

@@ -4,7 +4,7 @@ import java.applet.*;
 import java.awt.*;
 
 /**
- *
+ * Useful utility class to start Thinlet application in an applet window.
  */
 public class AppletLauncher extends Applet implements Runnable {
 	
