@@ -579,7 +579,7 @@ public class Thinlet extends Container //java
 		repaint(combolist);
 		// hover the selected item
 		int selected = getInteger(combobox, "selected", -1);
-		setInside(combolist, (selected != -1) ? getItem(combobox, selected) : null);
+		setInside(combolist, (selected != -1) ? getItem(combobox, selected) : null, true);
 		return combolist;
 	}
 	
@@ -1335,10 +1335,9 @@ public class Thinlet extends Container //java
 		//g.setClip(0, 0, bounds.width, bounds.height);
 
 		if ("label" == classname) {
-			Color fg = (Color) get(component, "foreground");
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
 				0, 0, bounds.width, bounds.height,
-				enabled ? ((fg != null) ? fg : c_text) : c_disable, "left", true);
+				enabled ? c_text : c_disable, "left", true);
 		}
 		else if (("button" == classname) || ("togglebutton" == classname)) {
 			boolean toggled = ("togglebutton" == classname) && getBoolean(component, "selected", false);
@@ -1349,6 +1348,10 @@ public class Thinlet extends Container //java
 			if (focus) {
 				g.setColor(c_focus);
 				g.drawRect(2, 2, bounds.width - 5, bounds.height - 5);
+			}
+			if (enabled && ("button" == classname) && get(component, "type") == "default") {
+				g.setColor(c_border);
+				g.drawRect(1, 1, bounds.width - 3, bounds.height - 3);
 			}
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
 				6, 3, bounds.width - 12, bounds.height - 6,
@@ -2087,6 +2090,11 @@ public class Thinlet extends Container //java
 			g.drawLine(x + width - 1, y + height - 1, x + width - 1, y);
 			width--; if (width <= 0) return;
 		}
+		/*g.setColor(border.brighter());
+		if (top && left) g.fillRect(x - 1, y - 1, 1, 1);
+		if (top && right) g.fillRect(x + width, y - 1, 1, 1);
+		if (bottom && left) g.fillRect(x - 1, y + height, 1, 1);
+		if (bottom && right) g.fillRect(x + width, y + height, 1, 1);*/
 
 		//java>
 		if (bg == c_ctrl) {
@@ -2184,7 +2192,8 @@ public class Thinlet extends Container //java
 			ta = fm.getAscent(); //java
 			th = fm.getDescent() + ta; //java
 			//midp th = font.getHeight();
-			g.setColor(fg);
+			Color customfg = (Color) get(component, "foreground"); //+no if disabled
+			g.setColor((customfg != null) ? customfg : fg);
 		}
 		int iw = 0, ih = 0;
 		if (icon != null) {
@@ -2421,11 +2430,15 @@ public class Thinlet extends Container //java
 				boolean control = (keychar <= 0x1f) ||
 					((keychar >= 0x7f) && (keychar <= 0x9f)) ||
 					(keychar >= 0xffff) || ke.isControlDown();
+				boolean processed = false;
+				// !control type char, control press code
+				// press code char != 0 || e.isActionKey()
 				if (control == (id == KeyEvent.KEY_PRESSED)) {
 					int keycode = control ? ke.getKeyCode() : 0;
-					if (!processKeyPress((popupowner != null) ? popupowner : focusowner,
-							ke.isShiftDown(), ke.isControlDown(), ke.getModifiers(),
-							control ? 0 : keychar, keycode)) {
+					processed = processKeyPress((popupowner != null) ? popupowner : focusowner,
+						ke.isShiftDown(), ke.isControlDown(), ke.getModifiers(),
+						control ? 0 : keychar, keycode);
+					if (!processed) {
 						if ((keycode == KeyEvent.VK_TAB) ||
 								((keycode == KeyEvent.VK_F6) && (ke.isAltDown() || ke.isControlDown()))) {
 							boolean outgo = (keycode == KeyEvent.VK_F6);
@@ -2451,32 +2464,14 @@ public class Thinlet extends Container //java
 								}
 							}
 						}
-						/*else if (keycode == KeyEvent.VK_F10) {
-							Object menubar = findMenubar(getParent(focusowner), focusowner);
-							System.out.println("menubar=" + menubar);
-							if (menubar != null) {
-								Object firstmenu = get(menubar, ":comp"); // only enabled
-								if (firstmenu != null) {
-									closeup();
-									set(menubar, "selected", firstmenu);
-									popupMenu(menubar);
-									repaint(menubar, "menubar", firstmenu);
-									ke.consume();
-								}
-							}
-						}*/
 					}
-					else ke.consume();
 				}
+				if (!processed && (id == KeyEvent.KEY_PRESSED) && ((keychar != 0) || ke.isActionKey())) {
+					checkMnemonic(focusowner, true, null, ke.getKeyCode(), ke.getModifiers());
+				}
+				ke.consume(); //+
 			}
 		}
-		/*else if (id == KeyEvent.KEY_RELEASED) {
-			if (focusinside && (focusowner != null)) {
-				KeyEvent ke = (KeyEvent) e;
-				//pressedkey = 0;
-				processKeyRelease(focusowner, ke, ke.getKeyCode());
-			}
-		}*/
 		else if (id == FocusEvent.FOCUS_LOST) {
 			focusinside = false;
 			if (focusowner != null) { repaint(focusowner); }
@@ -2573,6 +2568,7 @@ public class Thinlet extends Container //java
 				if ((keychar == KeyEvent.VK_SPACE) || (keycode == KeyEvent.VK_DOWN)) {
 					popupCombo(component);
 				}
+				//+findText
 				else return false;
 			}
 			else {
@@ -2583,7 +2579,7 @@ public class Thinlet extends Container //java
 					Object next = getListItem(component, combolist, keycode,
 						get(combolist, ":lead"), false);
 					if (next != null) {
-						setInside(combolist, next);
+						setInside(combolist, next, true);
 					}
 				}
 				else if ((keycode == KeyEvent.VK_ENTER) || (keychar == KeyEvent.VK_SPACE)) {
@@ -2592,14 +2588,14 @@ public class Thinlet extends Container //java
 				else if (keycode == KeyEvent.VK_ESCAPE) {
 					closeCombo(component, combolist, null);
 				}
-				/*else {
+				else if (!processField(component, shiftdown, controldown, modifiers,
+						keychar, keycode, false, false)) {
 					Object item = findText((char) keychar, component, combolist, false);
 					if (item != null) {
-						setInside(combolist, item);
+						setInside(combolist, item, true);
 					}
-				}*/
-				else return processField(component, shiftdown, controldown, modifiers,
-					keychar, keycode, false, false);
+					else return false;
+				}
 			}
 			return true;
 		}
@@ -2905,13 +2901,6 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	/*private boolean processKeyRelease(Object component, KeyEvent e, int keycode) {
-		return true;
-	}*/
-
-	/**
-	 *
-	 */
 	private boolean processField(Object component,
 			boolean shiftdown, boolean controldown, int modifiers,
 			int keychar, int keycode, boolean multiline, boolean hidden) {
@@ -2930,7 +2919,7 @@ public class Thinlet extends Container //java
 		}
 		else if (editable && (keycode == KeyEvent.VK_ENTER)) {
 			if (multiline) { insert = "\n"; }
-				else { invoke(component, null, "perform"); }
+				else { return invoke(component, null, "perform"); }
 		}
 		else if (editable && (keycode == KeyEvent.VK_BACK_SPACE)) {
 			insert = "";
@@ -3009,21 +2998,28 @@ public class Thinlet extends Container //java
 			//<java
 			//midp insert = clipboard;
 			if (insert != null) { // no text on system clipboard nor internal clipboard text
-				StringBuffer filtered = new StringBuffer(insert.length());
-				for (int i = 0; i < insert.length(); i++) {
-					char ckey = insert.charAt(i);
-					if (((ckey > 0x1f) && (ckey < 0x7f)) ||
-							((ckey > 0x9f) && (ckey < 0xffff)) ||
-							(multiline && (ckey == '\n'))) {
-						filtered.append(ckey);
-					}
-				}
-				if (filtered.length() != insert.length()) {
-					insert = filtered.toString();
-				}
+				insert = filter(insert, multiline);
 			}
 		}
 		return changeField(component, text, insert, istart, iend, start, end);
+	}
+	
+	/**
+	 * @param text
+	 * @param multiline
+	 * @return
+	 */
+	private static String filter(String text, boolean multiline) {
+		StringBuffer filtered = new StringBuffer(text.length());
+		for (int i = 0; i < text.length(); i++) {
+			char ckey = text.charAt(i);
+			if (((ckey > 0x1f) && (ckey < 0x7f)) ||
+					((ckey > 0x9f) && (ckey < 0xffff)) ||
+					(multiline && (ckey == '\n'))) {
+				filtered.append(ckey);
+			}
+		}
+		return (filtered.length() != text.length()) ? filtered.toString() : text;
 	}
 
 	/**
@@ -3125,7 +3121,7 @@ public class Thinlet extends Container //java
 			for (; i < 2; i++) { // 0: find the long text, 1: the stating character only
 				findprefix = (i == 0) ? (findprefix + keychar) : String.valueOf(keychar);
 				for (int j = 0; j < 2; j++) { // 0: lead to last, 1: first to lead
-					for (Object item = (j == 0) ? getNextItem(component, lead, recursive) :
+					for (Object item = (j == 0) ? ((i == 0) ? lead : getNextItem(component, lead, recursive)) :
 							get(component, ":comp"); (j == 0) ? (item != null) : (item != lead);
 							item = getNextItem(component, item, recursive)) {
 						if (getString(item, "text", "").regionMatches(true,
@@ -3272,8 +3268,9 @@ public class Thinlet extends Container //java
 	 * Update the lead item of a combolist, repaint, and scroll
 	 * @param component a combobox drop down list
 	 * @param part the current hotspot item
+	 * @param scroll scroll to the part if true
 	 */
-	private void setInside(Object component, Object part) {
+	private void setInside(Object component, Object part, boolean scroll) {
 			Object previous = get(component, ":lead");
 			if (previous != null) {
 				repaint(component, ":combolist", previous);
@@ -3281,8 +3278,10 @@ public class Thinlet extends Container //java
 			set(component, ":lead", part);
 			if (part != null) {
 				repaint(component, ":combolist", part);
-				Rectangle r = getRectangle(part, "bounds");
-				scrollToVisible(component, r.x, r.y, 0, r.height);
+				if (scroll) {
+					Rectangle r = getRectangle(part, "bounds");
+					scrollToVisible(component, r.x, r.y, 0, r.height);
+				}
 			}
 	}		
 
@@ -3364,8 +3363,8 @@ public class Thinlet extends Container //java
 		else if (":combolist" == classname) {
 			if (!processScroll(x, y, id, component, part)) {
 				if ((id == MouseEvent.MOUSE_ENTERED) || (id == DRAG_ENTERED)) {
-					if (part != null) {
-						setInside(component, part);
+					if (part != null) { //+ scroll if dragged
+						setInside(component, part, false);
 					}
 				}
 				else if (id == MouseEvent.MOUSE_RELEASED) {
@@ -3712,6 +3711,7 @@ public class Thinlet extends Container //java
 			int id, Object component,
 			Object part, boolean multiline, boolean hidden, int left) {
 		if (id == MouseEvent.MOUSE_PRESSED) {
+			//+ middle=alt paste clipboard content
 			setReference(component, 2 + left, 2);
 			int mx = x - referencex;
 			int my = 0;
@@ -3934,11 +3934,13 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private void invoke(Object component, Object part, String event) {
+	private boolean invoke(Object component, Object part, String event) {
 		Object method = get(component, event);
 		if (method != null) {
 			invokeImpl(method, component, part);
+			return true;
 		}
+		return false;
 	}
 	
 	/**
@@ -4284,6 +4286,57 @@ public class Thinlet extends Container //java
 		}
 		return false;
 	}
+	
+	/*
+	private boolean focus(Object component, boolean check) {
+		if (check) {
+		}
+		
+		for (Object comp = component; comp != content; comp = getParent(comp)) {
+			String classname = getClass(comp);
+		}
+		
+		for (Object comp = component; comp != content; comp = getParent(comp)) {
+			String classname = getClass(comp);
+			if (classname == "tab") { // select current tab
+				Object tabbedpane = getParent(comp);
+				int index = getIndex(tabbedpane, comp);
+				if (getInteger(tabbedpane, "selected", 0) != index) {
+					setInteger(tabbedpane, "selected", index, 0);
+					repaint(tabbedpane);
+					//invoke(tabbedpane, comp, "action");
+				}
+				comp = tabbedpane;
+			}
+			else if ((classname == "panel") && getBoolean(comp, "scroll", false)) {
+				Rectangle bounds = getRectangle(comp->>, "bounds");
+				scrollToVisible(comp, bounds.x, bounds.y, bounds.width, bounds.height);
+			}
+		}
+		
+			for (Object comp = component; comp != null;) {
+				if (!getBoolean(comp, "enabled", true) || !getBoolean(comp, "visible", true)) {
+					return false;
+				}
+				Object parent = getParent(comp);
+				if ((getClass(comp) == "tab") && (getItem(parent,
+					getInteger(parent, "selected", 0)) != comp)) { return false; }
+				comp = parent;
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean focusable(String classname, boolean all) {
+		return (classname == "button") ||
+			(classname == "checkbox") || ("togglebutton" == classname) ||
+			(classname == "combobox") || (classname == "textfield") ||
+			(classname == "passwordfield") || (classname == "textarea") ||
+			(classname == "spinbox") || (classname == "slider") ||
+			(classname == "list") || (classname == "table") || (classname == "tree") ||
+			(classname == "tabbedpane") || (all && (classname == "splitpane"));
+	}*/
 	
 	/**
 	 * @return next focusable component is found (not the first of the desktop/dialog)
@@ -4764,35 +4817,133 @@ public class Thinlet extends Container //java
 	}
 	
 	/**
-	 *
+	 * mnemonic (e.g. Alt-X):
+	 * - check: label, button, checkbox, togglebutton, menubar menus, tabbedpane tabs
+	 * - path: panel, desktop, dialog, splitpane components, tabbedpane selected component 
+	 * accelerator (e.g. Ctrl-Shift-X, F4):
+	 * - check: menuitem, checkboxmenuitem
+	 * - path: see above, and menubar, and menu items
+	 * menubar F10: check menubar only
+	 * button enter, escape: check button only
+	 * @param component
+	 * @param parent check upwards if true
+	 * @param checked this leaf is already checked
+	 * @param mnemonic
+	 * @return true if the char was consumed
 	 */
-	private boolean checkMnemonic(Object component, boolean starting, Object blocked) {
-		if (starting) {
-			for (Object comp = component; comp != null; comp = getParent(comp)) {
-				checkMnemonic(comp, false, comp);
-			}
+	private boolean checkMnemonic(Object component,
+			boolean parent, Object checked, int keycode, int modifiers) {
+		if ((component == null) || !getBoolean(component, "visible", true) ||
+				!getBoolean(component, "enabled", true)) { //+ enabled comp in disabled parent
+			return false;
 		}
-		
 		String classname = getClass(component);
 		if ("label" == classname) {
-			Object labelfor = get(component, "for");
-			if (labelfor != null) {}
+			if (hasMnemonic(component, keycode, modifiers)) {
+				Object labelfor = get(component, "for");
+				if (labelfor != null) {
+					// focus labelfor
+				}
+			}
 		}
-		
-		if (("button" == classname) || ("checkbox" == classname) ||
-				("togglebutton" == classname)) {
+		else if ("button" == classname) {
+			if (((modifiers == 0) &&
+				(((keycode == KeyEvent.VK_ENTER) && (get(component, "type") == "default")) ||
+				((keycode == KeyEvent.VK_ESCAPE) && (get(component, "type") == "cancel")))) ||
+					hasMnemonic(component, keycode, modifiers)) {
+				invoke(component, null, "action");
+				repaint(component);
+				return true;
+			}
 		}
-		if ("menubar" == classname) {
+		else if (("checkbox" == classname) || ("togglebutton" == classname)) {
+			if (hasMnemonic(component, keycode, modifiers)) {
+				changeCheck(component, true);
+				repaint(component);
+				return true;
+			}
 		}
-		
-		if (("panel" == classname) || ("dektop" == classname) ||
-				("dialog" == classname) || ("splitpane" == classname)) {
-			if (("dialog" == classname) && getBoolean(component, "modal", false)) { return true; }
+		else if ("menubar" == classname) {
+			for (Object menu = get(component, ":comp"); menu != null; menu = get(menu, ":next")) {
+				if (hasMnemonic(menu, keycode, modifiers) ||
+						((modifiers == 0) && (keycode == KeyEvent.VK_F10))) {
+					closeup();
+					set(component, "selected", menu);
+					popupMenu(component);
+					repaint(component, "menubar", menu);
+					return true;
+				}
+			}
+		}
+		else if (("menuitem" == classname) || ("checkboxmenuitem" == classname)) {
+			if (hasAccelerator(component, keycode, modifiers)) {
+				invoke(component, null, "action");
+			}
 		}
 		else if ("tabbedpane" == classname) {
+			int selected = getInteger(component, "selected", 0); int i = 0;
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+				if (hasMnemonic(tab, keycode, modifiers)) {
+					if (selected != i) {
+						setInteger(component, "selected", i, 0);
+						repaint(component);
+						invoke(component, getItem(component, i), "action");
+					}
+					return true;
+				}
+				i++;
 			}
-			//Object tab = getItem(component, getInteger(component, "selected", 0));
+			Object comp = get(getItem(component, selected), ":comp");
+			if ((comp != null) && (comp != checked) &&
+					checkMnemonic(comp, false, null, keycode, modifiers)) {
+				return true;
+			}
+		}
+		// check subcomponents
+		if (("panel" == classname) || ("desktop" == classname) ||
+				("dialog" == classname) || ("splitpane" == classname) ||
+				("menubar" == classname) || ("menu" == classname)) {
+			for (Object comp = get(component, ":comp"); comp != null; comp = get(comp, ":next")) {
+				if ((comp != checked) && checkMnemonic(comp, false, null, keycode, modifiers)) { return true; }
+			}
+		}
+		// check parent
+		if (parent && (("dialog" != classname) || !getBoolean(component, "modal", false))) {
+			if (checkMnemonic(getParent(component), true,
+					("tab" == classname) ? checked : component, keycode, modifiers)) { return true; }
+		}
+		return false;
+	}
+	
+	/**
+	 * @param component
+	 * @param keycode
+	 * @param modifiers
+	 * @return true if the component has the given mnemonic
+	 */
+	private boolean hasMnemonic(Object component, int keycode, int modifiers) {
+		if (modifiers == InputEvent.ALT_MASK) {
+			int index = getInteger(component, "mnemonic", -1);
+			if (index != -1) {
+				String text = getString(component, "text", null);
+				return (text != null) && (text.length() > index) &&
+					(Character.toUpperCase(text.charAt(index)) == keycode);
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @param component
+	 * @param keycode
+	 * @param modifiers
+	 * @return true if the component has the given accelerator
+	 */
+	private boolean hasAccelerator(Object component, int keycode, int modifiers) {
+		Object accelerator = get(component, "accelerator");
+		if (accelerator != null) {
+			long keystroke = ((Long) accelerator).longValue();
+			return ((keystroke >> 32) == modifiers) && ((keystroke & 0xffff) == keycode);
 		}
 		return false;
 	}
@@ -5218,17 +5369,24 @@ public class Thinlet extends Container //java
 	 */
 	private void finishParse(Vector methods, Object root, Object handler) {
 		if (methods != null) {
-			for (int i = 0; i < methods.size(); i++) {
-				Object[] args = (Object[]) methods.elementAt(i);
-				Object component = args[0];
-				String key = (String) args[1];
-				String value = (String) args[2];
-				Object[] method = getMethod(component, value, root, handler); //java
-				if ("init" == key) {
-					invokeImpl(method, component, null);
+			for (int i = 0; i < methods.size(); i += 3) {
+				Object component = methods.elementAt(i);
+				Object[] definition = (Object[]) methods.elementAt(i + 1);
+				String value = (String) methods.elementAt(i + 2);
+				
+				if ("method" == definition[0]) {
+					Object[] method = getMethod(component, value, root, handler); //java
+					if ("init" == definition[1]) {
+						invokeImpl(method, component, null);
+					}
+					else {
+						set(component, definition[1], method);
+					}
 				}
-				else {
-					set(component, key, method);
+				else { // ("component" == definition[0])
+					Object reference = find(root, value); //+start find from the component
+					if (reference == null) throw new IllegalArgumentException(value + " not found"); 
+					set(component, definition[1], reference);
 				}
 			}
 		}
@@ -5240,19 +5398,6 @@ public class Thinlet extends Container //java
 	//private static String convert(StringBuffer text) {
 	//	return null;
 	//}
-
-	/*private InputStream inputreader;
-	private byte[] data;
-	private int inputfrom = 0, inputto = 0;
-	private int read() throws Exception {
-		if (data == null) { data = new byte[1024]; }
-		if (inputfrom >= inputto) {
-			inputfrom = 0;
-			inputto = inputreader.read(data);
-		}
-		inputfrom++;
-		return data[inputfrom - 1];
-	}*/
 
 	/**
 	 * Add the component to the parent's ':comp' list, and set its ':parent'
@@ -5316,7 +5461,7 @@ public class Thinlet extends Container //java
 	 *
 	 * @throws java.lang.IllegalArgumentException
 	 */
-	private void addAttribute(Object component, String key, String value, Vector methods) {
+	private void addAttribute(Object component, String key, String value, Vector lasts) {
 		//System.out.println("attribute '" + key + "'='" + value + "'");
 		Object[] definition = getDefinition(getClass(component), key, null);
 		key = (String) definition[1];
@@ -5346,9 +5491,10 @@ public class Thinlet extends Container //java
 		else if ("icon" == definition[0]) {
 			set(component, key, getIcon(value));
 		}
-		else if ("method" == definition[0]) {
-			methods.addElement(new Object[] { component, key, value }); //java
-			//midp set(component, key, value);
+		else if (("method" == definition[0]) || ("component" == definition[0])) {
+			lasts.addElement(component);
+			lasts.addElement(definition);
+			lasts.addElement(value);
 		}
 		else if ("property" == definition[0]) {
 			int equals = value.indexOf('=');
@@ -5911,7 +6057,7 @@ public class Thinlet extends Container //java
 		Integer integer1 = new Integer(1);
 		String[] orientation = { "horizontal", "vertical" };
 		String[] leftcenterright = { "left", "center", "right" };
-		String[] selections = { "single", "interval", "multiple" };
+		String[] selections = { "single", "interval", "multiple" }; //+none
 		dtd = new Object[] {
 			"component", null, new Object[][] {
 				{ "string", "name", "", null },
@@ -5941,13 +6087,13 @@ public class Thinlet extends Container //java
 				{ "string", "text", "validate", null },
 				{ "icon", "icon", "validate", null },
 			 	{ "choice", "alignment", "validate", leftcenterright },
-			 	{ "integer", "mnemonic", "paint", integer_1 } },
-				// labelfor component
+			 	{ "integer", "mnemonic", "paint", integer_1 },
+			 	{ "component", "for", "", null } },
 			"button", "label", new Object[][] {
 			 	{ "choice", "alignment", "validate", new String[] { "center", "left", "right" } },
 				{ "method", "action", "", null },
-				//{ "choice", "type", "", new String[] { "normal", "default", "cancel" } }
-				},//...
+				{ "choice", "type", "", new String[] { "normal", "default", "cancel" } }
+			},
 			"checkbox", "label", new Object[][] {
 				{ "boolean", "selected", "paint", Boolean.FALSE }, //...group
 				{ "string", "group", "paint", null }, //...group

@@ -21,11 +21,13 @@ public class ImageChooser {
 		while (st.hasMoreTokens()) {
 			File file = new File(st.nextToken());
 			if (!file.exists()) { continue; }
+			String path = file.getCanonicalPath();
+			if (findNode(thinlet, tree, path) != null) { continue; } // don't add twice
 			if (file.isDirectory()) {
-				Object node = addNode(thinlet, tree, null, file.getCanonicalPath());
+				Object node = addNode(thinlet, tree, null, path);
 			}
 			else {
-				Object node = addNode(thinlet, tree, null, file.getCanonicalPath());
+				Object node = addNode(thinlet, tree, null, path);
 				addNode(thinlet, node, null, "loading...");
 				thinlet.putProperty(node, "loading...", Boolean.TRUE);
 			}
