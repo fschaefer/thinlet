@@ -875,7 +875,7 @@ public class Thinlet extends Container
 		// set :popup bounds
 		String classname = getClass(component);
 		Rectangle menubounds = getRectangle(selected, "bounds");
-                if ("menubar" == classname) { // below the menubar
+                if ("menubar" == classname) { // below or above the menubar
 			boolean below = getString(component, "placement", "bottom") == "bottom";
 			popupowner = component;
 			if (below) {
@@ -1665,11 +1665,14 @@ public class Thinlet extends Container
                             g.setColor(enabled ? ((inside != pressed) ? c_hover : (pressed ? c_press : c_bg)) : c_bg);
                             g.fillRect(0, 0, bounds.width, bounds.height);
                         } else {
-
+                                Color bg = (Color) get(component, "background");
+                                if (bg == null) bg = enabled ? ((inside != pressed) ? c_hover : ((pressed || toggled) ? c_press : c_ctrl)) :
+					(toggled ? c_press : c_bg);
+                                else bg = enabled ? ((inside != pressed) ? bg.brighter() : ((pressed || toggled) ? bg.darker() : bg)) :
+					(toggled ? bg.darker() : bg);
 				paintRect(g, 0, 0, bounds.width, bounds.height,
 					enabled ? c_border : c_disable,
-					enabled ? ((inside != pressed) ? c_hover : ((pressed || toggled) ? c_press : c_ctrl)) :
-					(toggled ? c_press : c_bg), true, true, true, true, true);
+					bg, true, true, true, true, true);
 			}
 			if (focus) {
 				g.setColor(c_focus);
@@ -1880,6 +1883,8 @@ public class Thinlet extends Container
 		}
 		else if (("panel" == classname) || ("dialog" == classname)) {
 			int titleheight = getInteger(component, ":titleheight", 0);
+                        Color bg = (Color) get(component, "background");
+                        if (bg == null) bg = c_bg;
 			if ("dialog" == classname) {
 				paintRect(g, 0, 0, bounds.width, 3 + titleheight, // dialog titlebar
 					c_border, c_ctrl, true, true, false, true, true);
@@ -1888,11 +1893,11 @@ public class Thinlet extends Container
 				paintContent(component, g, clipx, clipy, clipwidth, clipheight,
 					3, 2, bounds.width - 6, titleheight, c_text, "left", false);
 				paintRect(g, 3, 3 + titleheight, bounds.width - 6, bounds.height - 6 - titleheight, // content area
-					c_border, c_bg, true, true, true, true, true);
+					c_border, bg, true, true, true, true, true);
 			} else { // panel
 				boolean border = getBoolean(component, "border", false);
 				paintRect(g, 0, titleheight / 2, bounds.width, bounds.height - (titleheight / 2),
-					enabled ? c_border : c_disable, c_bg, border, border, border, border, true);
+					enabled ? c_border : c_disable, bg, border, border, border, border, true);
 				paintContent(component, g, clipx, clipy, clipwidth, clipheight, // panel title
 					3, 0, bounds.width - 6, titleheight, enabled ? c_text : c_disable, "left", false);
 			}
@@ -2398,6 +2403,10 @@ public class Thinlet extends Container
 					set(component, ":lead", lead = item); // draw first item focused when lead is null
 				}
 				Rectangle r = getRectangle(item, "bounds");
+                                if (r == null) {
+                                    r = new Rectangle();
+                                    set(item, "bounds", r);
+                                }
 				if (clipy + clipheight <= r.y) { break; } // clip rectangle is above
 				boolean subnode = false; boolean expanded = false;
 				if ("tree" != classname) {
