@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="all" name="thinlet">
+
+    <description>
+    File:    build.xml
+    Author:  boucherb@users.sourceforge.net
+    Verion:  1.0
+    Purpose: build the thinlet.sf.net source tree
+    </description>
+
+    <!--  *****************************  --> 
+    <!--  *** PROJECT WIDE SETTINGS ***  --> 
+    <!--  *****************************  --> 
+        
+    <property file="build.properties"/>
+    
+    <!--  *********************  --> 
+    <!--  *** BUILD TARGETS ***  --> 
+    <!--  *********************  -->     
+    
+    <!--  I N I T  -->
+    
+    <target name="init">
+        <!-- set up a time stamp just in case we want to use it -->    
+        <tstamp>
+            <format pattern="yyyy-MM-dd HH:mm:ss z" property="ts"/>
+        </tstamp>
+    </target>
+    
+    <!--  P R E P A R E  --> 
+         
+    <target depends="init" name="prepare">
+        <!-- create any required directories, etc -->
+        <mkdir dir="${thinlet.build.dir}"/>
+    </target>
+    
+    <!-- G E N E R A T E D   O U T P U T -->      
+              
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Compile the Thinlet midp source Converter                   -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    <target depends="prepare" name="compile-midp-converter">    
+        <javac debug="${build.debug}" 
+               destdir="${thinlet.build.dir}" 
+               optimize="${build.optimize}" 
+               srcdir="${thinlet.midp.src.dir}">
+            <include name="thinlet/midp/Converter.java"/>
+        </javac>
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Generate the Thinlet midp source, using the Converter       -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->     
+  
+    <target depends="compile-midp-converter" name="generate-midp-src">
+        <java classname="thinlet.midp.Converter">
+            <classpath path="${thinlet.build.dir}"/>
+            <arg value="${thinlet.src.dir}"/>
+            <arg value="${thinlet.midp.src.dir}"/>
+        </java>
+    </target>           
+    
+    <!-- C O M P I L E   C L A S S E S -->
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Complile the core Thinlet clases                            -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="prepare" name="compile-core">
+        <javac debug="${build.debug}"
+               destdir="${thinlet.build.dir}" 
+               optimize="${build.optimize}"
+               srcdir="${thinlet.src.dir}">
+            <include name="thinlet/Thinlet*.java"/>
+            <include name="thinlet/Widget.java"/>
+            <include name="thinlet/*Launcher.java"/>
+        </javac>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Complile the Thinlet draft package clases                   -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+    
+    <target depends="compile-core" name="compile-drafts">
+        <javac debug="${build.debug}"
+               destdir="${thinlet.build.dir}" 
+               optimize="${build.optimize}"
+               srcdir="${thinlet.src.dir}">
+            <include name="thinlet/drafts/*.java"/>
+        </javac>    
+    </target>  
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Complile the Thinlet examples package clases                -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->
+    
+    <target depends="compile-core" name="compile-examples">
+        <javac debug="${build.debug}"
+               destdir="${thinlet.build.dir}" 
+               optimize="${build.optimize}"
+               srcdir="${thinlet.src.dir}">
+            <include name="thinlet/examples/**/*.java"/>
+        </javac>    
+    </target>
+    
+    <!-- B U I L D   J A R S  -->    
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Build the core Thinlet classes jar                          -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+       
+    <target depends="compile-core" name="jar-core">
+        <jar destfile="${thinlet.core.jar}">
+            <fileset dir="${thinlet.build.dir}">
+                <include name="thinlet/Thinlet*.class"/>
+                <include name="thinlet/ThinletWidget.class"/>
+                <include name="thinlet/*Launcher.class"/>
+            </fileset>        
+        </jar>
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Build the Thinlet drafts package jar                        -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="compile-drafts" name="jar-drafts">
+        <jar destfile="${thinlet.drafts.jar}">
+            <fileset dir="${thinlet.build.dir}">
+                <include name="thinlet/drafts/**"/>
+            </fileset>
+            <fileset dir="${thinlet.src.dir}"> 
+                <include name="thinlet/drafts/**"/>
+                <exclude name="thinlet/drafts/*.java"/>
+            </fileset>       
+        </jar>
+    </target> 
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Build the Thinlet examples package jar                      -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="compile-examples" name="jar-examples">
+        <jar destfile="${thinlet.examples.jar}">
+            <fileset dir="${thinlet.build.dir}">
+                <include name="thinlet/examples/**"/>
+            </fileset>
+            <fileset dir="${thinlet.src.dir}"> 
+                <include name="thinlet/examples/**"/>
+                <exclude name="thinlet/examples/**/*.java"/>
+            </fileset>        
+        </jar>
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Build the Thinlet icons package jar                         -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->     
+    
+    <target name="jar-icons">
+        <jar destfile="${thinlet.icons.jar}">
+            <fileset dir="${thinlet.src.dir}">
+                <include name="icons/**"/>
+            </fileset>        
+        </jar>
+    </target>    
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Build all of the jars                                       -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->   
+     
+    <target depends="jar-core,jar-drafts,jar-examples,jar-icons" name="jar-all">
+        <echo message="All jars built"/>
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Create JavaDocs                                             -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target name="javadoc">
+      <mkdir dir="${thinlet.doc.dir}/api"/>
+      <javadoc packagenames="thinlet.*,thinlet.drafts.*,thinlet.examples.demo.*,thinlet.examples.amazon.browser.*,thinlet.examples.amazon.explorer.*"
+           sourcepath="${thinlet.src.dir}"
+           destdir="${thinlet.doc.dir}/api"
+           author="true"
+           version="false"
+           use="true"
+           protected="true"
+           windowtitle="Thinlet - API"
+           doctitle="Thinlet - API"
+           bottom="&lt;i&gt;Copyright &#169; 2002 Robert Bajzát - info@thinlet.com - All rights reserved.&lt;/i&gt;">
+     </javadoc>
+   </target>    
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Do Everything                                               -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->     
+    <target depends="jar-all,javadoc, generate-midp-src" name="all">
+        <echo message="All build tasks performed"/>
+    </target>
+    
+    <!-- C L E A N U P   T A R G E T S  -->     
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Clean up the build directory                                -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="prepare" name="clean-compile">
+        <delete dir="${thinlet.build.dir}"/>
+    </target>               
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Delete all jars created by the build proccess               -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="prepare" name="clean-jars">
+        <delete file="${thinlet.core.jar}"/>
+        <delete file="${thinlet.drafts.jar}"/>
+        <delete file="${thinlet.examples.jar}"/>
+        <delete file="${thinlet.icons.jar}"/>
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Delete all generated JavaDoc files                          -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+        
+    <target depends="prepare" name="clean-javadoc">
+        <delete dir="${thinlet.doc.dir}/api"/>
+    </target>    
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Clean up everything                                         -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->     
+    
+    <target depends="clean-compile,clean-jars,clean-javadoc" name="clean-all">
+        <echo message="All clean"/>
+    </target>
+    
+    <!-- R U N   A P P L I C A T I O N   T A R G E T S  -->    
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the demo application                                    -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->     
+    
+    <target name="run-demo">
+        <java classname="thinlet.examples.demo.Demo" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.examples.jar}"/>
+        </java>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the calculator application                              -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    
+    <target name="run-calculator">
+        <java classname="thinlet.examples.demo.Calculator" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.examples.jar}"/>
+        </java>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the Amazon browser application                          -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    
+    <target name="run-amazon-browser">
+        <java classname="thinlet.examples.amazon.browser.AmazonBrowser" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.examples.jar}"/>
+        </java>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the Amazon explorer example application                 -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    
+    <target name="run-amazon-explorer">
+        <java classname="thinlet.examples.amazon.explorer.AmazonExplorer" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.examples.jar}"/>
+        </java>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the Drafts application                                  -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    
+    <target name="run-drafts">
+        <java classname="thinlet.drafts.Drafts" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.drafts.jar}"/>
+        </java>    
+    </target>
+    
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  --> 
+    <!--  Run the Drafts SwingProperties demo application             -->
+    <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  -->    
+    
+    <target name="run-swing-properties">
+        <java classname="thinlet.drafts.SwingProperties" fork="true">
+            <classpath path="${thinlet.core.jar}"/>
+            <classpath path="${thinlet.icons.jar}"/>
+            <classpath path="${thinlet.drafts.jar}"/>
+        </java>    
+    </target>       
+                                                     
+</project>
