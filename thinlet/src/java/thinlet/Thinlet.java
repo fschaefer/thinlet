@@ -4115,7 +4115,7 @@ public class Thinlet extends Container
 			if (!multiline) {
 				mx += getInteger(component, ":offset", 0);
 			} else {
-				Rectangle view = getRectangle(component, ":view");
+				Rectangle view = getRectangle(component, ":port");
 				mx += view.x - 1;
 				my = y - referencey + view.y - 1;
 			}
@@ -4141,7 +4141,7 @@ public class Thinlet extends Container
 			if (!multiline) {
 				mx += getInteger(component, ":offset", 0);
 			} else {
-				Rectangle view = getRectangle(component, ":view");
+				Rectangle view = getRectangle(component, ":port");
 				mx += view.x - 1;
 				my = y - referencey + view.y - 1;
 			}
