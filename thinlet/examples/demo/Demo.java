@@ -255,7 +255,7 @@ public class Demo extends Thinlet {
         
         float[] hsb = Color.RGBtoHSB(red, green, blue, null);
         
-        setBackground(rgb_label, new Color(red, green, blue));
+        setColor(rgb_label, "background", new Color(red, green, blue));
         setString(tf_hue, "text", String.valueOf(hsb[0]));
         setString(tf_saturation, "text", String.valueOf(hsb[1]));
         setString(tf_brightness, "text", String.valueOf(hsb[2]));
