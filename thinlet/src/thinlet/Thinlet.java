@@ -182,7 +182,7 @@ public class Thinlet extends Container //java
 			} // set editable -> validate (overwrite textfield repaint)
 			else {
 				int selected = getInteger(component, "selected", -1);
-				if (selected != -1) {
+				if (selected != -1) { //...
 					Object choice = getItem(component, selected);
 					set(component, "text", get(choice, "text"));
 					set(component, "icon", get(choice, "icon"));
@@ -212,7 +212,8 @@ public class Thinlet extends Container //java
 				chars = getChars(component, text, false, 0, 0);
 			}
 			
-			FontMetrics fm = getFontMetrics(font); //java
+			Font currentfont = (Font) get(component, "font");
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
 			int width = 0, height = 0;
 			int caretx = 0; int carety = 0;
 			for (int i = 0, j = 0; j <= chars.length; j++) {
@@ -358,7 +359,7 @@ public class Thinlet extends Container //java
 			Rectangle bounds = getRectangle(component, "bounds");
 			boolean horizontal = ("vertical" != get(component, "orientation"));
 			int divider = getInteger(component, "divider", -1);
-			int maxdiv = (horizontal ? bounds.width : bounds.height) - 5;
+			int maxdiv = Math.max(0, (horizontal ? bounds.width : bounds.height) - 5);
 
 			Object comp1 = get(component, ":comp");
 			boolean visible1 = (comp1 != null) && getBoolean(comp1, "visible", true);
@@ -453,42 +454,6 @@ public class Thinlet extends Container //java
 				x += d.width;
 			}
 		}
-		else if ((":combolist" == classname) || (":popup" == classname)) {
-			boolean combo = (":combolist" == classname);
-			int pw = 0; int ph = 0; int pxy = combo ? 0 : 1;
-			Object pr = get(component, combo ? "combobox" : "menu");
-			for (Object item = get(pr, ":comp");
-					item != null; item = get(item, ":next")) {
-				String itemclass = combo ? null : getClass(item);
-				Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
-					getSize(item, 8 , 4, "left");
-				if (itemclass == "checkboxmenuitem") {
-					d.width = d.width + block + 3;
-					d.height = Math.max(block, d.height);
-				}
-				else if (itemclass == "menu") {
-					d.width += block;
-				}
-				setRectangle(item, "bounds", pxy, pxy + ph, d.width, d.height);
-				pw = Math.max(pw, d.width);
-				ph += d.height;
-			}
-			Rectangle r = getRectangle(component, "bounds");
-			r.width = pw + 2; r.height = ph + 2;
-			if (combo) { r.width = Math.max(r.width, getRectangle(pr, "bounds").width); }
-			if (combo) {
-				Rectangle db = getRectangle(content, "bounds");
-				if (r.y + ph + 2 > db.height) {
-					r.width = pw + 2 + block;
-					r.height = db.height - r.y;
-				}
-				else {
-					r.height = Math.min(r.height, db.height - r.y);
-				}
-				r.width = Math.min(r.width, db.width - r.x);
-				layoutScrollPane(component, pw, ph, 0, 0);//~
-			}
-		}
 		//java>
 		else if ("bean" == classname) {
 			Rectangle r = getRectangle(component, "bounds");
@@ -510,7 +475,8 @@ public class Thinlet extends Container //java
 		else text.getChars(0, chars.length, chars, 0);
 		
 		if (wrap) {
-			FontMetrics fm = getFontMetrics(font); //java
+			Font currentfont = (Font) get(component, "font");
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
 			int lines = (height - 4 + fm.getLeading()) / fm.getHeight();
 			boolean prevletter = false; int n = chars.length; int linecount = 0;
 			for (int i = 0, j = -1, k = 0; k <= n; k++) { // j is the last space index (before k)
@@ -562,70 +528,162 @@ public class Thinlet extends Container //java
 		}
 		return true;
 	}*/
-
+	
 	/**
-	 *
+	 * Pop up the list of choices for the given combobox
+	 * @param combobox
+	 * @return the created combolist
 	 */
-	private Object popup(Object component, Object classname) {
-		Object popup = null;
-		int px = 0; int py = 0;
-		if (("menubar" == classname) || (":popup" == classname)) {
-			Object popupmenu = get(component, ":popup");
-			Object selected = get(component, "selected");
-			if (popupmenu != null) {
-				if (get(popupmenu, "menu") == selected) { return null; }
-				set(popupmenu, "selected", null);
-				set(popupmenu, "menu", null);
-				removeItemImpl(content, popupmenu);
-				repaint(popupmenu);
-				set(popupmenu, ":parent", null);
-				set(component, ":popup", null);
-				if (mouseinside == popupmenu) {
-					findComponent(content, mousex, mousey);
-					handleMouseEvent(mousex, mousex, 1, false, false, false, //java
-						MouseEvent.MOUSE_ENTERED, mouseinside, insidepart); //java
-				}
-				popup(popupmenu, ":popup");
+	private Object popupCombo(Object combobox) {
+		// combobox bounds relative to the root desktop
+		int combox = 0, comboy = 0, combowidth = 0, comboheight = 0;
+		for (Object comp = combobox; comp != content; comp = getParent(comp)) {
+			Rectangle r = getRectangle(comp, "bounds");
+			combox += r.x; comboy += r.y;
+			if (comp == combobox) { combowidth = r.width; comboheight = r.height; }
+		}
+		// :combolist -> combobox and combobox -> :combolist 
+		Object combolist = createImpl(":combolist");
+		set(combolist, "combobox", combobox);
+		set(combobox, ":combolist", combolist);
+		// add :combolist to the root desktop and set the combobox as popupowner
+		popupowner = combobox;
+		insertItem(content, ":comp", combolist, 0);
+		set(combolist, ":parent", content);
+		// lay out choices verticaly and calculate max width and height sum
+		int pw = 0; int ph = 0;
+		for (Object item = get(combobox, ":comp");
+				item != null; item = get(item, ":next")) {
+			Dimension d = getSize(item, 8 , 4, "left");
+			setRectangle(item, "bounds", 0, ph, d.width, d.height);
+			pw = Math.max(pw, d.width);
+			ph += d.height;
+		}
+		// set :combolist bounds
+		int listy = 0, listheight = 0;
+		int bellow = getRectangle(content, "bounds").height - comboy - comboheight - 1;
+		if ((ph + 2 > bellow) && (comboy - 1 > bellow)) { // popup above combobox
+			listy = Math.max(0, comboy - 1 - ph - 2);
+			listheight = Math.min(comboy - 1, ph + 2);
+		}
+		else { // popup bellow combobox
+			listy = comboy + comboheight + 1;
+			listheight = Math.min(bellow, ph + 2);
+		}
+		setRectangle(combolist, "bounds", combox, listy, combowidth, listheight);
+		layoutScrollPane(combolist, pw, ph, 0, 0);
+		repaint(combolist);
+		return combolist;
+	}
+	
+	/**
+	 * @param component menubar or :popup
+	 * @return the created popupmenu
+	 */
+	private Object popupMenu(Object component) {
+		Object popup = get(component, ":popup"); // first :popup child
+		Object selected = get(component, "selected"); // selected menu in of the component
+		if (popup != null) { // remove its current :popup
+			if (get(popup, "menu") == selected) { return null; } // but the currect one
+			set(popup, "selected", null);
+			set(popup, "menu", null);
+			repaint(popup);
+			removeItemImpl(content, popup);
+			set(popup, ":parent", null);
+			set(component, ":popup", null);
+			if (mouseinside == popup) {
+				findComponent(content, mousex, mousey);
+				handleMouseEvent(mousex, mousex, 1, false, false, false, //java
+					MouseEvent.MOUSE_ENTERED, mouseinside, insidepart); //java
 			}
-			if ((selected == null) || (getClass(selected) != "menu")) { return null; }
-			popup = createImpl(":popup");
-			set(popup, "menu", selected);
-			set(component, ":popup", popup);
-
-			Rectangle bounds = getRectangle(selected, "bounds");
-			if ("menubar" == classname) {
-				px = bounds.x; py = bounds.y + bounds.height - 1;
-			} else {
-				px = bounds.x + getRectangle(component, "bounds").width - 4;
-				py = bounds.y;
-			}
+			popupMenu(popup); // remove recursively
 		}
-		else { //if ("combobox" == classname) {
-			popup = createImpl(":combolist");
-			set(popup, "combobox", component);
-			set(component, ":combolist", popup);
-
-			py = getRectangle(component, "bounds").height + 1;
-		}
-		if (("menubar" == classname) || ("combobox" == classname)) {
-			popupowner = component;
-		}
+		// pop up the selected menu only 
+		if ((selected == null) || (getClass(selected) != "menu")) { return null; }
+		// create the :popup, :popup.menu -> menu,
+		// menubar|:popup.:popup -> :popup, menubar|:popup.selected -> menu
+		popup = createImpl(":popup");
+		set(popup, "menu", selected);
+		set(component, ":popup", popup);
 		insertItem(content, ":comp", popup, 0);
 		set(popup, ":parent", content);
-		while (component != content) {
-			Rectangle r = getRectangle(component, "bounds");
-			px += r.x; py += r.y;
-			component = getParent(component);
+		// layout menuitems and calculate :popup content size
+		int pw = 0; int ph = 0;
+		for (Object item = get(selected, ":comp"); item != null; item = get(item, ":next")) {
+			String itemclass = getClass(item);
+			Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
+				getSize(item, 8 , 4, "left");
+			if (itemclass == "checkboxmenuitem") {
+				d.width = d.width + block + 3;
+				d.height = Math.max(block, d.height);
+			}
+			else if (itemclass == "menu") {
+				d.width += block;
+			}
+			setRectangle(item, "bounds", 1, 1 + ph, d.width, d.height);
+			pw = Math.max(pw, d.width);
+			ph += d.height;
 		}
-		setRectangle(popup, "bounds", px, py, 0, 0);
-		doLayout(popup); repaint(popup);
+		// calculates the bounds of the previous menubar/:popup relative to the root desktop
+		int menux = 0, menuy = 0, menuwidth = 0, menuheight = 0;
+		for (Object comp = component; comp != content; comp = getParent(comp)) {
+			Rectangle r = getRectangle(comp, "bounds");
+			menux += r.x; menuy += r.y;
+			if (comp == component) { menuwidth = r.width; menuheight = r.height; }
+		}
+		// set :popup bounds
+		String classname = getClass(component);
+		Rectangle menubounds = getRectangle(selected, "bounds");
+		if ("menubar" == classname) { // bellow the menubar
+			popupowner = component;
+			setRectangle(popup, "bounds",
+				menux + menubounds.x, menuy + menuheight - 1, pw + 2, ph + 2);
+		} else { // right to the previous :popup
+			setRectangle(popup, "bounds",
+				menux + menuwidth - 3, menuy + menubounds.y, pw + 2, ph + 2);
+		}
+		repaint(popup);
 		return popup;
+	}
+	
+	/**
+	 * @param popupmenu
+	 */
+	private void popupPopup(Object popupmenu, int x, int y) {
+		// :popup.menu -> popupmenu, popupmenu.:popup -> :popup
+		Object popup = createImpl(":popup");
+		set(popup, "menu", popupmenu);
+		set(popupmenu, ":popup", popup);
+		// add :popup to the root desktop and set the combobox as popupowner
+		popupowner = popupmenu;
+		insertItem(content, ":comp", popup, 0);
+		set(popup, ":parent", content);
+		// lay out
+		int pw = 0; int ph = 0;
+		for (Object item = get(popupmenu, ":comp"); item != null; item = get(item, ":next")) {
+			String itemclass = getClass(item);
+			Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
+				getSize(item, 8 , 4, "left");
+			if (itemclass == "checkboxmenuitem") {
+				d.width = d.width + block + 3;
+				d.height = Math.max(block, d.height);
+			}
+			else if (itemclass == "menu") {
+				d.width += block;
+			}
+			setRectangle(item, "bounds", 1, 1 + ph, d.width, d.height);
+			pw = Math.max(pw, d.width);
+			ph += d.height;
+		}
+		// set :popup bounds
+		setRectangle(popup, "bounds", x, y, pw + 2, ph + 2);
+		repaint(popup);
 	}
 
 	/**
 	 *
 	 */
-	private void closeup(Object combobox, Object combolist, Object item) {
+	private void closeCombo(Object combobox, Object combolist, Object item) {
 		if ((item != null) && getBoolean(item, "enabled", true)) {
 			String text = getString(item, "text", "");
 			set(combobox, "text", text); // if editable
@@ -652,25 +710,21 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private void closeup(Object menubar) {
-		set(menubar, "selected", null);
-		popup(menubar, "menubar");
-		repaint(menubar); // , selected
-		popupowner = null;
-	}
-
-	/**
-	 *
-	 */
 	private void closeup() {
 		if (popupowner != null) {
 			String classname = getClass(popupowner);
 			if ("menubar" == classname) {
-				closeup(popupowner);
+				set(popupowner, "selected", null);
+				popupMenu(popupowner);
+				repaint(popupowner); // , selected
 			}
 			else if ("combobox" == classname) {
-				closeup(popupowner, get(popupowner, ":combolist"), null);
+				closeCombo(popupowner, get(popupowner, ":combolist"), null);
 			}
+			else { // "popupmenu"
+				popupMenu(popupowner);
+			}
+			popupowner = null;
 		}
 	}
 
@@ -731,7 +785,8 @@ public class Thinlet extends Container //java
 		if (end > text.length()) { setInteger(component, "end", end = text.length(), 0); }
 		int offset = getInteger(component, "offset", 0);
 		int off = offset;
-		FontMetrics fm = getFontMetrics(font);
+		Font currentfont = (Font) get(component, "font");
+		FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 		int caret = hidden ? (fm.charWidth('*') * end) :
 			fm.stringWidth(text.substring(0, end)); //java
 			//midp font.substringWidth(text, 0, end);
@@ -837,9 +892,14 @@ public class Thinlet extends Container //java
 				size.width += block;
 				return size;
 			} else {
-				int selected = getInteger(component, "selected", -1);
-				return getSize((selected != -1) ?
-					getItem(component, selected) : get(component, ":comp"), 4 + block, 4, "left");
+				// maximum size of current values and choices including 2-2-2-2 insets
+				Dimension size = getSize(component, 4 , 4, "left"); // set min text height...
+				for (Object item = get(component, ":comp"); item != null; item = get(item, ":next")) {
+					Dimension d = getSize(item, 4 , 4, "left");
+					size.width = Math.max(d.width, size.width); size.height = Math.max(d.height, size.height);
+				}
+				size.width += block;
+				return size;
 			}
 		}
 		if (("textfield" == classname) || ("passwordfield" == classname)) {
@@ -848,7 +908,8 @@ public class Thinlet extends Container //java
 		if ("textarea" == classname) {
 			int columns = getInteger(component, "columns", 0);
 			int rows = getInteger(component, "rows", 0); // 'e' -> 'm' ?
-			FontMetrics fm = getFontMetrics(font); //java
+			Font currentfont = (Font) get(component, "font");
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
 			return new Dimension(
 				((columns > 0) ? (columns * fm.charWidth('e') + 2) : 76) + 2 + block,
 				((rows > 0) ? (rows * fm.getHeight() - fm.getLeading() + 2) : 76) + 2 + block);
@@ -1114,7 +1175,8 @@ public class Thinlet extends Container //java
 	private Dimension getFieldSize(Object component) {
 		String text = getString(component, "text", "");
 		int columns = getInteger(component, "columns", 0);
-		FontMetrics fm = getFontMetrics(font);
+		Font currentfont = (Font) get(component, "font");
+		FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 		return new Dimension(((columns > 0) ?
 			(columns * fm.charWidth('e')) : 76) + 4,
 			fm.getAscent() + fm.getDescent() + 4); // fm.stringWidth(text)
@@ -1128,7 +1190,8 @@ public class Thinlet extends Container //java
 		String text = getString(component, "text", null);
 		int tw = 0; int th = 0;
 		if (text != null) {
-			FontMetrics fm = getFontMetrics(font);
+			Font customfont = (Font) get(component, "font");
+			FontMetrics fm = getFontMetrics((customfont != null) ? customfont : font);
 			tw = fm.stringWidth(text);
 			th = fm.getAscent() + fm.getDescent();
 		}
@@ -1243,9 +1306,10 @@ public class Thinlet extends Container //java
 		//g.setClip(0, 0, bounds.width, bounds.height);
 
 		if ("label" == classname) {
+			Color fg = (Color) get(component, "foreground");
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
 				0, 0, bounds.width, bounds.height,
-				enabled ? c_text : c_disable, "left", true);
+				enabled ? ((fg != null) ? fg : c_text) : c_disable, "left", true);
 		}
 		else if (("button" == classname) || ("togglebutton" == classname)) {
 			boolean toggled = ("togglebutton" == classname) && getBoolean(component, "selected", false);
@@ -1374,6 +1438,8 @@ public class Thinlet extends Container //java
 				int start = focus ? getInteger(component, "start", 0) : 0;
 				int end = focus ? getInteger(component, "end", 0) : 0;
 				int is = Math.min(start, end); int ie = Math.max(start, end);
+				Font currentfont = (Font) get(component, "font");
+				if (currentfont != null) { g.setFont(currentfont); }
 				FontMetrics fm = g.getFontMetrics(); //java
 				int fontascent = fm.getAscent(); int fontheight = fm.getHeight(); //java
 				//midp int fontheight = fm.getHeight();
@@ -1408,6 +1474,7 @@ public class Thinlet extends Container //java
 						i = j + 1;
 					}
 				}
+				if (currentfont != null) { g.setFont(font); }
 				resetScrollPane(g, clipx, clipy, clipwidth, clipheight, view, viewport);
 			}
 		}
@@ -1826,6 +1893,8 @@ public class Thinlet extends Container //java
 
 		String text = getString(component, "text", "");
 		int offset = getInteger(component, "offset", 0);
+		Font currentfont = (Font) get(component, "font");
+		if (currentfont != null) { g.setFont(currentfont); }
 		FontMetrics fm = g.getFontMetrics(); //java
 
 		int caret = 0;
@@ -1865,6 +1934,7 @@ public class Thinlet extends Container //java
 			g.drawString(text, fx, fy); //java
 			//midp g.drawString(text, fx, fy, Graphics.LEFT | Graphics.TOP);
 		}
+		if (currentfont != null) { g.setFont(font); }
 		g.setClip(clipx, clipy, clipwidth, clipheight);
 	}
 
@@ -2062,6 +2132,8 @@ public class Thinlet extends Container //java
 		Image icon = getIcon(component, "icon", null);
 		if ((text == null) && (icon == null)) { return; }
 		String alignment = getString(component, "alignment", defaultalignment);
+		Font customfont = (text != null) ? (Font) get(component, "font") : null;
+		if (customfont != null) { g.setFont(customfont); }
 
 		FontMetrics fm = null; //java
 		int tw = 0, th = 0;
@@ -2107,6 +2179,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		if (clipped) { g.setClip(clipx, clipy, clipwidth, clipheight); }
+		if (customfont != null) { g.setFont(font); } //restore the default font
 	}
 	//midp private void setTimer(long delay) {}
 	//java>
@@ -2346,7 +2419,7 @@ public class Thinlet extends Container //java
 								if (firstmenu != null) {
 									closeup();
 									set(menubar, "selected", firstmenu);
-									popup(menubar, "menubar");
+									popupMenu(menubar);
 									repaint(menubar, "menubar", firstmenu);
 									ke.consume();
 								}
@@ -2458,7 +2531,7 @@ public class Thinlet extends Container //java
 					return true;
 				}
 				if ((keychar == KeyEvent.VK_SPACE) || (keycode == KeyEvent.VK_DOWN)) {
-					combolist = popup(component, classname);
+					combolist = popupCombo(component);
 					int selected = getInteger(component, "selected", -1);
 					set(combolist, ":inside", (selected != -1) ?
 						getItem(component, selected) : get(component, ":comp")); //scroll to it!
@@ -2480,10 +2553,10 @@ public class Thinlet extends Container //java
 					}
 				}
 				else if ((keycode == KeyEvent.VK_ENTER) || (keychar == KeyEvent.VK_SPACE)) {
-					closeup(component, combolist, get(combolist, ":inside")); //Alt+Up
+					closeCombo(component, combolist, get(combolist, ":inside")); //Alt+Up
 				}
 				else if (keycode == KeyEvent.VK_ESCAPE) {
-					closeup(component, combolist, null);
+					closeCombo(component, combolist, null);
 				}
 				else return processField(component, shiftdown, controldown, modifiers,
 					keychar, keycode, false, false);
@@ -2512,7 +2585,8 @@ public class Thinlet extends Container //java
 			}
 			else if ((keycode == KeyEvent.VK_UP) || (keycode == KeyEvent.VK_PAGE_UP) ||
 					(keycode == KeyEvent.VK_DOWN) || (keycode == KeyEvent.VK_PAGE_DOWN)) {
-				FontMetrics fm = getFontMetrics(font);
+				Font currentfont = (Font) get(component, "font");
+				FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 				int fh = fm.getHeight();
 				int y = 0; int linestart = 0;
 				for (int i = 0; i < iend; i++) {
@@ -2659,7 +2733,7 @@ public class Thinlet extends Container //java
 			}
 			return processList(component, shiftdown, controldown, keychar, keycode, true);
 		}
-		else if ("menubar" == classname) {
+		else if (("menubar" == classname) || ("popupmenu" == classname)) {
 			Object previous = null; Object last = null;
 			for (Object i = get(component, ":popup");
 					i != null; i = get(i, ":popup")) {
@@ -2674,7 +2748,7 @@ public class Thinlet extends Container //java
 
 			if ((keycode == KeyEvent.VK_UP) || (keycode == KeyEvent.VK_DOWN)) {
 				set(hotpopup, "selected", null);
-				popup(hotpopup, ":popup");
+				popupMenu(hotpopup);
 				selected = getMenu(hotpopup,
 					selected, keycode == KeyEvent.VK_DOWN, true);
 				set(hotpopup, "selected", selected);
@@ -2684,14 +2758,14 @@ public class Thinlet extends Container //java
 				if (previous != null) {
 					selected = get(previous, "selected");
 					set(previous, "selected", null);
-					popup(previous, ":popup");
+					popupMenu(previous);
 					set(previous, "selected", selected);
 					repaint(previous); // , selected
 				}
 				else {
 					selected = getMenu(component, get(component, "selected"), false, false);
 					set(component, "selected", selected);
-					Object popup = popup(component, "menubar");
+					Object popup = popupMenu(component);
 					set(popup, "selected", getMenu(popup, null, true, true));
 					repaint(component); // , selected
 				}
@@ -2702,13 +2776,13 @@ public class Thinlet extends Container //java
 					repaint(last); // , selected
 				}
 				else if ((selected != null) && (getClass(selected) == "menu")) {
-					Object popup = popup(last, ":popup");
+					Object popup = popupMenu(last);
 					set(popup, "selected", get(get(popup, "menu"), ":comp"));
 				}
 				else {
 					selected = getMenu(component, get(component, "selected"), true, false);
 					set(component, "selected", selected);
-					Object popup = popup(component, "menubar");
+					Object popup = popupMenu(component);
 					set(popup, "selected", getMenu(popup, null, true, true));
 					repaint(component); // , selected
 				}
@@ -2722,7 +2796,7 @@ public class Thinlet extends Container //java
 					}
 					else invoke(selected, null, "action");
 				}
-				closeup(component);
+				closeup();
 			}
 			else return false;
 			return true;
@@ -3153,15 +3227,15 @@ public class Thinlet extends Container //java
 					if (combolist == null) {
 						setFocus(component);
 						repaint(component);
-						popup(component, classname);
+						popupCombo(component);
 					} else {
-						closeup(component, combolist, null);
+						closeCombo(component, combolist, null);
 					}
 				}
 				else if (id == MouseEvent.MOUSE_RELEASED) {
 					if (mouseinside != component) {
 						Object combolist = get(component, ":combolist");
-						closeup(component, combolist,
+						closeCombo(component, combolist,
 							(mouseinside == combolist) ? insidepart : null);
 					} else {
 						repaint(component);
@@ -3185,7 +3259,7 @@ public class Thinlet extends Container //java
 					}
 				}
 				else if (id == MouseEvent.MOUSE_RELEASED) {
-					closeup(get(component, "combobox"), component, part);
+					closeCombo(get(component, "combobox"), component, part);
 				}
 			}
 		}
@@ -3316,8 +3390,7 @@ public class Thinlet extends Container //java
 			if (!processScroll(x, y, id, component, part)) {
 				if (((id == MouseEvent.MOUSE_PRESSED)||
 						((id == MouseEvent.MOUSE_DRAGGED) &&
-							!shiftdown && !controldown)) &&
-						!popuptrigger) { // e.getClickCount() 
+							!shiftdown && !controldown))) { 
 					Rectangle view = getRectangle(component, ":view");
 					Rectangle viewport = getRectangle(component, ":port");
 					int my = y + view.y - referencey;
@@ -3367,11 +3440,11 @@ public class Thinlet extends Container //java
 					((id == MouseEvent.MOUSE_ENTERED) || (id == DRAG_ENTERED)))) {
 					// || ((id == MouseEvent.MOUSE_PRESSED) && (insidepart != part))
 				set(component, "selected", part);
-				popup(component, classname);
+				popupMenu(component);
 				repaint(component, classname, part);
 			}
 			else if ((id == MouseEvent.MOUSE_PRESSED) && (selected != null)) {
-				closeup(component);
+				closeup();
 			}
 			else if (id == MouseEvent.MOUSE_RELEASED) {
 				if ((part != insidepart) && ((insidepart == null) ||
@@ -3382,7 +3455,7 @@ public class Thinlet extends Container //java
 						}
 						else invoke(insidepart, null, "action");
 					}
-					closeup(component);
+					closeup();
 				}
 			}
 		}
@@ -3390,22 +3463,18 @@ public class Thinlet extends Container //java
 			if (part != null) {
 				if ((id == MouseEvent.MOUSE_ENTERED) || (id == DRAG_ENTERED)) {
 					set(component, "selected", part);
-					popup(component, classname);
+					popupMenu(component);
 					repaint(component, classname, part);
 				}
 				else if (id == MouseEvent.MOUSE_RELEASED) {
 					if ((insidepart == null) || (getClass(insidepart) != "menu")) {
-						Object menubar = part;
-						do {
-							menubar = getParent(menubar);
-						} while (getClass(menubar) != "menubar");
 						if ((insidepart != null) && getBoolean(insidepart, "enabled", true)) {
 							if (getClass(insidepart) == "checkboxmenuitem") {
 								changeCheck(insidepart, false);
 							}
 							else invoke(insidepart, null, "action");
 						}
-						closeup(menubar);
+						closeup();
 					}
 				}
 				else if ((id == MouseEvent.MOUSE_EXITED) || (id == DRAG_EXITED)) {
@@ -3444,6 +3513,13 @@ public class Thinlet extends Container //java
 						bounds.x = mx; bounds.y = my;
 					}
 				}
+			}
+		}
+		
+		if (popuptrigger && (id == MouseEvent.MOUSE_RELEASED)) {
+			Object popupmenu = get(component, "popupmenu");
+			if (popupmenu != null) {
+				popupPopup(popupmenu, x, y);
 			}
 		}
 	}
@@ -3583,7 +3659,8 @@ public class Thinlet extends Container //java
 	 */
 	private int getCaretLocation(Object component,
 			int x, int y, boolean multiline, boolean hidden) {
-		FontMetrics fm = getFontMetrics(font);
+		Font currentfont = (Font) get(component, "font");
+		FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 		char[] chars = multiline ? ((char[]) get(component, ":text")) :
 			getString(component, "text", "").toCharArray(); // update it
 		int linestart = 0;
@@ -3762,13 +3839,14 @@ public class Thinlet extends Container //java
 				args[i] = this;
 			}
 			else {
+				if ("item" == target) { target = part; }
 				Object parametername = data[2 + 3 * i + 1];
 				if (parametername == null) {
 					args[i] = target;
 					//args[i] = new Widget(this, target);
 				}
 				else {
-					args[i] = get(target, parametername);
+					args[i] = (target != null) ? get(target, parametername) : null;
 					if (args[i] == null) { args[i] = data[2 + 3 * i + 2]; }
 				}
 			}
@@ -4272,7 +4350,7 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private Object get(Object component, Object key) {
+	private static Object get(Object component, Object key) {
 		for (Object[] entry = (Object[]) component; entry != null;
 				entry = (Object[]) entry[2]) {
 			if (entry[0] == key) {
@@ -4390,7 +4468,7 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private int getItemCountImpl(Object component, String key) {
+	private static int getItemCountImpl(Object component, String key) {
 		int i = 0;
 		for (Object comp = get(component, key); comp != null; comp = get(comp, ":next")) {
 			i++;
@@ -4428,7 +4506,7 @@ public class Thinlet extends Container //java
 	/**
 	 * Referenced by DOM, replace by getItem for others
 	 */
-	private Object getItemImpl(Object component, Object key, int index) {
+	private static Object getItemImpl(Object component, Object key, int index) {
 		int i = 0;
 		for (Object item = get(component, key); item != null; item = get(item, ":next")) {
 			if (i == index) { return item; }
@@ -4558,6 +4636,7 @@ public class Thinlet extends Container //java
 			Object found = find(comp, name);
 			if (found != null) { return found; }
 		}
+		// header popupmenu ...
 		return null;
 	}
 	
@@ -4603,7 +4682,7 @@ public class Thinlet extends Container //java
 		String classname = (String) entry[1];
 		while ((entry = (Object[]) entry[2]) != null) {
 			try {
-				Object[] definition = getDefinition(component, (String) entry[0], null);
+				Object[] definition = getDefinition(getClass(component), (String) entry[0], null);
 				if (definition != null) {
 					xml.append(" " + entry[0] + "=\"" + entry[1] + "\"");
 				}
@@ -4730,7 +4809,7 @@ public class Thinlet extends Container //java
 	 * @param key a string to identify the value pair
 	 * @return the value, or null
 	 */
-	protected String getDOMAttribute(Object node, String key) {
+	protected static String getDOMAttribute(Object node, String key) {
 		return (String) get(node, key.intern());
 	}
 	
@@ -4740,7 +4819,7 @@ public class Thinlet extends Container //java
 	 * @param node a specified tag
 	 * @return the value, or null
 	 */
-	protected String getDOMText(Object node) {
+	protected static String getDOMText(Object node) {
 		return (String) get(node, ":text");
 	}
 	
@@ -4751,7 +4830,7 @@ public class Thinlet extends Container //java
 	 * @param key the searched tagname
 	 * @return the number of tags
 	 */
-	protected int getDOMCount(Object node, String key) {
+	protected static int getDOMCount(Object node, String key) {
 		return getItemCountImpl(node, key.intern());
 	}
 	
@@ -4763,7 +4842,7 @@ public class Thinlet extends Container //java
 	 * @param index the index of the requested subtag
 	 * @return the found tag, or null
 	 */
-	protected Object getDOMNode(Object node, String key, int index) {
+	protected static Object getDOMNode(Object node, String key, int index) {
 		return getItemImpl(node, key.intern(), index);
 	}
 
@@ -5036,7 +5115,8 @@ public class Thinlet extends Container //java
 				(("row" == parentclass) && ("cell" == classname)) ||
 				((("tree" == parentclass) || ("node" == parentclass)) && ("node" == classname)) ||
 				(("menubar" == parentclass) && ("menu" == classname)) ||
-				(("menu" == parentclass) && (("menu" == classname) || ("menuitem" == classname) ||
+				((("menu" == parentclass) || ("popupmenu" == parentclass)) &&
+					(("menu" == classname) || ("menuitem" == classname) ||
 					("checkboxmenuitem" == classname) || ("separator" == classname))) ||
 				((("panel" == parentclass) || ("desktop" == parentclass) ||
 					("splitpane" == parentclass) || ("dialog" == parentclass) ||
@@ -5044,7 +5124,8 @@ public class Thinlet extends Container //java
 			insertItem(parent, ":comp", component, index);
 			set(component, ":parent", parent);
 		}
-		else if (("table" == parentclass) && ("header" == classname)) {
+		else if ((("table" == parentclass) && ("header" == classname)) ||
+				(("popupmenu" == classname) && instance(parentclass, "component"))) {
 			set(parent, classname, component);
 			set(component, ":parent", parent);
 		}
@@ -5080,7 +5161,7 @@ public class Thinlet extends Container //java
 	 */
 	private void addAttribute(Object component, String key, String value, Vector methods) {
 		//System.out.println("attribute '" + key + "'='" + value + "'");
-		Object[] definition = getDefinition(component, key, null);
+		Object[] definition = getDefinition(getClass(component), key, null);
 		key = (String) definition[1];
 		if ("string" == definition[0]) {
 			setString(component, key, value, (String) definition[3]);
@@ -5117,6 +5198,40 @@ public class Thinlet extends Container //java
 			if (equals == -1) { throw new IllegalArgumentException(value); }
 			putProperty(component, value.substring(0, equals), value.substring(equals + 1));
 		}
+		else if ("font" == definition[0]) {
+			String name = null;
+			boolean bold = false; boolean italic = false;
+			int size = 0;
+			StringTokenizer st = new StringTokenizer(value);
+			while (st.hasMoreTokens()) {
+				String token = st.nextToken();
+				if ("bold".equalsIgnoreCase(token)) { bold = true; }
+				else if ("italic".equalsIgnoreCase(token)) { italic = true; }
+				else {
+					try {
+						size = Integer.parseInt(token);
+					} catch (NumberFormatException nfe) {
+						name = (name == null) ? token : (name + " " + token);
+					}
+				}
+			}
+			if (name == null) { name = font.getName(); }
+			if (size == 0) { size = font.getSize(); }
+			set(component, key, new Font(name,
+				(bold ? Font.BOLD : 0) | (italic ? Font.ITALIC : 0), size));
+		}
+		else if ("color" == definition[0]) {
+			int color = 0;
+			if (value.startsWith("#")) { color = Integer.parseInt(value.substring(1), 16); }
+			else if (value.startsWith("0x")) { color = Integer.parseInt(value.substring(2), 16); }
+			else { // three separated integer including red, green, and blue
+				StringTokenizer st = new StringTokenizer(value, " \r\n\t,");
+				color = 0xff000000 | ((Integer.parseInt(st.nextToken()) & 0xff) << 16) |
+					((Integer.parseInt(st.nextToken()) & 0xff) << 8) |
+					(Integer.parseInt(st.nextToken()) & 0xff);
+			}				
+			set(component, key, new Color(color));
+		}
 		//java>
 		else if ("bean" == definition[0]) {
 			try {
@@ -5131,8 +5246,7 @@ public class Thinlet extends Container //java
 	 *
 	 * @throws java.lang.IllegalArgumentException
 	 */
-	private Object[] getDefinition(Object component, String key, String type) {
-		Object classname = getClass(component);
+	private Object[] getDefinition(Object classname, String key, String type) {
 		Object currentname = classname;
 		while (classname != null) {
 			for (int i = 0; i < dtd.length; i += 3) {
@@ -5170,7 +5284,7 @@ public class Thinlet extends Container //java
 	 * Sets the given property pair (key and value) for the component
 	 */
 	public void setString(Object component, String key, String value) {
-		Object[] definition = getDefinition(component, key, "string");
+		Object[] definition = getDefinition(getClass(component), key, "string");
 		if (setString(component, (String) definition[1],
 				value, (String) definition[3])) {
 			update(component, definition[2]);
@@ -5181,7 +5295,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public String getString(Object component, String key) {
-		Object[] definition = getDefinition(component, key, "string");
+		Object[] definition = getDefinition(getClass(component), key, "string");
 		return getString(component, (String) definition[1],
 			(String) definition[3]);
 	}
@@ -5190,7 +5304,7 @@ public class Thinlet extends Container //java
 	 * Sets the given property pair (key and value) for the component
 	 */
 	public void setChoice(Object component, String key, String value) {
-		Object[] definition = getDefinition(component, key, "choice");
+		Object[] definition = getDefinition(getClass(component), key, "choice");
 		String[] values = (String[]) definition[3];
 		if (setChoice(component, (String) definition[1],
 				value, values, values[0])) {
@@ -5202,7 +5316,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public String getChoice(Object component, String key) {
-		Object[] definition = getDefinition(component, key, "choice");
+		Object[] definition = getDefinition(getClass(component), key, "choice");
 		return getString(component, (String) definition[1],
 			((String[]) definition[3])[0]);
 	}
@@ -5211,7 +5325,7 @@ public class Thinlet extends Container //java
 	 * Sets the given property pair (key and value) for the component
 	 */
 	public void setBoolean(Object component, String key, boolean value) {
-		Object[] definition = getDefinition(component, key, "boolean");
+		Object[] definition = getDefinition(getClass(component), key, "boolean");
 		if (setBoolean(component, (String) definition[1],
 				value, (definition[3] == Boolean.TRUE))) {
 			update(component, definition[2]);
@@ -5222,7 +5336,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public boolean getBoolean(Object component, String key) {
-		Object[] definition = getDefinition(component, key, "boolean");
+		Object[] definition = getDefinition(getClass(component), key, "boolean");
 		return getBoolean(component, (String) definition[1],
 			(definition[3] == Boolean.TRUE));
 	}
@@ -5231,7 +5345,7 @@ public class Thinlet extends Container //java
 	 * Sets the given property pair (key and value) for the component
 	 */
 	public void setInteger(Object component, String key, int value) {
-		Object[] definition = getDefinition(component, key, "integer");
+		Object[] definition = getDefinition(getClass(component), key, "integer");
 		if (setInteger(component, (String) definition[1],
 				value, ((Integer) definition[3]).intValue())) {
 			update(component, definition[2]);
@@ -5242,7 +5356,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public int getInteger(Object component, String key) {
-		Object[] definition = getDefinition(component, key, "integer");
+		Object[] definition = getDefinition(getClass(component), key, "integer");
 		return getInteger(component, (String) definition[1],
 			((Integer) definition[3]).intValue());
 	}
@@ -5251,7 +5365,7 @@ public class Thinlet extends Container //java
 	 * Sets the given property pair (key and value) for the component
 	 */
 	public void setIcon(Object component, String key, Image icon) {
-		Object[] definition = getDefinition(component, key, "icon");
+		Object[] definition = getDefinition(getClass(component), key, "icon");
 		if (set(component, (String) definition[1], icon)) {
 			update(component, definition[2]);
 		}
@@ -5261,7 +5375,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public Image getIcon(Object component, String key) {
-		Object[] definition = getDefinition(component, key, "icon");
+		Object[] definition = getDefinition(getClass(component), key, "icon");
 		return getIcon(component, (String) definition[1], (Image) definition[3]);
 	}
 	
@@ -5279,13 +5393,21 @@ public class Thinlet extends Container //java
 	 * @throws java.lang.IllegalArgumentException
 	 */
 	public void setMethod(Object component, String key, String value, Object root, Object handler) {
-		key = (String) getDefinition(component, key, "method")[1];
+		key = (String) getDefinition(getClass(component), key, "method")[1];
 		Object[] method = getMethod(component, value, root, handler);
 		set(component, key, method);
 	}
 	
 	/**
-	 *
+	 * @return an object list including as follows:
+	 * - handler object,
+	 * - method,
+	 * - list of parameters including 3 values:
+	 * - ("thinlet", null, null) for the single thinlet component,
+	 * - (target component, null, null) for named widget as parameter, e.g. mybutton,
+	 * - (target, parameter name, default value) for a widget's given property, e.g. mylabel.enabled,
+	 * - ("item", null, null) for an item of the target component as parameter, e.g. tree node,
+	 * - ("item", parameter name, default value) for the item's given property e.g. list item's text.
 	 */
 	private Object[] getMethod(Object component, String value, Object root, Object handler) {
 		StringTokenizer st  = new StringTokenizer(value, "(, )");
@@ -5303,20 +5425,25 @@ public class Thinlet extends Container //java
 				int dot = arg.indexOf('.');
 				String compname = (dot == -1) ? arg : arg.substring(0, dot);
 				Object comp = null;
-				if ("this".equals(compname)) {
-					comp = component;
+				String classname = null;
+				if ("item".equals(compname)) {
+					comp = "item";
+					String parentclass = getClass(component);
+					if ("list" == parentclass) { classname = "item"; }
+					else if ("tree" == parentclass) { classname = "node"; }
+					else if ("table" == parentclass) { classname = "row"; }
+					else throw new IllegalArgumentException(parentclass + " has no item");
 				}
-				//else if ("item".equals(compname)) {
-				//}
 				else {
-					comp = find(root, compname);
+					comp = ("this".equals(compname)) ? component : find(root, compname);
+					classname = getClass(comp);
 				}
 				data[2 + 3 * i] = comp; // the target component
 				if (dot == -1) {
 					parametertypes[i] = Object.class; // Widget.class
 				}
 				else {
-					Object[] definition = getDefinition(comp, arg.substring(dot + 1), null);
+					Object[] definition = getDefinition(classname, arg.substring(dot + 1), null);
 					data[2 + 3 * i + 1] = definition[1]; // parameter name, e.g. enabled
 					data[2 + 3 * i + 2] = definition[3]; // default value, e.g. Boolean.TRUE
 					Object fieldclass = definition[0];
@@ -5340,7 +5467,9 @@ public class Thinlet extends Container //java
 		try {
 			data[1] = handler.getClass().getMethod(methodname, parametertypes);
 			return data;
-		} catch (Exception exc) { throw new IllegalArgumentException(exc.getMessage()); }
+		} catch (Exception exc) {
+			throw new IllegalArgumentException(value + " " + exc.getMessage());
+		}
 	}
 	//<java
 
@@ -5616,6 +5745,7 @@ public class Thinlet extends Container //java
 				{ "boolean", "enabled", "paint", Boolean.TRUE },
 				{ "boolean", "visible", "parent", Boolean.TRUE },
 				{ "string", "tooltip", "", null },
+				{ "font", "font", "validate", null },
 				{ "integer", "width", "validate", integer0 },
 				{ "integer", "height", "validate", integer0 },
 				{ "integer", "colspan", "validate", integer1 },
@@ -5630,6 +5760,7 @@ public class Thinlet extends Container //java
 				// parent Object null
 				// (bounds) Rectangle 0 0 0 0
 				{ "property", "property", "", null },
+				{ "color", "foreground", "paint", null },
 				{ "method", "init", "", null }
 			},
 			"label", "component", new Object[][] {
@@ -5657,6 +5788,7 @@ public class Thinlet extends Container //java
 				{ "icon", "icon", "", null },
 				{ "choice", "alignment", "", leftcenterright },
 				{ "string", "tooltip", "", null },
+				{ "font", "font", "validate", null },
 				{ "property", "property", "", null } },
 			"textfield", "component", new Object[][] {
 				{ "string", "text", "layout", "" },
@@ -5747,6 +5879,7 @@ public class Thinlet extends Container //java
 			"checkboxmenuitem", "menuitem", new Object[][] {
 				{ "boolean", "selected", "paint", Boolean.FALSE }, //...group
 				{ "string", "group", "paint", null } }, //...group
+			"popupmenu", "component", null,
 			"bean", "component", new Object[][] {
 				{ "bean", "bean", "", null }
 			}

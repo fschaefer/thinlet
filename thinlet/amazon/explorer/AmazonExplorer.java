@@ -793,6 +793,6 @@ public class AmazonExplorer extends Thinlet {
 	 *
 	 */
 	public static void main(String[] args) throws Exception {
-		new FrameLauncher("Thinlet Amazon Explorer", new AmazonExplorer(), 236, 280); // 208x235
+		new FrameLauncher("Thinlet Amazon Explorer", new AmazonExplorer(), 208, 256); // 208x235
 	}
 }

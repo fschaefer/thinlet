@@ -11,6 +11,9 @@
 			<node text="Class explorer"
 					property="ui=classexplorer.xml"
 					property="logic=thinlet.drafts.ClassExplorer" />
+			<node text="Folder browser"
+					property="ui=folderbrowser.xml"
+					property="logic=thinlet.drafts.FolderBrowser" />
 		</node>
 		<node text="Style"
 				property="ui=style.xml"

@@ -3,7 +3,9 @@
 		columns="1" gap="4" top="4" left="4" bottom="4" right="4" >
 	<label text="Thinlet Amazon Explorer" alignment="center" weightx="1" />
 	<separator />
-	<label text="Lajos Szemes (lajos.szemes@thinlet.com)" alignment="center" />
-	<label text="Robert Bajzat (robert.bajzat@thinlet.com)" alignment="center" />
+	<label text="Lajos Szemes" alignment="center" />
+	<label text="(lajos.szemes@thinlet.com)" alignment="center" />
+	<label text="Robert Bajzat" alignment="center" />
+	<label text="(robert.bajzat@thinlet.com)" alignment="center" />
 	<button text="Close" halign="center" action="closeDialog(dialog)" />
 </dialog>

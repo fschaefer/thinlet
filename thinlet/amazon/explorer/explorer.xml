@@ -15,7 +15,7 @@
 	</menubar>
 	
 	<panel columns="2" top="4" left="4" bottom="4" right="4" gap="4">
-		<label text="Product line:" alignment="right" />
+		<label text="Product:" alignment="right" />
 		<combobox name="modes" editable="false" selected="1"  weightx="1"
 				action="selectMode(this.selected, searchby, keyword, sort)">
 			<choice text="Baby" />

@@ -2,6 +2,7 @@ package thinlet;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 
 /**
  *
@@ -23,6 +24,16 @@ public class FrameLauncher extends Frame implements WindowListener {
 		add(content, BorderLayout.CENTER);
 		addWindowListener(this);
 		pack();
+		
+		int[] pix = new int[16 * 16];
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				//pix[j * 16 + i] = ((i == 0) || (i == 15) || (j == 0) || (j == 15)) ? 0xff000000 : 0x00ffffff;
+				pix[j * 16 + i] = (30 + ((i * j) << 24)) | 0xffffff;
+			}
+		}
+		setIconImage(createImage(new MemoryImageSource(16, 16, pix, 0, 16)));
+		
 		Insets is = getInsets();
 		width += is.left + is.right;
 		height += is.top + is.bottom;
