@@ -116,25 +116,25 @@
 							<separator/>
 							<menuitem text="three"/>
 						</popupmenu>
-						<header>
+						<header action="sortAction(this)">
 							<column text="Column" icon="/icons/bookmarks.gif" width="120" />
 							<column text="Column" alignment="center" />
 							<column text="Column" alignment="center" />
 						</header>
 						<row>
-							<cell text="Cell" />
-							<cell text="Cell" />
-							<cell text="Cell" icon="/icons/bookmarks.gif" />
+							<cell text="Cell A" />
+							<cell text="Cell B" />
+							<cell text="Cell C" icon="/icons/bookmarks.gif" />
 						</row>
 						<row selected="true">
-							<cell text="Cell" icon="/icons/bookmarks.gif" />
-							<cell text="Cell" />
-							<cell text="Cell" />
+							<cell text="Cell B" icon="/icons/bookmarks.gif" />
+							<cell text="Cell C" />
+							<cell text="Cell A" />
 						</row>
 						<row>
-							<cell text="Cell" />
-							<cell text="Cell" icon="/icons/bookmarks.gif" enabled="false" />
-							<cell text="Cell" />
+							<cell text="Cell C" />
+							<cell text="Cell A" icon="/icons/bookmarks.gif" enabled="false" />
+							<cell text="Cell B" />
 						</row>
 					</table>
 				</splitpane>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<dialog text="Find" icon="/icons/find.gif" modal="true"
+<dialog text="Find" icon="/icons/find.gif" modal="true" close="remove(this)"
 		columns="4" top="4" left="4" bottom="4" right="4" gap="4">
 	<label text="Find what:" />
 	<combobox name="ch_what" colspan="2" valign="center" />

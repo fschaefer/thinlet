@@ -260,6 +260,62 @@ public class Demo extends Thinlet {
         setBoolean(delete, "enabled", false);
     }
     
+    public void sortAction(Object header) {
+	    int idx = getSelectedIndex(header);
+	    Object column = getSelectedItem(header);
+	    String sort = getChoice(column, "sort");
+	    if (sort == "none") return;
+	    Object table = getParent(header);
+	    Object[] rows = getItems(table);
+	    removeAll(table);
+	    sortArray(rows, new RowComparator(this, idx, sort == "ascent"));
+	    for (int i = 0; i < rows.length; i++) add(table, rows[i]);
+	    repaint(table);
+    }
+
+    /**
+     *   Basic sort for small arrays.
+     */
+    private void sortArray(Object[] arr, Comparator comp) {
+
+        boolean swapped;
+
+        do {
+            swapped = false;
+            for (int i = 0; i < arr.length - 1; i++) {
+                if (comp.compare(arr[i], arr[i + 1]) > 0) {
+                    Object temp = arr[i + 1];
+                    arr[i + 1] = arr[i];
+                    arr[i] = temp;
+                    swapped = true;
+                }
+            }
+        } while (swapped);
+    }
+
+
+    static class RowComparator implements Comparator {
+	    private boolean ascending = false;
+	    private int column = 0;
+	    private Thinlet thinlet = null;
+
+	    public RowComparator(Thinlet thinlet, int column, boolean ascending) {
+		    this.thinlet = thinlet;
+		    this.column = column;
+		    this.ascending = ascending;
+	    }
+
+	    public int compare(Object row1, Object row2) {
+		    Object cell1 = thinlet.getItem(row1, column);
+		    Object cell2 = thinlet.getItem(row2, column);
+		    String s1 = thinlet.getString(cell1, "text");
+		    String s2 = thinlet.getString(cell2, "text");
+		    if (s1 == null) return ascending? -1 : 1;
+		    if (s2 == null) return ascending? 1 : -1;
+		    return (ascending ? 1 : -1 ) * s1.compareTo(s2);
+	    }
+    }
+
     /**
      *
      */
