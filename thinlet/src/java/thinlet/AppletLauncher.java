@@ -1,10 +1,13 @@
+/* Thinlet GUI toolkit - www.thinlet.com
+ * Copyright (C) 2002-2003 Robert Bajzat (robert.bajzat@thinlet.com) */
 package thinlet;
 
 import java.applet.*;
 import java.awt.*;
 
 /**
- * Useful utility class to start Thinlet application in an applet window.
+ * <code>AppletLauncher</code> is a double buffered applet
+ * to launch any <i>thinlet</i> component
  */
 public class AppletLauncher extends Applet implements Runnable {
 	
@@ -12,7 +15,15 @@ public class AppletLauncher extends Applet implements Runnable {
 	private transient Image doublebuffer;
 	
 	/**
-	 *
+	 * Applet instance is created by the browser or applet viewer
+	 */
+	public AppletLauncher() {
+		super(); // for javadoc
+	}
+	
+	/**
+	 * Called by the browser to inform this applet that it has been loaded into
+	 * the system, it displays the <i>Loading...</i> label and starts the loader thread
 	 */
 	public void init() {
 		setBackground(Color.white); setForeground(Color.darkGray);
@@ -22,22 +33,34 @@ public class AppletLauncher extends Applet implements Runnable {
 	}
 	
 	/**
-	 *
+	 * Create a new <i>thinlet</i> instance of the class given as
+	 * <code>class</code> applet parameter, and show it or the
+	 * message of the thrown exception. First try a contructor with
+	 * an applet parameter (thus you get this applet instance e.g. for
+	 * the parameters of the applet HTML tag), then the empty constructor
 	 */
 	public void run() {
 		try {
-			content = (Thinlet) Class.forName(getParameter("class")).newInstance();
+			Class thinletclass = Class.forName(getParameter("class"));
+			try {
+				content = (Thinlet) thinletclass.getConstructor(new Class[] {
+					Applet.class }).newInstance(new Object[] { this });
+			} catch (NoSuchMethodException nsme) {
+				content = (Thinlet) thinletclass.newInstance();
+			}
 			removeAll();
 			add(content, BorderLayout.CENTER);
 		} catch (Throwable exc) {
 			removeAll();
-			add(new Label(exc.getMessage()), BorderLayout.CENTER);
+			add(new Label(exc.getClass().getName() + " " +
+				exc.getMessage(), Label.CENTER), BorderLayout.CENTER);
 		}
 		doLayout(); repaint();
 	}
 	
 	/**
-	 *
+	 * Clear the double buffer image, the overriden method lays out its
+	 * components (centers the <i>thinlet</i> component)
 	 */
 	public void doLayout() {
 		super.doLayout();
@@ -48,7 +71,8 @@ public class AppletLauncher extends Applet implements Runnable {
 	}
 	
 	/**
-	 *
+	 * Called by the browser to inform this applet that it should stop its execution,
+	 * it clears the double buffer image
 	 */
 	public void stop() {
 		if (doublebuffer != null) {
@@ -58,14 +82,16 @@ public class AppletLauncher extends Applet implements Runnable {
 	}
 	
 	/**
-	 *
+	 * Call the paint method to redraw this component without painting a
+	 * background rectangle
 	 */
 	public void update(Graphics g) {
 		paint(g);
 	}
 
 	/**
-	 *
+	 * Create a double buffer if needed,
+	 * the <i>thinlet</i> component paints the content
 	 */
 	public void paint(Graphics g) { 
 		if (doublebuffer == null) {
@@ -80,7 +106,9 @@ public class AppletLauncher extends Applet implements Runnable {
 	}
 	
 	/**
-	 *
+	 * Called by the browser to inform this applet that it is being reclaimed,
+	 * it calls the <i>thinlet</i> component's <code>destroy</code> method
+	 * (its return value is irrelevant)
 	 */
 	public void destroy() {
 		content.destroy();

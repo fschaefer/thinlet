@@ -1,3 +1,5 @@
+/* Thinlet GUI toolkit - www.thinlet.com
+ * Copyright (C) 2002-2003 Robert Bajzat (robert.bajzat@thinlet.com) */
 package thinlet;
 
 import java.awt.*;
@@ -5,7 +7,8 @@ import java.awt.event.*;
 import java.awt.image.*;
 
 /**
- * Useful utility class to start a Thinlet application in AWT Frame.
+ * <code>FrameLauncher</code> is a double buffered frame
+ * to launch any <i>thinlet</i> component as an application
  */
 public class FrameLauncher extends Frame implements WindowListener {
 	
@@ -13,10 +16,15 @@ public class FrameLauncher extends Frame implements WindowListener {
 	private transient Image doublebuffer;
 	
 	/**
-	 * @param title
-	 * @param content
-	 * @param width
-	 * @param height
+	 * Construct and show a new frame with the specified title, including the
+	 * given <i>thinlet</i> component. The frame is centered on the screen, and its
+	 * preferred size is specified (excluding the frame's borders). The icon is
+	 * the thinlet logo
+	 * 
+	 * @param title the title to be displayed in the frame's border
+	 * @param content a <i>thinlet</i> instance
+	 * @param width the preferred width of the content
+	 * @param height the preferred height of the content
 	 */
 	public FrameLauncher(String title, Thinlet content, int width, int height) {
 		super(title);
@@ -51,14 +59,16 @@ public class FrameLauncher extends Frame implements WindowListener {
 	}
 		
 	/**
-	 *
+	 * Call the paint method to redraw this component without painting a
+	 * background rectangle
 	 */
 	public void update(Graphics g) {
 		paint(g);
 	}
 
 	/**
-	 *
+	 * Create a double buffer if needed,
+	 * the <i>thinlet</i> component paints the content
 	 */
 	public void paint(Graphics g) { 
 		if (doublebuffer == null) {
@@ -73,7 +83,9 @@ public class FrameLauncher extends Frame implements WindowListener {
 	}
 	
 	/**
-	 *
+	 * Clear the double buffer image (because the frame has been resized),
+	 * the overriden method lays out its components
+	 * (centers the <i>thinlet</i> component)
 	 */
 	public void doLayout() {
 		if (doublebuffer != null) {
@@ -84,9 +96,10 @@ public class FrameLauncher extends Frame implements WindowListener {
 	}
 
 	/**
-	 * This method calls Thinlet.destroy(), and exits only if that method
-	 * returns true. This provides a way for programmers to perform
-	 * cleanup tasks on exit, or disallow exiting altogether.
+	 * Notify the <i>thinlet</i> component and terminates the Java Virtual Machine,
+	 * or redisplay the frame depending on the return value of <i>thinlet</i>'s
+	 * <code>destroy</code> method (true by default,
+	 * thus terminates the VM if not overriden)
 	 */
 	public void windowClosing(WindowEvent e) {
 		if (content.destroy()) {
@@ -94,7 +107,6 @@ public class FrameLauncher extends Frame implements WindowListener {
 		}
 		setVisible(true);
 	}
-
 	public void windowOpened(WindowEvent e) {}
 	public void windowClosed(WindowEvent e) {}
 	public void windowIconified(WindowEvent e) {}
