@@ -2,6 +2,7 @@ package thinlet.drafts;
 
 import java.awt.*;
 import java.awt.image.*;
+import java.util.*;
 import thinlet.*;
 
 /**
@@ -42,13 +43,14 @@ public class SystemColors {
 	/**
 	 *
 	 */
-	public void loadColors(Thinlet thinlet, Object list) {
+	public void loadColors(Thinlet thinlet, Object combobox) {
 		for (int i = 0; i < colors.length; i++) {
-			Object item = thinlet.create("item");
-			thinlet.setString(item, "text", colornames[i]);
+			Object choice = thinlet.create("choice");
 			Image icon = createIcon(thinlet, colors[i]);
-			thinlet.setIcon(item, "icon", icon);
-			thinlet.add(list, item);
+			thinlet.setIcon(choice, "icon", icon);
+			thinlet.setString(choice, "text", colornames[i] + " (0x" +
+				Integer.toHexString(colors[i].getRGB()).substring(2) + ")");
+			thinlet.add(combobox, choice);
 		}
 	}
 	
@@ -56,11 +58,17 @@ public class SystemColors {
 	 *
 	 */
 	public void loadSystemColors(Thinlet thinlet, Object list) {
+		Hashtable iconcache = new Hashtable();
 		for (int i = 0; i < systemcolors.length; i++) {
 			Object item = thinlet.create("item");
-			thinlet.setString(item, "text", systemcolornames[i]);
-			Image icon = createIcon(thinlet, systemcolors[i]);
+			Image icon = (Image) iconcache.get(systemcolors[i]);
+			if (icon == null) {
+				icon = createIcon(thinlet, systemcolors[i]);
+				iconcache.put(systemcolors[i], icon);
+			}
 			thinlet.setIcon(item, "icon", icon);
+			thinlet.setString(item, "text", systemcolornames[i] + " (0x" +
+				Integer.toHexString(0xff000000 | systemcolors[i].getRGB()).substring(2) + ")");
 			thinlet.add(list, item);
 		}
 	}

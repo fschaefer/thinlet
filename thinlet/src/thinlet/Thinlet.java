@@ -233,6 +233,7 @@ public class Thinlet extends Container //java
 				2, fm.getAscent() + fm.getDescent() + 2); //?
 		} 
 		else if ("tabbedpane" == classname) {
+			// tabbedpane (not selected) tab insets are 1, 3, 1, and 3 pt
 			Rectangle bounds = getRectangle(component, "bounds");
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
@@ -240,10 +241,10 @@ public class Thinlet extends Container //java
 			int tabsize = 0;
 			for (Object comp = get(component, "tab");
 					comp != null; comp = get(comp, ":next")) {
-				Dimension d = getSize(comp, 8, 4, "left");
+				Dimension d = getSize(comp, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
 				setRectangle(comp, "bounds",
 					horizontal ? tabd : 0, horizontal ? 0 : tabd, d.width, d.height);
-				tabd += horizontal ? d.width : d.height;
+				tabd += (horizontal ? d.width : d.height) - 3;
 				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
 			}
 			for (Object comp = get(component, "tab");
@@ -859,7 +860,7 @@ public class Thinlet extends Container //java
 			int contentwidth = 0; int contentheight = 0;
 			for (Object comp = get(component, "tab");
 					comp != null; comp = get(comp, ":next")) {
-				Dimension d = getSize(comp, 8, 4, "left");
+				Dimension d = getSize(comp, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
 				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
 			}
 			for (Object comp = get(component, "component");
@@ -1136,6 +1137,7 @@ public class Thinlet extends Container //java
 		if (icon != null) {
 			iw = icon.getWidth(this);
 			ih = icon.getHeight(this);
+			if (text != null) { iw += 2; }
 		}
 		return new Dimension(tw + iw + dx, Math.max(th, ih) + dy);
 	}
@@ -1413,47 +1415,52 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if ("tabbedpane" == classname) {
-			int i = 0; Rectangle last = null;
+			int i = 0; Object selectedtab = null;
 			int selected = getInteger(component, "selected", 0);
 			String placement = getString(component, "placement", "top");
+			boolean horizontal = ((placement == "top") || (placement == "bottom"));
+			int bx = horizontal ? 2 : 1, by = horizontal ? 1 : 2, bw = 2 * bx, bh = 2 * by;
+			int dx = horizontal ? 6 : ((placement == "left") ? 5 : 4),
+				dy = horizontal ? ((placement == "top") ? 3 : 2) : 4,
+				dw = horizontal ? 12 : 9, dh = horizontal ? 5 : 8;
 			for (Object comp = get(component, "tab");
 					comp != null; comp = get(comp, ":next")) {
-				Rectangle r = getRectangle(comp, "bounds");
-				boolean hover = !(selected == i) && inside &&
-					(mousepressed == null) && (insidepart == comp);
-				boolean sel = (selected == i);
-				boolean tabenabled = enabled && getBoolean(comp, "enabled", true);
-				paintRect(g, r.x, r.y, r.width, r.height,
-					enabled ? c_border : c_disable,
-					tabenabled ? (sel ? c_bg : (hover ? c_hover : c_ctrl)) : c_ctrl,
-					(placement != "bottom") || !sel, (placement != "right") || !sel,
-					(placement == "bottom") || ((placement == "top") && !sel),
-					(placement == "right") || ((placement == "left") && !sel), true);
-				if (focus && sel) {
-					g.setColor(c_focus);
-					g.drawRect(r.x + 2, r.y + 2, r.width - 4, r.height - 4);
+				if (selected != i) {
+					boolean hover = inside && 	(mousepressed == null) && (insidepart == comp);
+					boolean tabenabled = enabled && getBoolean(comp, "enabled", true);
+					Rectangle r = getRectangle(comp, "bounds");
+					paintRect(g, r.x + bx, r.y + by, r.width - bw, r.height - bh,
+						enabled ? c_border : c_disable,
+						tabenabled ? (hover ? c_hover : c_ctrl) : c_ctrl,
+						(placement != "bottom"), (placement != "right"),
+						(placement != "top"), (placement != "left"), true);
+					paintContent(comp, g, clipx, clipy, clipwidth, clipheight,
+						r.x + dx, r.y + dy, r.width - dw, r.height - dh,
+						tabenabled ? c_text : c_disable, "left", true);
 				}
-				paintContent(comp, g, clipx, clipy, clipwidth, clipheight,
-					r.x + 4, r.y + 2, r.width - 8, r.height - 4,
-					tabenabled ? c_text : c_disable, "left", true);
-				i++; last = r;
+				else { selectedtab = comp; }
+				i++;
 			}
-			if (last != null) {
-				boolean horizontal = ((placement == "top") || (placement == "bottom"));
-				paintRect(g, horizontal ? (last.x + last.width) : last.x,
-					horizontal ? last.y : (last.y + last.height),
-					horizontal ? (bounds.width - last.x - last.width) : last.width,
-					horizontal ? last.height : (bounds.height - last.y - last.height),
-					enabled ? c_border : c_disable, c_bg,
-					(placement != "top"), (placement != "left"),
-					(placement == "top"), (placement == "left"), true);
-				paintRect(g, (placement == "left") ? last.width : 0,
-					(placement == "top") ? last.height : 0,
-					horizontal ? bounds.width : (bounds.width - last.width),
-					horizontal ? (bounds.height - last.height) : bounds.height,
-					enabled ? c_border : c_disable, c_bg,
-					(placement != "top"), (placement != "left"),
-					(placement != "bottom"), (placement != "right"), true);					
+			if (selectedtab != null) {
+				Rectangle r = getRectangle(selectedtab, "bounds");
+				// paint tabbedpane border
+				paintRect(g, (placement == "left") ? r.width - 1 : 0,
+					(placement == "top") ? r.height - 1 : 0,
+					horizontal ? bounds.width : (bounds.width - r.width + 1),
+					horizontal ? (bounds.height - r.height + 1) : bounds.height,
+					enabled ? c_border : c_disable, c_bg, true, true, true, true, true);
+				// paint selected tab
+				paintRect(g, r.x, r.y, r.width, r.height, enabled ? c_border : c_disable, c_bg,
+					(placement != "bottom"), (placement != "right"),
+					(placement != "top"), (placement != "left"), true);
+				if (focus) {
+					g.setColor(c_focus);
+					g.drawRect(r.x + ((placement != "right") ? 2 : 0), r.y + ((placement != "bottom") ? 2 : 0),
+						r.width - (horizontal ? 5 : 3), r.height - (horizontal ? 3 : 5));
+				}
+				paintContent(selectedtab, g, clipx, clipy, clipwidth, clipheight,
+					r.x + dx, r.y + dy, r.width - dw, r.height - dh,
+					enabled ? c_text : c_disable, "left", true);
 			}
 			Object tabcontent = getItemImpl(component, "component", selected);
 			if (tabcontent != null) {
@@ -1486,6 +1493,8 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if ("desktop" == classname) {
+			paintRect(g, 0, 0, bounds.width, bounds.height,
+				c_border, c_bg, false, false, false, false, true);
 			paintReverse(g, clipx, clipy, clipwidth, clipheight,
 				get(component, "component"), enabled);
 			//g.setColor(Color.red); if (clip != null) g.drawRect(clipx, clipy, clipwidth, clipheight);
@@ -2066,6 +2075,7 @@ public class Thinlet extends Container //java
 		if (icon != null) {
 			iw = icon.getWidth(this);
 			ih = icon.getHeight(this); //java
+			if (text != null) { iw += 2; }
 		}
 
 		boolean clipped = (tw + iw > width) || (th > height) || (ih > height);
@@ -3336,10 +3346,10 @@ public class Thinlet extends Container //java
 							}
 							if ((id != MouseEvent.MOUSE_DRAGGED) ||
 									!getBoolean(item, "selected", false)) {
-								select(component, item, itemname, subitem, shiftdown, controldown);
 								if (id != MouseEvent.MOUSE_DRAGGED) {
 									if (setFocus(component)) { repaint(component, classname, item); } //?
 								}
+								select(component, item, itemname, subitem, shiftdown, controldown);
 							}
 							break;
 						}
@@ -4052,7 +4062,7 @@ public class Thinlet extends Container //java
 	 */
 	public boolean requestFocus(Object component) {
 		if (checkFocusable(component, true)) {
-			setFocus(component); return true;
+			setFocus(component); return true; //repaint too!
 		}
 		return false;
 	}
@@ -4199,7 +4209,7 @@ public class Thinlet extends Container //java
 	 * @return a new component, every component is simply an <i>Object</i>
 	 * @throws java.lang.IllegalArgumentException for unknown widget type
 	 */
-	public Object create(String classname) {
+	public static Object create(String classname) {
 		for (int i = 0; i < dtd.length; i += 3) {
 			if (dtd[i].equals(classname)) {
 				return createImpl((String) dtd[i]);
@@ -4230,7 +4240,7 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private Object createImpl(String classname) {
+	private static Object createImpl(String classname) {
 		return new Object[] { ":class", classname, null };
 	}
 	
@@ -4740,7 +4750,7 @@ public class Thinlet extends Container //java
 	 * from the given xml resource
 	 *
 	 * @param path is relative to your thinlet instance or the classpath
-	 * (if the path starts with an <i>/</i> character)
+	 * (if the path starts with an <i>/</i> character), or a full url
 	 * @return the root component of the parsed resource
 	 * @throws java.io.IOException
 	 */
@@ -4754,7 +4764,7 @@ public class Thinlet extends Container //java
 	 * Creates a component from the given xml resource using the
 	 * specified event handler
 	 *
-	 * @param path is relative to your application package or the classpath
+	 * @param path is relative to your application package or the classpath, or an url
 	 * @param handler bussiness methods are implemented in this object 
 	 * @return the parsed components' root
 	 * @throws java.io.IOException
@@ -4765,6 +4775,11 @@ public class Thinlet extends Container //java
 			//midp inputstream = getClass().getResourceAsStream(path);
 			inputstream = getClass().getResourceAsStream(path); //java
 			//System.out.println("> " + path + " " + inputstream);
+			if (inputstream == null) {
+				try {
+					inputstream = new URL(path).openStream();
+				} catch (MalformedURLException mfe) { /* thows nullpointerexception*/ }
+			}
 		} catch (Throwable e) {} //java
 		//if (inputstream == null) { // applet code
 		//	inputstream = new URL(getCodeBase(), path).openStream();
@@ -4900,194 +4915,199 @@ public class Thinlet extends Container //java
 		//UnsupportedEncodingException
 		Reader reader = new BufferedReader(new InputStreamReader(inputstream)); //java
 		//midp InputStreamReader reader = new InputStreamReader(inputstream);
-		Object[] parentlist = null;
-		Object current = null;
-		Hashtable attributelist = null;
-		Vector methods = (validate && !dom) ? new Vector() : null;
-		StringBuffer text = new StringBuffer();
-		for (int c = reader.read(); c != -1;) {
-			if (c == '<') {
-				if ((c = reader.read()) == '/') { //endtag
-					if (text.length() > 0) {
-						if (text.charAt(text.length() - 1) == ' ') {
-							text.setLength(text.length() - 1);
-						}
-						if (!validate) {
-							if (dom) {
-								set(current, ":text", text.toString());
-							} else {
-								characters(text.toString());
+		try {
+			Object[] parentlist = null;
+			Object current = null;
+			Hashtable attributelist = null;
+			Vector methods = (validate && !dom) ? new Vector() : null;
+			StringBuffer text = new StringBuffer();
+			for (int c = reader.read(); c != -1;) {
+				if (c == '<') {
+					if ((c = reader.read()) == '/') { //endtag
+						if (text.length() > 0) {
+							if (text.charAt(text.length() - 1) == ' ') {
+								text.setLength(text.length() - 1);
 							}
-						}
-						// else {
-							//addContent(current, text.toString());
-						//}
-						text.setLength(0);
-					}
-					String tagname = (String) parentlist[2]; //getClass(current);
-					for (int i = 0; i < tagname.length(); i++) { // current-tag
-						if ((c = reader.read()) != tagname.charAt(i)) {
-							throw new IllegalArgumentException(tagname);
-						}
-					}
-					while (" \t\n\r".indexOf(c = reader.read()) != -1); // whitespace
-					if (c != '>') throw new IllegalArgumentException(); // '>'
-					c = reader.read();
-					if (!validate && !dom) { endElement(); }
-					if (parentlist[0] == null) {
-						reader.close();
-						finishParse(methods, current, handler);
-						return current;
-					}
-					current = parentlist[0];
-					parentlist = (Object[]) parentlist[1];
-				}
-				else { //start or standalone tag
-					boolean instruction = (c == '?'); // Processing Instructions
-					if (c == '!') { while ((c = reader.read()) != '>'); continue; } // DOCTYPE
-					if (instruction) { c = reader.read(); }
-					text.setLength(0);
-					boolean iscomment = false;
-					while (">/ \t\n\r".indexOf(c) == -1) {
-						text.append((char) c);
-						if ((text.length() == 3) && (text.charAt(0) == '!') &&
-								(text.charAt(1) == '-') && (text.charAt(2) == '-')) {
-							int m = 0;
-							while (true) {
-								c = reader.read();
-								if (c == '-') { m++; }
-								else if ((c == '>') && (m >= 2)) { break; }
-								else { m = 0; }
-							}
-							iscomment = true;
-						}
-						c = reader.read();
-					}
-					if (iscomment) { continue; }
-					if (!instruction) {
-						String tagname = text.toString();
-						parentlist = new Object[] { current, parentlist, tagname };
-						if (validate) {
-							current = (current != null) ?
-								addElement(current, tagname) : create(tagname);
-						} else {
-							if (dom) {
-								Object parent = current;
-								current = createImpl(tagname = tagname.intern());
-								if (parent != null) {
-									insertItem(parent, tagname, current, -1);
-									//set(current, ":parent", parent);
-								}
-							} else {
-								current = tagname;
-							}
-						}
-					}
-					text.setLength(0);
-					while (true) {
-						boolean whitespace = false;
-						while (" \t\n\r".indexOf(c) != -1) {
-							c = reader.read();
-							whitespace = true;
-						}
-						if (c == '>') {
-							if (instruction) throw new IllegalArgumentException(); // '?>'
-							if (!validate && !dom) {
-								startElement((String) current, attributelist); attributelist = null;
-							}
-							c = reader.read();
-							break;
-						}
-						else if (c == '/') {
-							if (instruction) throw new IllegalArgumentException(); // '?>'
-							if ((c = reader.read()) != '>') {
-								throw new IllegalArgumentException(); // '>'
-							}
-							if (!validate && !dom) {
-								startElement((String) current, attributelist); attributelist = null;
-								endElement();
-							}
-							if (parentlist[0] == null) {
-								reader.close();
-								finishParse(methods, current, handler);
-								return current;
-							}
-							current = parentlist[0];
-							parentlist = (Object[]) parentlist[1];
-							c = reader.read();
-							break;
-						}
-						else if (instruction && (c == '?')) {
-							if ((c = reader.read()) != '>') {
-								throw new IllegalArgumentException(); // '>'
-							}
-							c = reader.read();
-							break;
-						}
-						else if (whitespace) {
-							while ("= \t\n\r".indexOf(c) == -1) {
-								text.append((char) c);
-								c = reader.read();
-							}
-							String key = text.toString();
-							text.setLength(0);
-							while (" \t\n\r".indexOf(c) != -1) c = reader.read();
-							if (c != '=') throw new IllegalArgumentException();
-							while (" \t\n\r".indexOf(c = reader.read()) != -1);
-							char quote = (char) c;
-							if ((c != '\"') && (c != '\'')) throw new IllegalArgumentException();
-							while (quote != (c = reader.read())) {
-								if (c == '&') {
-									StringBuffer eb = new StringBuffer();
-									while (';' != (c = reader.read())) { eb.append((char) c); }
-									String entity = eb.toString();
-									if ("lt".equals(entity)) { text.append('<'); }
-									else if ("gt".equals(entity)) { text.append('>'); }
-									else if ("amp".equals(entity)) { text.append('&'); }
-									else if ("quot".equals(entity)) { text.append('"'); }
-									else if ("apos".equals(entity)) { text.append('\''); }
-									else if (entity.startsWith("#")) {
-										text.append((char) Integer.parseInt(entity.substring(1)));
-									}
-									else throw new IllegalArgumentException("unknown " + "entity " + entity);
-								}
-								else text.append((char) c);
-							}
-							if (!instruction) {
-								if (validate) {
-									addAttribute(current, key, text.toString(), methods);
+							if (!validate) {
+								if (dom) {
+									set(current, ":text", text.toString());
 								} else {
-									if (dom) {
-										set(current, key.intern(), text.toString());
-									} else {
-										if (attributelist == null) { attributelist = new Hashtable(); }
-										attributelist.put(key, text.toString());
-									}
+									characters(text.toString());
 								}
 							}
-							//else if ("encoding".equals(key)) {
-								//reader = new InputStreamReader(inputstream, text.toString());
+							// else {
+								//addContent(current, text.toString());
 							//}
 							text.setLength(0);
+						}
+						String tagname = (String) parentlist[2]; //getClass(current);
+						for (int i = 0; i < tagname.length(); i++) { // current-tag
+							if ((c = reader.read()) != tagname.charAt(i)) {
+								throw new IllegalArgumentException(tagname);
+							}
+						}
+						while (" \t\n\r".indexOf(c = reader.read()) != -1); // whitespace
+						if (c != '>') throw new IllegalArgumentException(); // '>'
+						c = reader.read();
+						if (!validate && !dom) { endElement(); }
+						if (parentlist[0] == null) {
+							reader.close();
+							finishParse(methods, current, handler);
+							return current;
+						}
+						current = parentlist[0];
+						parentlist = (Object[]) parentlist[1];
+					}
+					else { //start or standalone tag
+						boolean instruction = (c == '?'); // Processing Instructions
+						if (c == '!') { while ((c = reader.read()) != '>'); continue; } // DOCTYPE
+						if (instruction) { c = reader.read(); }
+						text.setLength(0);
+						boolean iscomment = false;
+						while (">/ \t\n\r".indexOf(c) == -1) {
+							text.append((char) c);
+							if ((text.length() == 3) && (text.charAt(0) == '!') &&
+									(text.charAt(1) == '-') && (text.charAt(2) == '-')) {
+								int m = 0;
+								while (true) {
+									c = reader.read();
+									if (c == '-') { m++; }
+									else if ((c == '>') && (m >= 2)) { break; }
+									else { m = 0; }
+								}
+								iscomment = true;
+							}
 							c = reader.read();
 						}
-						else throw new IllegalArgumentException();
-					}
-				}
-			}
-			else {
-				if (" \t\n\r".indexOf(c) != -1) {
-					if ((text.length() > 0) && (text.charAt(text.length() - 1) != ' ')) {
-						text.append(' ');
+						if (iscomment) { continue; }
+						if (!instruction) {
+							String tagname = text.toString();
+							parentlist = new Object[] { current, parentlist, tagname };
+							if (validate) {
+								current = (current != null) ?
+									addElement(current, tagname) : create(tagname);
+							} else {
+								if (dom) {
+									Object parent = current;
+									current = createImpl(tagname = tagname.intern());
+									if (parent != null) {
+										insertItem(parent, tagname, current, -1);
+										//set(current, ":parent", parent);
+									}
+								} else {
+									current = tagname;
+								}
+							}
+						}
+						text.setLength(0);
+						while (true) {
+							boolean whitespace = false;
+							while (" \t\n\r".indexOf(c) != -1) {
+								c = reader.read();
+								whitespace = true;
+							}
+							if (c == '>') {
+								if (instruction) throw new IllegalArgumentException(); // '?>'
+								if (!validate && !dom) {
+									startElement((String) current, attributelist); attributelist = null;
+								}
+								c = reader.read();
+								break;
+							}
+							else if (c == '/') {
+								if (instruction) throw new IllegalArgumentException(); // '?>'
+								if ((c = reader.read()) != '>') {
+									throw new IllegalArgumentException(); // '>'
+								}
+								if (!validate && !dom) {
+									startElement((String) current, attributelist); attributelist = null;
+									endElement();
+								}
+								if (parentlist[0] == null) {
+									reader.close();
+									finishParse(methods, current, handler);
+									return current;
+								}
+								current = parentlist[0];
+								parentlist = (Object[]) parentlist[1];
+								c = reader.read();
+								break;
+							}
+							else if (instruction && (c == '?')) {
+								if ((c = reader.read()) != '>') {
+									throw new IllegalArgumentException(); // '>'
+								}
+								c = reader.read();
+								break;
+							}
+							else if (whitespace) {
+								while ("= \t\n\r".indexOf(c) == -1) {
+									text.append((char) c);
+									c = reader.read();
+								}
+								String key = text.toString();
+								text.setLength(0);
+								while (" \t\n\r".indexOf(c) != -1) c = reader.read();
+								if (c != '=') throw new IllegalArgumentException();
+								while (" \t\n\r".indexOf(c = reader.read()) != -1);
+								char quote = (char) c;
+								if ((c != '\"') && (c != '\'')) throw new IllegalArgumentException();
+								while (quote != (c = reader.read())) {
+									if (c == '&') {
+										StringBuffer eb = new StringBuffer();
+										while (';' != (c = reader.read())) { eb.append((char) c); }
+										String entity = eb.toString();
+										if ("lt".equals(entity)) { text.append('<'); }
+										else if ("gt".equals(entity)) { text.append('>'); }
+										else if ("amp".equals(entity)) { text.append('&'); }
+										else if ("quot".equals(entity)) { text.append('"'); }
+										else if ("apos".equals(entity)) { text.append('\''); }
+										else if (entity.startsWith("#")) {
+											text.append((char) Integer.parseInt(entity.substring(1)));
+										}
+										else throw new IllegalArgumentException("unknown " + "entity " + entity);
+									}
+									else text.append((char) c);
+								}
+								if (!instruction) {
+									if (validate) {
+										addAttribute(current, key, text.toString(), methods);
+									} else {
+										if (dom) {
+											set(current, key.intern(), text.toString());
+										} else {
+											if (attributelist == null) { attributelist = new Hashtable(); }
+											attributelist.put(key, text.toString());
+										}
+									}
+								}
+								//else if ("encoding".equals(key)) {
+									//reader = new InputStreamReader(inputstream, text.toString());
+								//}
+								text.setLength(0);
+								c = reader.read();
+							}
+							else throw new IllegalArgumentException();
+						}
 					}
 				}
 				else {
-					text.append((char) c);
-				}
-				c = reader.read();
-			} 
+					if (" \t\n\r".indexOf(c) != -1) {
+						if ((text.length() > 0) && (text.charAt(text.length() - 1) != ' ')) {
+							text.append(' ');
+						}
+					}
+					else {
+						text.append((char) c);
+					}
+					c = reader.read();
+				} 
+			}
+			throw new IllegalArgumentException();
 		}
-		throw new IllegalArgumentException();
+		finally {
+			if (reader != null) { reader.close(); }
+		}
 	}
 	
 	/**
@@ -5635,7 +5655,7 @@ public class Thinlet extends Container //java
 	 * Creates an image, and loads it immediately by default
 	 *
 	 * @param path is relative to your thinlet instance or the classpath
-	 * (if the path starts with <i>'/'</i> character)
+	 * (if the path starts with <i>'/'</i> character), or a full url
 	 * @return the loaded image or null
 	 */
 	public Image getIcon(String path) {
@@ -5647,7 +5667,7 @@ public class Thinlet extends Container //java
 	 * To speed up loading the same images use a cache (a simple hashtable).
 	 * And flush the resources being used by an image when you won't use it henceforward
 	 *
-	 * @param path is relative to your thinlet instance or the classpath
+	 * @param path is relative to your thinlet instance or the classpath, or an url
 	 * @param preload waits for the whole image if true, starts loading
 	 * (and repaints, and updates the layout) only when required (painted, or size requested) if false
 	 * @return the loaded image or null
@@ -5676,6 +5696,9 @@ public class Thinlet extends Container //java
 					is.read(data, 0, data.length);
 					image = getToolkit().createImage(data);
 					is.close();
+				}
+				else { // contributed by Wolf Paulus
+					image = Toolkit.getDefaultToolkit().getImage(new URL(path));
 				}
 			} catch (Throwable e) {}
 		}

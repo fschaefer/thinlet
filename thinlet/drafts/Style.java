@@ -12,15 +12,7 @@ public class Style {
 	 *
 	 */
 	public void loadFontNames(Thinlet thinlet, Object namecombo) {
-		String[] fontlist = null;
-		try { // 1.4
-			Object lge = Class.forName("java.awt.GraphicsEnvironment").
-				getMethod("getLocalGraphicsEnvironment", null).invoke(null, null);
-			fontlist = (String[]) lge.getClass().
-				getMethod("getAvailableFontFamilyNames", null).invoke(lge, null);
-		} catch (Exception exc) { // 1.1
-			fontlist = thinlet.getToolkit().getFontList();
-		}
+		String[] fontlist = Utilities.getUtilities().getFontList();
 		String currentname = thinlet.getFont().getName();
 		for (int i = 0; i < fontlist.length; i++) {
 			Object choice = thinlet.create("choice");
@@ -76,9 +68,9 @@ public class Style {
 				thinlet.setColors(0x6375d6, 0xffffff, 0x7f8fdd,
 					0xd6dff5, 0x9caae5, 0x666666, 0x003399, 0xff3333, 0x666666);
 				break;
-			case 3: //xp
-				thinlet.setColors(0xeae2b2, 0x000000, 0xf5f4f0,
-					0x968B4B, 0xb0b0b0, 0xededed, 0xa8b680, 0x89899a, 0xc5c5dd);
+			case 3: //xp background text textbackground border disable hover press focus select
+				thinlet.setColors(0xece9d8, 0x000000, 0xffffe1,
+					0x808080, 0xaca899, 0xf1efe2, 0x716f64, 0x000080, 0x316ac5);
 		}
 	}
 }

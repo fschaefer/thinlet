@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<panel columns="1" gap="4"
-		top="4" left="4" bottom="4" right="4" weightx="1" weighty="1">
+<panel columns="1" border="true" gap="4"
+		top="4" left="4" bottom="4" right="4">
 	<label text="TabbedPane demo" />
 	<tabbedpane name="tabbed" weightx="1">
-		<tab text="One" />
-		<textarea text="One" />
-		<tab text="Two" />
-		<textarea text="Two" />
-		<tab text="Three" />
-		<textarea text="Three" />
+		<tab text="One" /><textarea text="One" />
+		<tab text="Two" /><textarea text="Two" />
+		<tab text="Three" /><textarea text="Three" />
+		<tab text="Four" /><textarea text="Four" />
 	</tabbedpane>
 	<panel gap="4">
 		<label text="Placement:" />
@@ -21,5 +19,10 @@
 		</combobox>
 		<checkbox text="Enabled" selected="true"
 				action="changeEnabled(thinlet, this.selected, tabbed, tabbed.selected)"/>
+	</panel>
+	
+	<panel gap="4">
+		<list action="focus(thinlet, tf)"><item text="Click" /><item text="Click" /><item text="Click" /></list>
+		<textfield visible="false" name="tf" />
 	</panel>
 </panel>

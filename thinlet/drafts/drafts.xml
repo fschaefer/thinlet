@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<splitpane divider="120">
-	<tree action="loadDraft(this, preview)">
+<splitpane name="content" divider="120">
+	<tree action="loadDraft(content, this)">
 		<node text="Components">
 			<node text="Tabbed pane"
 					property="ui=tabbedpane.xml"
@@ -22,7 +22,10 @@
 			<node text="Colors"
 					property="ui=systemcolors.xml"
 					property="logic=thinlet.drafts.SystemColors" />
+			<node text="Windows"
+					property="ui=desktopproperties.xml"
+					property="logic=thinlet.drafts.DesktopProperties" />
 		</node>
 	</tree>
-	<panel name="preview" border="true" top="1" left="1" bottom="1" right="1" />
+	<panel border="true" />
 </splitpane>

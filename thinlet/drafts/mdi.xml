@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<panel columns="1" weightx="1" weighty="1">
+<panel columns="1">
 	<menubar weightx="1">
 		<menu text="File">
 			<menuitem text="New" icon="/icons/new.gif" action="newDialog(thinlet, desktop)" />
@@ -11,7 +11,7 @@
 			<menuitem text="Delete" icon="/icons/delete.gif" />
 		</menu>
 	</menubar>
-	<panel gap="1" top="1" left="1" bottom="1" right="1">
+	<panel gap="1" top="1" bottom="1">
 		<button icon="/icons/new.gif" tooltip="New" action="newDialog(thinlet, desktop)" />
 		<label text=" " />
 		<button icon="/icons/cut.gif" tooltip="Cut" />

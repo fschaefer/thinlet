@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<panel columns="5" top="4" left="4" bottom="4" right="4" gap="4">
+<panel columns="5" border="true" top="4" left="4" bottom="4" right="4" gap="4">
 	<combobox editable="false" name="name" tooltip="Name" init="loadFontNames(thinlet, this)"/>
 	<togglebutton name="bold" icon="/icons/bold.gif" tooltip="Bold" />
 	<togglebutton name="italic" icon="/icons/italic.gif" tooltip="Italic" />

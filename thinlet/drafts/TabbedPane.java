@@ -23,4 +23,9 @@ public class TabbedPane {
 		Object tab = thinlet.getItem(tabbedpane, "tab", tabindex);
 		thinlet.setBoolean(tab, "enabled", selected);
 	}
+	
+	public void focus(Thinlet thinlet, Object component) {
+		thinlet.setBoolean(component, "visible", true);
+		System.out.println(thinlet.requestFocus(component));
+	}
 }

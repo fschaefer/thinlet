@@ -6,7 +6,7 @@ import java.awt.*;
 /**
  *
  */
-public class AppletLauncher extends Applet {
+public class AppletLauncher extends Applet implements Runnable {
 	
 	private transient Thinlet content;
 	private transient Image doublebuffer;
@@ -15,13 +15,26 @@ public class AppletLauncher extends Applet {
 	 *
 	 */
 	public void init() {
+		setBackground(Color.white); setForeground(Color.darkGray);
 		setLayout(new BorderLayout());
+		add(new Label("Loading...", Label.CENTER), BorderLayout.CENTER);
+		new Thread(this).start();
+	}
+	
+	/**
+	 *
+	 */
+	public void run() {
 		try {
 			content = (Thinlet) Class.forName(getParameter("class")).newInstance();
+			removeAll();
 			add(content, BorderLayout.CENTER);
+			repaint();
 		} catch (Throwable exc) {
+			removeAll();
 			add(new Label(exc.getMessage()), BorderLayout.CENTER);
 		}
+		doLayout();
 	}
 	
 	/**

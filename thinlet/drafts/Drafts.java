@@ -1,5 +1,6 @@
 package thinlet.drafts;
 
+import java.awt.*;
 import thinlet.*;
 
 /**
@@ -11,6 +12,7 @@ public class Drafts extends Thinlet {
 	 *
 	 */
 	public Drafts() {
+		//setFont(new Font("Trebuchet MS", Font.PLAIN, 12));
 		try {
 			add(parse("drafts.xml"));
 		} catch (Exception exc) { exc.printStackTrace(); }
@@ -19,7 +21,10 @@ public class Drafts extends Thinlet {
 	/**
 	 *
 	 */
-	public void loadDraft(Object tree, Object preview) {
+	public void loadDraft(Object splitpane, Object tree) {
+		if (getCount(splitpane) > 2) {
+			remove(getItem(splitpane, 1));
+		}
 		Object node = getSelectedItem(tree);
 		if (node != null) {
 			Object draft = getProperty(node, "draft");
@@ -34,11 +39,18 @@ public class Drafts extends Thinlet {
 					} catch (Exception exc) { exc.printStackTrace(); }
 				}
 			}
-			removeAll(preview);
 			if (draft != null) {
-				add(preview, draft);
+				add(splitpane, draft, 1);
 			}
 		}
+	}
+	
+	/**
+	 *
+	 */
+	public void paint(Graphics g) {
+		Utilities.getUtilities().initGraphics(g);
+		super.paint(g);
 	}
 	
 	/**
