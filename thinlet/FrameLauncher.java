@@ -25,6 +25,16 @@ public class FrameLauncher extends Frame implements WindowListener {
 		addWindowListener(this);
 		pack();
 		
+		Insets is = getInsets();
+		width += is.left + is.right;
+		height += is.top + is.bottom;
+		Dimension ss = getToolkit().getScreenSize();
+		width = Math.min(width, ss.width);
+		height = Math.min(height, ss.height);
+		setBounds((ss.width - width) / 2, (ss.height - height) / 2, width, height); 
+		setVisible(true);
+		//maximize: setBounds(-is.left, -is.top, ss.width + is.left + is.right, ss.height + is.top + is.bottom);
+		
 		int[] pix = new int[16 * 16];
 		for (int x = 0; x < 16; x++) {
 			int sx = ((x >= 1) && (x <= 9)) ? 1 : (((x >= 11) && (x <= 14)) ? 2 : 0);
@@ -38,16 +48,6 @@ public class FrameLauncher extends Frame implements WindowListener {
 			}
 		}
 		setIconImage(createImage(new MemoryImageSource(16, 16, pix, 0, 16)));
-		
-		Insets is = getInsets();
-		width += is.left + is.right;
-		height += is.top + is.bottom;
-		Dimension ss = getToolkit().getScreenSize();
-		width = Math.min(width, ss.width);
-		height = Math.min(height, ss.height);
-		setBounds((ss.width - width) / 2, (ss.height - height) / 2, width, height); 
-		setVisible(true);
-		//maximize: setBounds(-is.left, -is.top, ss.width + is.left + is.right, ss.height + is.top + is.bottom);
 	}
 		
 	/**

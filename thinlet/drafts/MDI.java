@@ -21,6 +21,13 @@ public class MDI {
 	/**
 	 *
 	 */
+	public void setModal(Thinlet thinlet, Object dialog, boolean modal) {
+		thinlet.setBoolean(dialog, "modal", modal);
+	}
+	
+	/**
+	 *
+	 */
 	public void closeDialog(Thinlet thinlet, Object dialog) {
 		thinlet.remove(dialog);
 	}

@@ -17,30 +17,23 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-package thinlet; //java
-//midp package thinlet.midp;
+package thinlet;
 
-import java.applet.*; //java
-import java.awt.*; //java
-import java.awt.datatransfer.*; //java
-import java.awt.image.*; //java
-import java.awt.event.*; //java
-import java.lang.reflect.*; //java
+import java.applet.*;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.image.*;
+import java.awt.event.*;
+import java.lang.reflect.*;
 import java.io.*;
-import java.net.*; //java
+import java.net.*;
 import java.util.*;
-//midp import javax.microedition.lcdui.*;
-//midp import javax.microedition.midlet.*;
 
 /**
  *
  */
-public class Thinlet extends Container //java
-	implements Runnable, Serializable { //java
-//midp public class Thinlet extends Canvas implements CommandListener {
-
-	//midp private static final Boolean TRUE = new Boolean(true);
-	//midp private static final Boolean FALSE = new Boolean(false);
+public class Thinlet extends Container
+	implements Runnable, Serializable {
 
 	private transient Font font;
 	private transient Color c_bg;
@@ -52,10 +45,9 @@ public class Thinlet extends Container //java
 	private transient Color c_press;
 	private transient Color c_focus;
 	private transient Color c_select;
-	private transient Color c_ctrl = null; //java
-	//midp private transient Color c_ctrl;
+	private transient Color c_ctrl = null;
 	private transient int block;
-	private transient Image hgradient, vgradient; //java
+	private transient Image hgradient, vgradient;
 
 	private transient Thread timer;
 	private transient long watchdelay;
@@ -74,21 +66,18 @@ public class Thinlet extends Container //java
 	private transient int referencex, referencey;
 	private transient int mousex, mousey;
 	private transient Object focusowner;
-	private transient boolean focusinside; //midp { focusinside = true; }
+	private transient boolean focusinside;
 	private transient Object popupowner;
 	private transient Object tooltipowner;
 	//private transient int pressedkey;
-
-	//java>	
+	
 	private static final int DRAG_ENTERED = AWTEvent.RESERVED_ID_MAX + 1;
 	private static final int DRAG_EXITED = AWTEvent.RESERVED_ID_MAX + 2;
 	
 	private static long WHEEL_MASK = 0;
 	private static int MOUSE_WHEEL = 0;
 	private static Method wheelrotation = null;
-	//<java
 	private static int evm = 0;
-	//java>
 	static {
 		try {
 			WHEEL_MASK = AWTEvent.class.getField("MOUSE_WHEEL_EVENT_MASK").getLong(null);
@@ -96,9 +85,8 @@ public class Thinlet extends Container //java
 		} catch (Exception exc) { /* not 1.4 */ }
 	}
 	{
-		setFont(new Font("SansSerif", Font.PLAIN, 12)); //java
+		setFont(new Font("SansSerif", Font.PLAIN, 12));
 		//setFont((Font) getToolkit().getDesktopProperty("win.messagebox.font"));
-		//midp setFont(Font.getDefaultFont());
 		setColors(0xe6e6e6, 0x000000, 0xffffff,
 			0x909090, 0xb0b0b0, 0xededed, 0xb9b9b9, 0x89899a, 0xc5c5dd);
 			
@@ -119,7 +107,11 @@ public class Thinlet extends Container //java
 				if (System.getProperty("java.vendor").indexOf("Insignia") != -1) { evm = -1; }
 			} catch (Exception exc) { /* never */ }
 	}
-	//<java
+	
+	// button and togglebutton border + padding
+	private static final Insets BUTTON = new Insets(3, 12, 3, 12);
+	// tabbedpane (not selected) tab padding are 1, 3, 1, and 3 pt
+	private static final Insets ITEM = new Insets(1, 3, 1, 3); // list/tree/table item padding
 
 	/**
 	 * Sets the 9 colors used for components, and repaints the whole UI
@@ -152,10 +144,11 @@ public class Thinlet extends Container //java
 		c_disable = new Color(disable); c_hover = new Color(hover);
 		c_press = new Color(press); c_focus = new Color(focus);
 		c_select = new Color(select);
-		//midp c_ctrl = c_hover;
-		hgradient = vgradient = null; //java
+		hgradient = vgradient = null;
 		repaint();
 	}
+	
+	//setDesktopProperty+
 
 	/**
 	 * Sets the only one font used everywhere, and revalidates the whole UI.
@@ -165,11 +158,10 @@ public class Thinlet extends Container //java
 	 * @param font the default font is <i>SansSerif</i>, <i>plain</i>, and <i>12pt</i>
 	 */
 	public void setFont(Font font) {
-		block = getFontMetrics(font).getHeight(); //java
-		super.setFont(font); //java
-		//midp block = font.getHeight();
+		block = getFontMetrics(font).getHeight();
+		super.setFont(font);
 		this.font = font;
-		hgradient = vgradient = null; //java
+		hgradient = vgradient = null;
 		if (content != null) validate(content);
 	}
 	
@@ -217,7 +209,7 @@ public class Thinlet extends Container //java
 			}
 			
 			Font currentfont = (Font) get(component, "font");
-			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 			int width = 0, height = 0;
 			int caretx = 0; int carety = 0;
 			for (int i = 0, j = 0; j <= chars.length; j++) {
@@ -231,22 +223,24 @@ public class Thinlet extends Container //java
 					i = j + 1;
 				}
 			}
-			layoutScrollPane(component, width + 2,
-				height - fm.getLeading() + 2, 0, 0);
-			scrollToVisible(component, caretx, carety,
-				2, fm.getAscent() + fm.getDescent() + 2); //?
+			layoutScroll(component, width + 2, height - fm.getLeading() + 2, 0, 0, 0, 0, true, 0);
+			scrollToVisible(component, caretx, carety, 2, fm.getAscent() + fm.getDescent() + 2); //?
 		} 
 		else if ("tabbedpane" == classname) {
-			// tabbedpane (not selected) tab insets are 1, 3, 1, and 3 pt
+			// tabbedpane (not selected) tab padding are 1, 3, 1, and 3 pt
 			Rectangle bounds = getRectangle(component, "bounds");
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
 			
+			int selected = getInteger(component, "selected", 0);
 			// draw up tabs in row/column
-			int tabd = 0; // x/y location of tab left/top
+			int tabd = 0; Rectangle first = null; // x/y location of tab left/top
 			int tabsize = 0; // max height/width of tabs
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
-				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
+				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8);
+				if ((tabd == 0) && ((first = getRectangle(tab, "bounds")) != null)) {
+					tabd = horizontal ? first.x : first.y; // restore previous offset
+				}
 				setRectangle(tab, "bounds",
 					horizontal ? tabd : 0, horizontal ? 0 : tabd, d.width, d.height);
 				tabd += (horizontal ? d.width : d.height) - 3;
@@ -274,6 +268,7 @@ public class Thinlet extends Container //java
 					doLayout(comp);
 				}
 			}
+			checkOffset(component);
 		}
 		else if (("panel" == classname) || (classname == "dialog")) {
 			int gap = getInteger(component, "gap", 0);
@@ -284,16 +279,17 @@ public class Thinlet extends Container //java
 				int bottom = getInteger(component, "bottom", 0);
 				int right = getInteger(component, "right", 0);
 				if (classname == "dialog") {
-					int titleheight = getInteger(component, ":titleheight", 0);
+					int titleheight = getSize(component, 0, 0).height;
+					setInteger(component, ":titleheight", titleheight, 0);
 					top += 4 + titleheight; left += 4; bottom += 4; right += 4;
 				}
 
 				Rectangle bounds = getRectangle(component, "bounds");
-				for (int i = 0; i < 2; i++) {
-					int d = ((i == 0) ? (bounds.width - left - right) :
-						(bounds.height - top - bottom)) -
-						getSum(grid[i], 0, grid[i].length, gap, false);
-					if (d != 0) {
+				int wsum = left + getSum(grid[0], 0, grid[0].length, gap, false) + right;
+				int hsum = top + getSum(grid[1], 0, grid[1].length, gap, false) + bottom;
+				for (int i = 0; i < 2; i++) { // i=0: horizontal, i=1: vertical
+					int d = ((i == 0) ? (bounds.width - wsum) : 	(bounds.height - hsum));
+					if (d != 0) { //+ > 0
 						int w = getSum(grid[2 + i], 0, grid[2 + i].length, 0, false);
 						if (w > 0) {
 							for (int j = 0; j < grid[i].length; j++) {
@@ -333,6 +329,10 @@ public class Thinlet extends Container //java
 					setRectangle(comp, "bounds", ix, iy, iwidth, iheight);
 					doLayout(comp);
 					i++;
+				}
+				
+				if (getBoolean(component, "scrollable", false)) {
+					layoutScroll(component, wsum, hsum, 0, 0, 0, 0, false, 0);
 				}
 			}
 		}
@@ -396,6 +396,7 @@ public class Thinlet extends Container //java
 		} 
 		else if (("list" == classname) ||
 				("table" == classname) || ("tree" == classname)) {
+			int line = getBoolean(component, "line", false) ? 1 : 0;
 			int width = 0;
 			int columnheight = 0;
 			if ("table" == classname) {
@@ -404,7 +405,7 @@ public class Thinlet extends Container //java
 					for (Object column = get(header, ":comp");
 							column != null; column = get(column, ":next")) {
 						width += getInteger(column, "width", 80);
-						Dimension d = getSize(column, 2, 2, "left");
+						Dimension d = getSize(column, 2, 2);
 						columnheight = Math.max(columnheight, d.height);
 					}
 				}
@@ -417,7 +418,7 @@ public class Thinlet extends Container //java
 				if ("table" == classname) {
 					iwidth = width;
 					for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
-						Dimension d = getSize(cell, 2, 3, "left");
+						Dimension d = getSize(cell, 2, 2);
 						iheight = Math.max(iheight, d.height);
 					}
 				}
@@ -425,12 +426,12 @@ public class Thinlet extends Container //java
 					if ("tree" == classname) {
 						x = (level + 1) * block;
 					}
-					Dimension d = getSize(item, 2, 3, "left");
+					Dimension d = getSize(item, ITEM.left + ITEM.right, ITEM.top + ITEM.bottom);
 					iwidth = d.width; iheight = d.height;
 					width = Math.max(width, x + d.width);
 				}
 				setRectangle(item, "bounds", x, y, iwidth, iheight);
-				y += iheight;
+				y += iheight + line;
 				if ("tree" == classname) {
 					Object next = get(item, ":comp");
 					if ((next != null) && getBoolean(item, "expanded", true)) {
@@ -446,26 +447,64 @@ public class Thinlet extends Container //java
 					item = get(item, ":next");
 				}
 			}
-			layoutScrollPane(component, width, y - 1, 0, columnheight);
+			layoutScroll(component, width, y - line, columnheight, 0, 0, 0, true, 0);
 		}
 		else if ("menubar" == classname) { 
 			Rectangle bounds = getRectangle(component, "bounds");
 			int x = 0;
 			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
-				Dimension d = getSize(menu, 8, 4, "left");
+				Dimension d = getSize(menu, 8, 4);
 				setRectangle(menu, "bounds", x, 0, d.width, bounds.height);
 				x += d.width;
 			}
 		}
-		//java>
 		else if ("bean" == classname) {
 			Rectangle r = getRectangle(component, "bounds");
 			((Component) get(component, "bean")).setBounds(r);
 		}
-		//<java
 	}
-
+	
+	/**
+	 * Scroll tabs to make the selected one visible
+	 * @param component a tabbedpane
+	 */
+	private void checkOffset(Object component) {
+		String placement = getString(component, "placement", "top");
+		boolean horizontal = ((placement == "top") || (placement == "bottom"));
+		int selected = getInteger(component, "selected", 0);
+		Rectangle bounds = getRectangle(component, "bounds");
+		int panesize = horizontal ? bounds.width : bounds.height;
+		int i = 0; int first = 0; int last = 0; int d = 0;
+		for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+			Rectangle r = getRectangle(tab, "bounds");
+			if (i == 0) { first = (horizontal ? r.x : r.y); }
+			last = (horizontal ? (r.x + r.width) : (r.y + r.height));
+			if (i == selected) {
+				int ifrom = (horizontal ? r.x : r.y) - 6;
+				int ito = (horizontal ? (r.x + r.width) : (r.y + r.height)) + 6;
+				if (ifrom < 0) { d = -ifrom; }
+				else if (ito > panesize) { d = panesize - ito; }
+			}
+			i++;
+		}
+		d = Math.min(-first, Math.max(d, panesize - last));
+		if (d != 0) {
+			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
+				Rectangle r = getRectangle(tab, "bounds");
+				if (horizontal) { r.x += d; } else { r.y += d; }
+				Object comp = get(tab, ":comp"); // relative to the tab location
+				if ( (comp != null) && getBoolean(comp, "visible", true)) {
+					Rectangle rc = getRectangle(comp, "bounds");
+					if (horizontal) { rc.x -= d; } else { rc.y -= d; }
+				}
+			}
+			if (mouseinside == component) { // layout changed, check the hovered tab
+				checkLocation();
+			}
+		}
+	}
+	
 	/**
 	 *
 	 */
@@ -480,7 +519,7 @@ public class Thinlet extends Container //java
 		
 		if (wrap) {
 			Font currentfont = (Font) get(component, "font");
-			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 			int lines = (height - 4 + fm.getLeading()) / fm.getHeight();
 			boolean prevletter = false; int n = chars.length; int linecount = 0;
 			for (int i = 0, j = -1, k = 0; k <= n; k++) { // j is the last space index (before k)
@@ -558,7 +597,7 @@ public class Thinlet extends Container //java
 		int pw = 0; int ph = 0;
 		for (Object item = get(combobox, ":comp");
 				item != null; item = get(item, ":next")) {
-			Dimension d = getSize(item, 8 , 4, "left");
+			Dimension d = getSize(item, 8 , 4);
 			setRectangle(item, "bounds", 0, ph, d.width, d.height);
 			pw = Math.max(pw, d.width);
 			ph += d.height;
@@ -575,7 +614,7 @@ public class Thinlet extends Container //java
 			listheight = Math.min(bellow, ph + 2);
 		}
 		setRectangle(combolist, "bounds", combox, listy, combowidth, listheight);
-		layoutScrollPane(combolist, pw, ph, 0, 0);
+		layoutScroll(combolist, pw, ph, 0, 0, 0, 0, true, 0);
 		repaint(combolist);
 		// hover the selected item
 		int selected = getInteger(combobox, "selected", -1);
@@ -599,9 +638,7 @@ public class Thinlet extends Container //java
 			set(popup, ":parent", null);
 			set(component, ":popup", null);
 			if (mouseinside == popup) {
-				findComponent(content, mousex, mousey);
-				handleMouseEvent(mousex, mousex, 1, false, false, false, //java
-					MouseEvent.MOUSE_ENTERED, mouseinside, insidepart); //java
+				checkLocation();
 			}
 			popupMenu(popup); // remove recursively
 		}
@@ -619,7 +656,7 @@ public class Thinlet extends Container //java
 		for (Object item = get(selected, ":comp"); item != null; item = get(item, ":next")) {
 			String itemclass = getClass(item);
 			Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
-				getSize(item, 8 , 4, "left");
+				getSize(item, 8 , 4);
 			if (itemclass == "checkboxmenuitem") {
 				d.width = d.width + block + 3;
 				d.height = Math.max(block, d.height);
@@ -661,9 +698,10 @@ public class Thinlet extends Container //java
 		Object accelerator = get(component, "accelerator");
 		if (accelerator != null) {
 			long keystroke = ((Long) accelerator).longValue();
-			//int keycode = (int) (keystroke >> 32), modifiers = (int) (keystroke & 0xffff);
-			return KeyEvent.getKeyModifiersText((int) (keystroke >> 32)) + " " +
-				KeyEvent.getKeyText((int) (keystroke & 0xffff));
+			int keycode = (int) (keystroke >> 32);
+			int modifiers = (int) (keystroke & 0xffff);
+			return KeyEvent.getKeyModifiersText(keycode) + " " +
+				KeyEvent.getKeyText(modifiers);
 		}
 		return null;
 	}
@@ -687,7 +725,7 @@ public class Thinlet extends Container //java
 		for (Object item = get(popupmenu, ":comp"); item != null; item = get(item, ":next")) {
 			String itemclass = getClass(item);
 			Dimension d = (itemclass == "separator") ? new Dimension(1, 1) :
-				getSize(item, 8 , 4, "left");
+				getSize(item, 8 , 4);
 			if (itemclass == "checkboxmenuitem") {
 				d.width = d.width + block + 3;
 				d.height = Math.max(block, d.height);
@@ -725,9 +763,7 @@ public class Thinlet extends Container //java
 		set(combolist, ":parent", null);
 		popupowner = null;
 		if (mouseinside == combolist) {
-			findComponent(content, mousex, mousey);
-			handleMouseEvent(mousex, mousex, 1, false, false, false, //java
-				MouseEvent.MOUSE_ENTERED, mouseinside, insidepart); //java
+			checkLocation();
 		}
 	}
 
@@ -807,13 +843,12 @@ public class Thinlet extends Container //java
 		if (start > text.length()) { setInteger(component, "start", start = text.length(), 0); }
 		int end = getInteger(component, "end", 0);
 		if (end > text.length()) { setInteger(component, "end", end = text.length(), 0); }
-		int offset = getInteger(component, "offset", 0);
+		int offset = getInteger(component, ":offset", 0);
 		int off = offset;
 		Font currentfont = (Font) get(component, "font");
 		FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 		int caret = hidden ? (fm.charWidth('*') * end) :
-			fm.stringWidth(text.substring(0, end)); //java
-			//midp font.substringWidth(text, 0, end);
+			fm.stringWidth(text.substring(0, end));
 		if (off > caret) {
 			off = caret;
 		}
@@ -823,38 +858,57 @@ public class Thinlet extends Container //java
 		off = Math.max(0, Math.min(off, (hidden ? (fm.charWidth('*') *
 			text.length()) : fm.stringWidth(text)) - width + 4)); 
 		if (off != offset) {
-			setInteger(component, "offset", off, 0);
+			setInteger(component, ":offset", off, 0);
 		}
 	}
-
+	
 	/**
+	 * Set viewport (:port) bounds excluding borders, view position and content
+	 * size (:view), horizontal (:horizontal), and vertical (:vertical) scrollbar
+	 * bounds
 	 *
+	 * @param component scrollable widget
+	 * @param contentwidth preferred component width
+	 * @param contentheight preferred component height
+	 * @param header column height
+	 * @param topborder border size on the top (1 or 0)
+	 * @param border define left, bottom, and right border width (1 or 0)
+	 *
+	 * list: 0, 0, 0, 0, true, 0 | table: header, ... | dialog: header, 3, 3, 3, true, 0
+	 * title-border panel: header / 2, 0, 0, 0, true, head
 	 */
-	private void layoutScrollPane(Object component,
-			int contentwidth, int contentheight, int rowwidth, int columnheight) {
+	private void layoutScroll(Object component,
+			int contentwidth, int contentheight,
+			int top, int left, int bottom, int right, boolean border, int topgap) {
 		Rectangle bounds = getRectangle(component, "bounds");
-		boolean hneed = false; boolean vneed = false;
-		if (contentwidth > bounds.width - rowwidth - 2) {
-			hneed = true;
-			vneed = (contentheight > bounds.height - columnheight - 2 - block);
-		}
-		if (vneed || (contentheight > bounds.height - columnheight - 2)) {
-			vneed = true;
-			hneed = hneed || (contentwidth > bounds.width - rowwidth - 2 - block);
-		}
-		int viewportwidth = bounds.width - rowwidth - (vneed ? block : 0);
-		int viewportheight = bounds.height - columnheight - (hneed ? block : 0);
-		setRectangle(component, ":port",
-			rowwidth, columnheight, viewportwidth, viewportheight); //?rowwidth
-
+		int iborder = border ? 1 : 0; int iscroll = block + 1 - iborder;
+		int portwidth = bounds.width - left - right - 2 * iborder; // available horizontal space
+		int portheight = bounds.height - top - topgap - bottom - 2 * iborder; // vertical space
+		boolean hneed = contentwidth > portwidth; // horizontal scrollbar required
+		boolean vneed = contentheight > portheight - (hneed ? iscroll : 0); // vertical scrollbar needed
+		if (vneed) { portwidth -= iscroll; } // subtract by vertical scrollbar width
+		hneed = hneed || (vneed && (contentwidth > portwidth));
+		if (hneed) { portheight -= iscroll; } // subtract by horizontal scrollbar height
+		
+		setRectangle(component, ":port", left + iborder, top + iborder + topgap, portwidth, portheight);
+		if (hneed) { 
+			setRectangle(component, ":horizontal", left, bounds.height - bottom - block - 1,
+				bounds.width - left - right - (vneed ? block : 0), block + 1);
+		} else { set(component, ":horizontal", null); }
+		if (vneed) {
+			setRectangle(component, ":vertical", bounds.width - right - block - 1, top,
+				block + 1, bounds.height - top - bottom - (hneed ? block : 0));
+		} else { set(component, ":vertical", null); }
+		
+		contentwidth = Math.max(contentwidth, portwidth);
+		contentheight = Math.max(contentheight, portheight);
+		int viewx = 0, viewy = 0;
 		Rectangle view = getRectangle(component, ":view");
-		setRectangle(component, ":view",
-			(view != null) ? Math.max(0,
-				Math.min(view.x, contentwidth - viewportwidth + 2)) : 0,
-			(view != null) ? Math.max(0,
-				Math.min(view.y, contentheight - viewportheight + 2)) : 0,
-			Math.max(viewportwidth - 2, contentwidth),
-			Math.max(viewportheight - 2, contentheight));
+		if (view != null) { // check the previous location
+			viewx = Math.max(0, Math.min(view.x, contentwidth - portwidth));
+			viewy = Math.max(0, Math.min(view.y, contentheight - portheight));
+		}
+		setRectangle(component, ":view", viewx, viewy, contentwidth, contentheight);
 	}
 
 	/**
@@ -864,8 +918,8 @@ public class Thinlet extends Container //java
 			int x, int y, int width, int height) {
 		Rectangle view = getRectangle(component, ":view");
 		Rectangle port = getRectangle(component, ":port");
-		int vx = Math.max(x + width - port.width + 2, Math.min(view.x, x));
-		int vy = Math.max(y + height - port.height + 2, Math.min(view.y, y));
+		int vx = Math.max(x + width - port.width, Math.min(view.x, x));
+		int vy = Math.max(y + height - port.height, Math.min(view.y, y));
 		if ((view.x != vx) || (view.y != vy)) {
 			repaint(component); // horizontal | vertical
 			view.x = vx; view.y = vy;
@@ -894,13 +948,14 @@ public class Thinlet extends Container //java
 		String classname = getClass(component);
 		//System.out.println("classname: " + classname);
 		if ("label" == classname) {
-			return getSize(component, 0, 0, "left");
+			return getSize(component, 0, 0);
 		} 
 		if (("button" == classname) || ("togglebutton" == classname)) {
-			return getSize(component, 12, 6, "center");
+			return getSize(component, BUTTON.left + BUTTON.right,
+				BUTTON.top + BUTTON.bottom);
 		} 
 		if ("checkbox" == classname) {
-			Dimension d = getSize(component, 0, 0, "left");
+			Dimension d = getSize(component, 0, 0);
 			d.width = d.width + block + 3;
 			d.height = Math.max(block, d.height);
 			return d;
@@ -917,9 +972,9 @@ public class Thinlet extends Container //java
 				return size;
 			} else {
 				// maximum size of current values and choices including 2-2-2-2 insets
-				Dimension size = getSize(component, 4 , 4, "left");
+				Dimension size = getSize(component, 4 , 4);
 				for (Object item = get(component, ":comp"); item != null; item = get(item, ":next")) {
-					Dimension d = getSize(item, 4 , 4, "left");
+					Dimension d = getSize(item, 4 , 4);
 					size.width = Math.max(d.width, size.width); size.height = Math.max(d.height, size.height);
 				}
 				size.width += block;
@@ -938,7 +993,7 @@ public class Thinlet extends Container //java
 			int columns = getInteger(component, "columns", 0);
 			int rows = getInteger(component, "rows", 0); // 'e' -> 'm' ?
 			Font currentfont = (Font) get(component, "font");
-			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font); //java
+			FontMetrics fm = getFontMetrics((currentfont != null) ? currentfont : font);
 			return new Dimension(
 				((columns > 0) ? (columns * fm.charWidth('e') + 2) : 76) + 2 + block,
 				((rows > 0) ? (rows * fm.getHeight() - fm.getLeading() + 2) : 76) + 2 + block);
@@ -950,7 +1005,7 @@ public class Thinlet extends Container //java
 			int contentwidth = 0; int contentheight = 0; // max content size
 			for (Object tab = get(component, ":comp");
 					tab != null; tab = get(tab, ":next")) {
-				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8, "left");
+				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8);
 				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
 				
 				Object comp = get(tab, ":comp");
@@ -968,8 +1023,7 @@ public class Thinlet extends Container //java
 				getInteger(component, "left", 0) + getInteger(component, "right", 0),
 				getInteger(component, "top", 0) + getInteger(component, "bottom", 0));
 			if (classname == "dialog") {
-				int titleheight = getSize(component, 0, 0, "left").height;
-				setInteger(component, ":titleheight", titleheight, 0);
+				int titleheight = getSize(component, 0, 0).height;
 				size.width += 8; size.height += 8 + titleheight;
 			}
 			int gap = getInteger(component, "gap", 0);
@@ -1034,17 +1088,15 @@ public class Thinlet extends Container //java
 			Dimension size = new Dimension(0, 0);
 			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
-				Dimension d = getSize(menu, 8, 4, "left");
+				Dimension d = getSize(menu, 8, 4);
 				size.width += d.width;
 				size.height = Math.max(size.height, d.height);
 			}
 			return size;
 		}
-		//java>
 		if ("bean" == classname) {
 				return ((Component) get(component, "bean")).getPreferredSize();
 		}
-		//<java
 		throw new IllegalArgumentException((String) classname);
 	}
 
@@ -1212,10 +1264,12 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 *
+	 * @param component a widget including the text and icon parameters
+	 * @param dx increase width by this value
+	 * @param dy increase height by this value
+	 * @return size of the text and the image (plus a gap) including the given offsets
 	 */
-	private Dimension getSize(Object component,
-			int dx, int dy, String defaultalignment) {
+	private Dimension getSize(Object component, int dx, int dy) {
 		String text = getString(component, "text", null);
 		int tw = 0; int th = 0;
 		if (text != null) {
@@ -1233,7 +1287,6 @@ public class Thinlet extends Container //java
 		}
 		return new Dimension(tw + iw + dx, Math.max(th, ih) + dy);
 	}
-	//java>
 
 	/**
 	 * Invokes the paint method
@@ -1290,22 +1343,40 @@ public class Thinlet extends Container //java
 		///g.setClip(0, 0, getSize().width, getSize().height);
 		//g.setColor(Color.red); g.drawRect(clip.x, clip.y, clip.width - 1, clip.height - 1);
 	}
-
-	//<java
-	/*midp
-	protected void paint(Graphics g) {
-		paint(g, g.getClipX(), g.getClipY(),
-			g.getClipWidth(), g.getClipHeight(), content, true);
+	
+	/**
+	 * Fill a given part of a MemoryImageSource with gradient
+	 * @param pix arrays of source pixels
+	 * @param offset image width 
+	 * @param x gradient left location
+	 * @param y fill top location
+	 * @param width gradient width size
+	 * @param height fill height size
+	 * @param color1 top/left color
+	 * @param color2 bottom/right color
+	 * @param horizontal horizontal if true, vertical otherwise
+	 */
+	private static void fillGradient(int[] pix, int offset, int x, int y, int width, int height,
+			int color1, int color2, boolean horizontal) {
+		int r1 = (color1 >> 16) & 0xff; int rd = ((color2 >> 16) & 0xff) - r1;
+		int g1 = (color1 >> 8) & 0xff; int gd = ((color2 >> 8) & 0xff) - g1;
+		int b1 = color1 & 0xff; int bd = (color2 & 0xff) - b1;
+		int gs = horizontal ? width : height; int fs = horizontal ? height : width;
+		for (int i = 0; i < gs; i++) {
+			int color = 0xff000000 | ((r1 + rd * i / gs) << 16) |
+				((g1 + gd * i / gs) << 8) | (b1 + bd * i / gs);
+			for (int j = 0; j < fs; j++) {
+				pix[x + (horizontal ? i : j) + (y + (horizontal ? j : i)) * offset] = color;
+			}
+		}
 	}
-
-	protected void showNotify() {
-		setRectangle(content, "bounds", 0, 0, getWidth(), getHeight());
-		doLayout(content);
-	}
-	midp*/
 
 	/**
-	 *
+	 * @param clipx the cliping rectangle is relative to the component's
+	 * parent location similar to the component's bounds rectangle
+	 * @param clipy
+	 * @param clipwidth
+	 * @param clipheight
 	 * @throws java.lang.IllegalArgumentException
 	 */
 	private void paint(Graphics g,
@@ -1314,25 +1385,28 @@ public class Thinlet extends Container //java
 		if (!getBoolean(component, "visible", true)) { return; }
 		Rectangle bounds = getRectangle(component, "bounds");
 		if (bounds == null) { return; }
+		// negative component width indicates invalid component layout
 		if (bounds.width < 0) {
 			bounds.width = Math.abs(bounds.width);
 			doLayout(component);
 		}
+		// return if the component was out of the cliping rectangle
 		if ((clipx + clipwidth < bounds.x) ||
 				(clipx > bounds.x + bounds.width) ||
 				(clipy + clipheight < bounds.y) ||
 				(clipy > bounds.y + bounds.height)) {
 			return;
 		}
+		// set the clip rectangle relative to the component location
 		clipx -= bounds.x; clipy -= bounds.y;
+		g.translate(bounds.x, bounds.y); 
+		//g.setClip(0, 0, bounds.width, bounds.height);
 		String classname = getClass(component);
 		boolean pressed = (mousepressed == component);
 		boolean inside = (mouseinside == component) &&
 			((mousepressed == null) || pressed);
 		boolean focus = focusinside && (focusowner == component);
 		enabled = getBoolean(component, "enabled", true); //enabled &&
-		g.translate(bounds.x, bounds.y); 
-		//g.setClip(0, 0, bounds.width, bounds.height);
 
 		if ("label" == classname) {
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
@@ -1354,7 +1428,8 @@ public class Thinlet extends Container //java
 				g.drawRect(1, 1, bounds.width - 3, bounds.height - 3);
 			}
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
-				6, 3, bounds.width - 12, bounds.height - 6,
+				BUTTON.left, BUTTON.top, bounds.width - BUTTON.left - BUTTON.right,
+				bounds.height - BUTTON.top - BUTTON.bottom,
 				enabled ? c_text : c_disable, "center", true);
 		}
 		else if ("checkbox" == classname) {
@@ -1369,16 +1444,16 @@ public class Thinlet extends Container //java
 					border, foreground, true, true, true, true, true);
 			} else {
 				g.setColor((foreground != c_ctrl) ? foreground : c_bg);
-				g.fillOval(1, dy + 1, block - 3 + evm, block - 3 + evm); //java
+				g.fillOval(1, dy + 1, block - 3 + evm, block - 3 + evm);
 				g.setColor(border);
-				g.drawOval(1, dy + 1, block - 3, block - 3); //java
+				g.drawOval(1, dy + 1, block - 3, block - 3);
 			}
 			if (focus) {
 				g.setColor(c_focus);
 				if (group == null) {
 					g.drawRect(3, dy + 3, block - 7, block - 7);
 				} else {
-					g.drawOval(3, dy + 3, block - 7, block - 7); //java
+					g.drawOval(3, dy + 3, block - 7, block - 7);
 				}
 			}
 			if((!selected && inside && pressed) ||
@@ -1389,8 +1464,8 @@ public class Thinlet extends Container //java
 					g.drawLine(3, dy + block - 4, block - 4, dy + 3);
 					g.drawLine(4, dy + block - 4, block - 4, dy + 4);
 				} else {
-					g.fillOval(5, dy + 5, block - 10 + evm, block - 10 + evm); //java
-					g.drawOval(4, dy + 4, block - 9, block - 9); //java
+					g.fillOval(5, dy + 5, block - 10 + evm, block - 10 + evm);
+					g.drawOval(4, dy + 4, block - 9, block - 9);
 				}
 			}
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
@@ -1405,8 +1480,7 @@ public class Thinlet extends Container //java
 					bounds.width - block, bounds.height,
 					inside, pressed, focus, enabled, false, left);
 				if (icon != null) {
-					g.drawImage(icon, 2, (bounds.height - icon.getHeight(this)) / 2, this); //java
-					//midp g.drawImage(icon, 2, bounds.height / 2, Graphics.LEFT | Graphics.VCENTER);
+					g.drawImage(icon, 2, (bounds.height - icon.getHeight(this)) / 2, this);
 				}
 				paintArrow(g, bounds.width - block, 0, block, bounds.height,
 					'S', enabled, inside, pressed, "down", true, false, true, true, true);
@@ -1427,30 +1501,8 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (":combolist" == classname) {
-			Rectangle view = getRectangle(component, ":view");
-			Rectangle viewport = getRectangle(component, ":port");
-			g.setColor(c_border);
-			g.drawRect(viewport.x, viewport.y, viewport.width - 1, viewport.height - 1);
-			if (paintScrollPane(g, clipx, clipy, clipwidth, clipheight,
-					bounds, view, viewport, enabled, inside, pressed)) {
-				int ly = clipy - viewport.y - 1;
-				int yfrom = view.y + Math.max(0, ly);
-				int yto = view.y + Math.min(viewport.height - 2, ly + clipheight);
-				Object selected = get(component, ":lead");
-				for (Object choice = get(get(component, "combobox"), ":comp");
-						choice != null; choice = get(choice, ":next")) {
-					Rectangle r = getRectangle(choice, "bounds");
-					if (yto <= r.y) { break; }
-					if (yfrom >= r.y + r.height) { continue; }
-					boolean armed = (selected == choice);
-					paintRect(g, r.x, r.y, bounds.width - 2, r.height, c_border,
-						armed ? c_select : c_textbg, false, false, false, false, true);
-					paintContent(choice, g, clipx, yfrom, clipwidth, yto - yfrom,
-						r.x + 4, r.y + 2, bounds.width - 10, r.height - 4,
-						getBoolean(choice, "enabled", true) ? c_text : c_disable, "left", false);
-				}
-				resetScrollPane(g, clipx, clipy, clipwidth, clipheight, view, viewport);
-			}
+			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if (("textfield" == classname) || ("passwordfield" == classname)) {
 			paintField(g, clipx, clipy, clipwidth, clipheight, component,
@@ -1458,57 +1510,8 @@ public class Thinlet extends Container //java
 				inside, pressed, focus, enabled, ("passwordfield" == classname), 0);
 		}
 		else if ("textarea" == classname) {
-			Rectangle view = getRectangle(component, ":view");
-			Rectangle viewport = getRectangle(component, ":port");
-			boolean editable = getBoolean(component, "editable", true);
-			paintRect(g, viewport.x, viewport.y, viewport.width, viewport.height,
-				enabled ? c_border : c_disable, editable ? c_textbg : c_bg,
-				true, true, true, true, true);
-			if (paintScrollPane(g, clipx, clipy, clipwidth, clipheight,
-					bounds, view, viewport, enabled, inside, pressed)) {
-				char[] chars = (char[]) get(component, ":text");
-				int start = focus ? getInteger(component, "start", 0) : 0;
-				int end = focus ? getInteger(component, "end", 0) : 0;
-				int is = Math.min(start, end); int ie = Math.max(start, end);
-				Font currentfont = (Font) get(component, "font");
-				if (currentfont != null) { g.setFont(currentfont); }
-				FontMetrics fm = g.getFontMetrics(); //java
-				int fontascent = fm.getAscent(); int fontheight = fm.getHeight(); //java
-				//midp int fontheight = fm.getHeight();
-				int ascent = 1;
-				int ly = clipy - viewport.y - 1;
-				int yfrom = view.y + Math.max(0, ly);
-				int yto = view.y + Math.min(viewport.height - 2, ly + clipheight);
-				//g.setColor(Color.pink); g.fillRect(0, yfrom - 1, 75, 2); g.fillRect(0, yto - 1, 75, 2);
-				
-				for (int i = 0, j = 0; j <= chars.length; j++) {
-					if ((j == chars.length) || (chars[j] == '\n')) {
-						if (yto <= ascent) { break; } // the next lines are bellow paint rectangle
-						if (yfrom < ascent + fontheight) { // this line is not above painting area
-							if (focus && (is != ie) && (ie >= i) && (is <= j)) {
-								int xs = (is < i) ? -1 : ((is > j) ? (view.width - 1) :
-									fm.charsWidth(chars, i, is - i));
-								int xe = ((j != -1) && (ie > j)) ? (view.width - 1) :
-									fm.charsWidth(chars, i, ie - i);
-								g.setColor(c_select);
-								g.fillRect(1 + xs, ascent, xe - xs + evm, fontheight + evm);
-							}
-							g.setColor(enabled ? c_text : c_disable);
-							g.drawChars(chars, i, j - i, 1, ascent + fontascent); //java
-							//midp g.drawChars(chars, i, j - i, 1, ascent, Graphics.LEFT | Graphics.TOP);
-							if (focus && (end >= i) && (end <= j)) {
-								int caret = fm.charsWidth(chars, i, end - i);
-								g.setColor(c_focus);
-								g.fillRect(caret, ascent, 1 + evm, fontheight + evm);
-							}
-						}
-						ascent += fontheight;
-						i = j + 1;
-					}
-				}
-				if (currentfont != null) { g.setFont(font); }
-				resetScrollPane(g, clipx, clipy, clipwidth, clipheight, view, viewport);
-			}
+			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if ("tabbedpane" == classname) {
 			int i = 0; Object selectedtab = null;
@@ -1520,6 +1523,7 @@ public class Thinlet extends Container //java
 				dy = horizontal ? ((placement == "top") ? 3 : 2) : 4,
 				dw = horizontal ? 12 : 9, dh = horizontal ? 5 : 8;
 			// paint tabs except the selected one
+			g.clipRect(0, 0, bounds.width, bounds.height); //+clip
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
 				if (selected != i) {
 					boolean hover = inside && 	(mousepressed == null) && (insidepart == tab);
@@ -1567,8 +1571,18 @@ public class Thinlet extends Container //java
 					clipx += r.x; clipy += r.y; g.translate(-r.x, -r.y);
 				}
 			}
+			g.setClip(clipx, clipy, clipwidth, clipheight); //+clip
 		}
 		else if (("panel" == classname) || ("dialog" == classname)) {
+			if ("panel" == classname) {
+				boolean scrollable = getBoolean(component, "scrollable", false);
+				if (scrollable) {
+					paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+						g, clipx, clipy, clipwidth, clipheight);
+					return;
+				}
+			}
+			
 			if ("dialog" == classname) {
 				int titleheight = getInteger(component, ":titleheight", 0);
 				paintRect(g, 0, 0, bounds.width, 3 + titleheight,
@@ -1588,6 +1602,7 @@ public class Thinlet extends Container //java
 					g.drawRect(0, 0, bounds.width - 1, bounds.height - 1);
 				}
 			}
+			
 			for (Object comp = get(component, ":comp");
 					comp != null; comp = get(comp, ":next")) {
 				paint(g, clipx, clipy, clipwidth, clipheight, comp, enabled);
@@ -1605,8 +1620,7 @@ public class Thinlet extends Container //java
 					c_border, c_bg, true, true, true, true, true);
 				String text = getString(tooltipowner, "tooltip", null);
 				g.setColor(c_text);
-				g.drawString(text, r.x + 2, r.y + g.getFontMetrics().getAscent() + 2); //java
-				//midp g.drawString(text, r.x + 2, r.y + (r.height - font.getHeight()) / 2, Graphics.LEFT | Graphics.TOP);
+				g.drawString(text, r.x + 2, r.y + g.getFontMetrics().getAscent() + 2); //+nullpointerexception
 			}			
 		}
 		else if ("spinbox" == classname) {
@@ -1690,121 +1704,8 @@ public class Thinlet extends Container //java
 		}
 		else if (("list" == classname) ||
 				("table" == classname) || ("tree" == classname)) {
-			Rectangle view = getRectangle(component, ":view");
-			Rectangle viewport = getRectangle(component, ":port");
-			int[] columnwidths = null;
-			int lx = clipx - viewport.x - 1;
-			int xfrom = view.x + Math.max(0, lx);
-			int xto = view.x + Math.min(viewport.width - 2, lx + clipwidth);
-			if ("table" == classname) {
-				Object header = get(component, "header");
-				if (header != null) {
-					columnwidths = new int[getItemCountImpl(header, ":comp")];
-					int i = 0; int x = 0; boolean drawheader = (clipy < viewport.y);
-					if (drawheader) { g.setClip(viewport.x, 0, viewport.width, viewport.y); }
-					for (Object column = get(header, ":comp");
-							column != null; column = get(column, ":next")) {
-						boolean lastcolumn = (i == columnwidths.length - 1);
-						int width = getInteger(column, "width", 80);
-						if (lastcolumn) { width = Math.max(width, viewport.width - x); }
-						columnwidths[i] = width;
-						Object sort = get(column, "sort"); // "none", "ascent", "descent"
-						if (drawheader && (xfrom < x + width) && (xto > x)) {
-							paintRect(g, x - view.x, 0, width, viewport.y,
-								enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
-								true, true, false, lastcolumn, true);
-							paintContent(column, g, clipx, clipy, clipwidth, clipheight,
-								x + 2 - view.x, 1, width - 2,
-								viewport.y - 2, enabled ? c_text : c_disable, "left", false);
-							if (sort != null) {
-								paintArrow(g, x - view.x + width - block, 0, block, viewport.y,
-									(sort == "ascent") ? 'S' : 'N');
-							}
-						}
-						i++; x += width;
-					}
-					if (drawheader) { g.setClip(clipx, clipy, clipwidth, clipheight); }
-				}
-			}
-			paintRect(g, viewport.x, viewport.y, viewport.width, viewport.height,
-				enabled ? c_border : c_disable, c_textbg, true, true, true, true, true);
-			if (paintScrollPane(g, clipx, clipy, clipwidth, clipheight, bounds,
-					view, viewport, enabled, inside, pressed)) {
-				Object lead = get(component, ":lead");
-				int ly = clipy - viewport.y - 1;
-				int yfrom = view.y + Math.max(0, ly);
-				int yto = view.y + Math.min(viewport.height - 2, ly + clipheight);
-				for (Object item = get(component, ":comp"); item != null;) {
-					Rectangle r = getRectangle(item, "bounds");
-					if (lead == null) {
-						set(component, ":lead", lead = item); // draw first item focused when lead is null
-					}
-					if (yto <= r.y) { break; } // the clip bounds are above
-
-					Object next = ("tree" == classname) ? get(item, ":comp") : null;
-					boolean expanded = (next != null) &&
-							getBoolean(item, "expanded", true);
-					if (yfrom < r.y + r.height) { // the clip rectangle is not bellow the current item
-						boolean selected = getBoolean(item, "selected", false);
-						paintRect(g, 0, r.y, view.width, r.height,
-							c_bg, selected ? c_select : c_textbg, false, false, true, false, true);
-						if (focus && (lead == item)) {
-							g.setColor(c_focus);
-							g.drawRect(0, r.y, view.width - 1, r.height - 2);
-						}
-						if ("table" == classname) {
-							int x = 0; int i = 0;
-							for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
-								if (xto <= x) { break; }
-								int iwidth = ((columnwidths != null) && (i < columnwidths.length)) ? columnwidths[i] : 80;
-								if (xfrom < x + iwidth) {
-									boolean cellenabled = enabled && getBoolean(cell, "enabled", true);
-									paintContent(cell, g, xfrom, yfrom, xto - xfrom, yto - yfrom,
-										r.x + x + 1, r.y + 1, iwidth - 2, r.height - 3,
-										cellenabled ? c_text : c_disable, "left", false);
-								}
-								x += iwidth; i++;
-							}
-						} else {
-							boolean itemenabled = enabled && getBoolean(item, "enabled", true);
-							paintContent(item, g, xfrom, yfrom, xto - xfrom, yto - yfrom,
-								r.x + 1, r.y + 1, view.width - r.x - 2,
-								r.height - 3, itemenabled ? c_text : c_disable, "left", false);
-
-							if (next != null) {
-								int x = r.x - block / 2;
-								int y = r.y + (r.height - 1) / 2;
-								//g.drawRect(x - 4, y - 4, 8, 8);
-								paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
-									itemenabled ? c_ctrl : c_bg, true, true, true, true, true);
-								g.setColor(itemenabled ? c_text : c_disable);
-								g.drawLine(x - 2, y, x + 2, y);
-								if (!expanded) {
-									g.drawLine(x, y - 2, x, y + 2);
-								}
-							}
-						}
-					}
-					if ("tree" == classname) {
-						if ((next == null) || !expanded) {
-							while ((item != component) && ((next = get(item, ":next")) == null)) {
-								item = getParent(item);
-							}
-						}
-						item = next;
-					} else {
-						item = get(item, ":next");
-					}
-				}
-				/*if (columnwidths != null) {
-					g.setColor(c_bg);
-					for (int i = 0, cx = -1; i < columnwidths.length - 1; i++) {
-						cx += columnwidths[i];
-						g.drawLine(cx, 0, cx, view.height);
-					}
-				}*/
-				resetScrollPane(g, clipx, clipy, clipwidth, clipheight, view, viewport);
-			}
+			paintScroll(component, classname, bounds, pressed, inside, focus, enabled,
+				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if ("separator" == classname) {
 			g.setColor(enabled ? c_border : c_disable);
@@ -1861,7 +1762,7 @@ public class Thinlet extends Container //java
 						if (group == null) {
 							g.drawRect(1, 1, block - 3, block - 3);
 						} else {
-							g.drawOval(1, 1, block - 3, block - 3); //java
+							g.drawOval(1, 1, block - 3, block - 3);
 						}
 						if (checked) {
 							g.setColor(menuenabled ? c_text : c_disable);
@@ -1870,8 +1771,8 @@ public class Thinlet extends Container //java
 								g.drawLine(3, block - 4, block - 4, 3);
 								g.drawLine(4, block - 4, block - 4, 4);
 							} else {
-								g.fillOval(5, 5, block - 10 + evm, block - 10 + evm); //java
-								g.drawOval(4, 4, block - 9, block - 9); //java
+								g.fillOval(5, 5, block - 10 + evm, block - 10 + evm);
+								g.drawOval(4, 4, block - 9, block - 9);
 							}
 						}
 						g.translate(-r.x - 4, -r.y - 2);
@@ -1891,13 +1792,11 @@ public class Thinlet extends Container //java
 				}
 			}
 		}
-		//java>
 		else if ("bean" == classname) {
 				g.clipRect(0, 0, bounds.width, bounds.height);
 				((Component) get(component, "bean")).paint(g);
 				g.setClip(clipx, clipy, clipwidth, clipheight);
 		}
-		//<java
 		else throw new IllegalArgumentException((String) classname);
 		g.translate(-bounds.x, -bounds.y);
 		clipx += bounds.x; clipy += bounds.y;
@@ -1935,22 +1834,20 @@ public class Thinlet extends Container //java
 		g.clipRect(1 + left, 1, width - left - 2, height - 2);
 
 		String text = getString(component, "text", "");
-		int offset = getInteger(component, "offset", 0);
+		int offset = getInteger(component, ":offset", 0);
 		Font currentfont = (Font) get(component, "font");
 		if (currentfont != null) { g.setFont(currentfont); }
-		FontMetrics fm = g.getFontMetrics(); //java
+		FontMetrics fm = g.getFontMetrics();
 
 		int caret = 0;
 		if (focus) { 
 			int start = getInteger(component, "start", 0); 
 			int end = getInteger(component, "end", 0);
 			caret = hidden ? (fm.charWidth('*') * end) :
-				fm.stringWidth(text.substring(0, end)); //java
-				//midp font.substringWidth(text, 0, end);
+				fm.stringWidth(text.substring(0, end));
 			if (start != end) {
 				int is = hidden ? (fm.charWidth('*') * start) :
-					fm.stringWidth(text.substring(0, start)); //java
-					//midp font.substringWidth(text, 0, start);
+					fm.stringWidth(text.substring(0, start));
 				g.setColor(c_select);
 				g.fillRect(2 + left - offset + Math.min(is, caret), 1,
 					Math.abs(caret - is) + evm, height - 2 + evm);
@@ -1964,106 +1861,244 @@ public class Thinlet extends Container //java
 
 		g.setColor(enabled ? c_text : c_disable);
 		int fx = 2 + left - offset;
-		int fy = (height + fm.getAscent() - fm.getDescent()) / 2; //java
-		//midp int fy = (height - font.getHeight()) / 2;
+		int fy = (height + fm.getAscent() - fm.getDescent()) / 2;
 		if (hidden) {
 			int fh = fm.charWidth('*');
 			for (int i = text.length(); i > 0; i--) {
-				g.drawString("*", fx, fy); //java
-				//midp g.drawChar('*', fx, fy, Graphics.LEFT | Graphics.TOP);
+				g.drawString("*", fx, fy);
 				fx += fh;
 			}
 		} else {
-			g.drawString(text, fx, fy); //java
-			//midp g.drawString(text, fx, fy, Graphics.LEFT | Graphics.TOP);
+			g.drawString(text, fx, fy);
 		}
 		if (currentfont != null) { g.setFont(font); }
 		g.setClip(clipx, clipy, clipwidth, clipheight);
 	}
-
+	
 	/**
-	 *
+	 * @param component scrollable widget
+	 * @param classname
+	 * @param bounds
+	 * @param pressed
+	 * @param inside
+	 * @param focus
+	 * @param enabled
+	 * @param g grahics context
+	 * @param clipx current cliping x location relative to the component
+	 * @param clipy y location of the cliping area relative to the component
+	 * @param clipwidth width of the cliping area
+	 * @param clipheight height of the cliping area
+	 * @param header column height
+	 * @param topborder bordered on the top if true
+	 * @param border define left, bottom, and right border if true
 	 */
-	private boolean paintScrollPane(Graphics g,
-			int clipx, int clipy, int clipwidth, int clipheight, Rectangle bounds,
-			Rectangle view, Rectangle viewport,
-			boolean enabled, boolean inside, boolean pressed) {
-		if ((viewport.y + viewport.height < bounds.height) &&
-				(clipy + clipheight > viewport.y + viewport.height)) { // need horizontal
-			int x = viewport.x;
-			int y = viewport.y + viewport.height;
-			int height = bounds.height - y;
-			int button = Math.min(block, viewport.width / 2);
-			int track = viewport.width - (2 * button); //max 10
-			int knob = Math.min(track, Math.max(track * (viewport.width - 2) / view.width, 6));
-			int decrease = view.x * (track - knob) /
-				(view.width - viewport.width + 2);
-			int increase = track - decrease - knob;
-			paintArrow(g, x, y, button, height,
-				'W', enabled, inside, pressed, "left", false, true, true, false, true);
-			paintRect(g, x + button, y, decrease, height,
-				enabled ? c_border : c_disable, c_bg, false, true, true, false, true);
-			paintRect(g, x + button + decrease, y, knob, height,
-				enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg, false, true, true, true, true);
-			int n = Math.min(5, (knob - 4) / 3);
-			g.setColor(enabled ? c_border : c_disable);
-			int cx = (x + button + decrease) + (knob + 2 - n * 3) / 2;
-			for (int i = 0; i < n; i++ ) {
-				g.drawLine(cx + i * 3, y + 2, cx + i * 3, y + height - 4);
-			}
-			paintRect(g, x + button + decrease + knob, y, increase, height,
-				enabled ? c_border : c_disable, c_bg, false, false, true, true, true);
-			paintArrow(g, x + button + track, y, button, height,
-				'E', enabled, inside, pressed, "right", false, false, true, true, true);
-		}
-		if ((viewport.x + viewport.width < bounds.width) &&
-				(clipx + clipwidth > viewport.x + viewport.width)) { // need vertical
-			int x = viewport.x + viewport.width;
-			int y = viewport.y;
-			int width = bounds.width - x;
-			//if (y > 0) {
-			//	paintRect(g, x - 1, 0, width + 1, y,
-			//		enabled ? c_border : c_disable, c_bg, false, true, false, false);
-			//}
-			int track = viewport.height - (2 * block);
-			int knob = track * (viewport.height - 2) / view.height;
-			int decrease = view.y * (track - knob) /
-				(view.height - viewport.height + 2);
-			int increase = track - decrease - knob;
-			paintArrow(g, x, y, width, block,
-				'N', enabled, inside, pressed, "up", true, false, false, true, false);
-			paintRect(g, x, y + block, width, decrease,
-				enabled ? c_border : c_disable, c_bg, true, false, false, true, false);
-			paintRect(g, x, y + block + decrease, width, knob,
-				enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg, true, false, true, true, false);
-			int n = Math.min(5, (knob - 4) / 3);
-			g.setColor(enabled ? c_border : c_disable);
-			int cy = (y + block + decrease) + (knob + 2 - n * 3) / 2;
-			for (int i = 0; i < n; i++ ) {
-				g.drawLine(x + 2, cy + i * 3, x + width - 4, cy + i * 3);
-			}
-			paintRect(g, x, y + block + decrease + knob, width, increase,
-				enabled ? c_border : c_disable, c_bg, false, false, true, true, false);
-			paintArrow(g, x, y + block + track, width, block,
-			'S', enabled, inside, pressed, "down", false, false, true, true, false);
-		}
-		if ((clipx + clipwidth > viewport.x) && (clipy + clipheight > viewport.y) &&
-				(clipx < viewport.x + viewport.width) && (clipy < viewport.y + viewport.height)) {
-			g.clipRect(viewport.x + 1, viewport.y + 1, viewport.width - 2, viewport.height - 2);
-			g.translate(viewport.x + 1 - view.x, viewport.y + 1 - view.y);
-	 		return true;
-		}
-		return false;
-	}
+	private void paintScroll(Object component,
+			String classname, Rectangle bounds,
+			boolean pressed, boolean inside, boolean focus, boolean enabled,
+			Graphics g, int clipx, int clipy, int clipwidth, int clipheight) {
+		Rectangle port = getRectangle(component, ":port");
+		Rectangle horizontal = getRectangle(component, ":horizontal");
+		Rectangle vertical = getRectangle(component, ":vertical");
+		Rectangle view = getRectangle(component, ":view");
 		
+		if (horizontal != null) { // paint horizontal scrollbar
+			int x = horizontal.x; int y = horizontal.y; int width = horizontal.width; int height = horizontal.height;
+			paintArrow(g, x, y, block, height,
+				'W', enabled, inside, pressed, "left", true, true, true, false, true);
+			paintArrow(g, x + width - block, y, block, height,
+				'E', enabled, inside, pressed, "right", true, false, true, true, true);
+				
+			int track = width - (2 * block);
+			if (track < 10) {
+				paintRect(g, x + block, y, track, height,
+					enabled ? c_border : c_disable, c_bg, true, true, true, true, true);
+			}
+			else {
+				int knob = Math.max(track * port.width / view.width, 10);
+				int decrease = view.x * (track - knob) / (view.width - port.width);
+				paintRect(g, x + block, y, decrease, height,
+					enabled ? c_border : c_disable, c_bg, false, true, true, false, true);
+				paintRect(g, x + block + decrease, y, knob, height,
+					enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg, true, true, true, true, true);
+				int n = Math.min(5, (knob - 4) / 3);
+				g.setColor(enabled ? c_border : c_disable);
+				int cx = (x + block + decrease) + (knob + 2 - n * 3) / 2;
+				for (int i = 0; i < n; i++ ) {
+					g.drawLine(cx + i * 3, y + 3, cx + i * 3, y + height - 5);
+				}
+				int increase = track - decrease - knob;
+				paintRect(g, x + block + decrease + knob, y, increase, height,
+					enabled ? c_border : c_disable, c_bg, false, false, true, true, true);
+			}
+		}
+			
+		if (vertical != null) { // paint vertical scrollbar
+			int x = vertical.x; int y = vertical.y; int width = vertical.width; int height = vertical.height;
+			paintArrow(g, x, y, width, block,
+				'N', enabled, inside, pressed, "up", true, true, false, true, false);
+			paintArrow(g, x, y + height - block, width, block,
+				'S', enabled, inside, pressed, "down", false, true, true, true, false);
+				
+			int track = height - (2 * block);
+			if (track < 10) {
+				paintRect(g, x, y + block, width, track,
+					enabled ? c_border : c_disable, c_bg, true, true, true, true, false);
+			}
+			else {
+				int knob = Math.max(track * port.height / view.height, 10);
+				int decrease = view.y * (track - knob) / (view.height - port.height);
+				paintRect(g, x, y + block, width, decrease,
+					enabled ? c_border : c_disable, c_bg, true, false, false, true, false);
+				paintRect(g, x, y + block + decrease, width, knob,
+					enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg, true, true, true, true, false);
+				int n = Math.min(5, (knob - 4) / 3);
+				g.setColor(enabled ? c_border : c_disable);
+				int cy = (y + block + decrease) + (knob + 2 - n * 3) / 2;
+				for (int i = 0; i < n; i++ ) {
+					g.drawLine(x + 3, cy + i * 3, x + width - 5, cy + i * 3);
+				}
+				int increase = track - decrease - knob;
+				paintRect(g, x, y + block + decrease + knob, width, increase,
+					enabled ? c_border : c_disable, c_bg, false, false, true, true, false);
+			}
+		}
+		
+		paintRect(g, port.x - 1, port.y - 1, 	port.width + ((vertical == null) ? 2 : 1), port.height + ((horizontal == null) ? 2 : 1),
+			enabled ? c_border : c_disable, c_textbg, true, true, (horizontal == null), (vertical == null), true);
+		int x1 = Math.max(clipx, port.x);
+		int x2 = Math.min(clipx + clipwidth, port.x + port.width);
+		int y1 = Math.max(clipy, port.y);
+		int y2 = Math.min(clipy + clipheight, port.y + port.height);
+		if ((x2 > x1) && (y2 > y1)) {
+			g.clipRect(x1, y1, x2 - x1, y2 - y1);
+			//g.setColor(Color.blue); g.drawRect(x1, y1, x2 - x1- 1, y2 - y1- 1);
+			g.translate(port.x - view.x, port.y - view.y);
+			//g.setColor(Color.red); g.fillRect(0, 0, 4, 4);
+			
+			paint(component, classname, focus, enabled,
+				g, view.x - port.x + x1, view.y - port.y + y1, x2 - x1, y2 - y1, port.width, port.height, view.width);
+			//g.setColor(Color.blue); g.drawRect(view.x + x1 - 1, view.y + y1 - 1, x2 - x1 - 1, y2 - y1 - 1);
+			//g.setColor(Color.blue); g.drawRect(0, 0, view.width - 1, view.height - 1);
+			
+			g.translate(view.x - port.x, view.y - port.y);
+			g.setClip(clipx, clipy, clipwidth, clipheight);
+		}
+	}
+	
 	/**
-	 *
+	 * Paint scrollable content
+	 * @param component a panel
 	 */
-	private void resetScrollPane(Graphics g,
-			int clipx, int clipy, int clipwidth, int clipheight,
-			Rectangle view, Rectangle viewport) {
-		g.translate(view.x - viewport.x - 1, view.y - viewport.y - 1);
-		g.setClip(clipx, clipy, clipwidth, clipheight);
+	private void paint(Object component,
+			String classname, boolean focus, boolean enabled,
+			Graphics g, int clipx, int clipy, int clipwidth, int clipheight,
+			int portwidth, int portheight, int viewwidth) {
+		if ("textarea" == classname) {
+			char[] chars = (char[]) get(component, ":text");
+			int start = focus ? getInteger(component, "start", 0) : 0;
+			int end = focus ? getInteger(component, "end", 0) : 0;
+			int is = Math.min(start, end); int ie = Math.max(start, end);
+			Font currentfont = (Font) get(component, "font");
+			if (currentfont != null) { g.setFont(currentfont); }
+			FontMetrics fm = g.getFontMetrics();
+			int fontascent = fm.getAscent(); int fontheight = fm.getHeight();
+			int ascent = 1;
+			
+			for (int i = 0, j = 0; j <= chars.length; j++) {
+				if ((j == chars.length) || (chars[j] == '\n')) {
+					if (clipy + clipheight <= ascent) { break; } // the next lines are bellow paint rectangle
+					if (clipy < ascent + fontheight) { // this line is not above painting area
+						if (focus && (is != ie) && (ie >= i) && (is <= j)) {
+							int xs = (is < i) ? -1 : ((is > j) ? (viewwidth - 1) :
+								fm.charsWidth(chars, i, is - i));
+							int xe = ((j != -1) && (ie > j)) ? (viewwidth - 1) :
+								fm.charsWidth(chars, i, ie - i);
+							g.setColor(c_select);
+							g.fillRect(1 + xs, ascent, xe - xs + evm, fontheight + evm);
+						}
+						g.setColor(enabled ? c_text : c_disable);
+						g.drawChars(chars, i, j - i, 1, ascent + fontascent);
+						if (focus && (end >= i) && (end <= j)) {
+							int caret = fm.charsWidth(chars, i, end - i);
+							g.setColor(c_focus);
+							g.fillRect(caret, ascent, 1 + evm, fontheight + evm);
+						}
+					}
+					ascent += fontheight;
+					i = j + 1;
+				}
+			}
+		}
+		else if (":combolist" == classname) {
+			Object lead = get(component, ":lead");
+			for (Object choice = get(get(component, "combobox"), ":comp");
+					choice != null; choice = get(choice, ":next")) {
+				Rectangle r = getRectangle(choice, "bounds");
+				if (clipy + clipheight <= r.y) { break; }
+				if (clipy >= r.y + r.height) { continue; }
+				paintRect(g, r.x, r.y, portwidth, r.height, c_border,
+					(lead == choice) ? c_select : c_textbg, false, false, false, false, true);
+				paintContent(choice, g, clipx, clipy, clipwidth, clipheight,
+					r.x + 4, r.y + 2, portwidth - 8, r.height - 4,
+					getBoolean(choice, "enabled", true) ? c_text : c_disable, "left", false);
+			}
+		}
+		else if ("panel" == classname) {
+			for (Object comp = get(component, ":comp");
+					comp != null; comp = get(comp, ":next")) {
+				paint(g, clipx, clipy, clipwidth, clipheight, comp, enabled);
+			}
+		}
+		else { //if (("list" == classname) || ("table" == classname) || ("tree" == classname))
+			Object lead = get(component, ":lead");
+			boolean line = getBoolean(component, "line", false); int iline =  line ? 1 : 0;
+			for (Object item = get(component, ":comp"), next = null; item != null; item = next) {
+				if (focus && (lead == null)) {
+					set(component, ":lead", lead = item); // draw first item focused when lead is null
+				}
+				Rectangle r = getRectangle(item, "bounds");
+				if (clipy + clipheight <= r.y) { break; } // clip rectangle is above
+				boolean subnode = false; boolean expanded = false;
+				if ("tree" != classname) {
+					next = get(item, ":next");
+				}
+				else {
+					subnode = (next = get(item, ":comp")) != null;
+					expanded = subnode && getBoolean(item, "expanded", true);
+					if (!expanded) {
+						for (Object node = item; (node != component) &&
+							((next = get(node, ":next")) == null); node = getParent(node));
+					}
+				}
+				if (clipy >= r.y + r.height + iline) { continue; } // clip rectangle is bellow
+				
+				boolean selected = getBoolean(item, "selected", false);
+				boolean focused = focus && (lead == item);
+				paintRect(g, ("tree" != classname) ? 0 : r.x, r.y,
+					("tree" != classname) ? viewwidth : r.width, r.height, c_focus,
+					selected ? c_select : c_textbg, focused, focused, focused, focused, true);
+				if (line) {
+					g.setColor(c_bg);
+					g.drawLine(0, r.y + r.height, viewwidth, r.y + r.height);
+				}
+				boolean itemenabled = enabled && getBoolean(item, "enabled", true);
+				paintContent(item, g, clipx, clipy, clipwidth, clipheight,
+					r.x + ITEM.left, r.y + ITEM.top, viewwidth - ITEM.left - ITEM.right, r.height - ITEM.top - ITEM.bottom,
+					itemenabled ? c_text : c_disable, "left", false);
+				if ("tree" == classname) {
+					int x = r.x - block / 2; int y = r.y + (r.height - 1) / 2;
+					g.setColor(itemenabled ? c_border : c_disable);
+					g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x, y);
+					if (subnode) {
+						paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
+							itemenabled ? c_ctrl : c_bg, true, true, true, true, true);
+						g.setColor(itemenabled ? c_text : c_disable);
+						g.drawLine(x - 2, y, x + 2, y);
+						if (!expanded) { g.drawLine(x, y - 2, x, y + 2); }
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -2096,7 +2131,6 @@ public class Thinlet extends Container //java
 		if (bottom && left) g.fillRect(x - 1, y + height, 1, 1);
 		if (bottom && right) g.fillRect(x + width, y + height, 1, 1);*/
 
-		//java>
 		if (bg == c_ctrl) {
 			if (horizontal) {
 				if (height > block) {
@@ -2125,9 +2159,6 @@ public class Thinlet extends Container //java
 			g.setColor(bg);
 			g.fillRect(x, y, width + evm, height + evm);
 		}
-		//<java
-		//midp g.setColor(bg);
-		//midp g.fillRect(x, y, width, height);
 	}
 
 	/**
@@ -2143,7 +2174,8 @@ public class Thinlet extends Container //java
 				(pressed ? c_press : c_ctrl)) : c_bg,
 			top, left, bottom, right, horizontal);
 		g.setColor(enabled ? c_text : c_disable);
-		paintArrow(g, x, y, width, height, dir);
+		paintArrow(g, x + (left ? 1 : 0), y + (top ? 1 : 0),
+			width - (left ? 1 : 0) - (right ? 1 : 0), height - (top ? 1 : 0) - (bottom ? 1 : 0), dir);
 	}
 
 	/**
@@ -2183,22 +2215,21 @@ public class Thinlet extends Container //java
 		Font customfont = (text != null) ? (Font) get(component, "font") : null;
 		if (customfont != null) { g.setFont(customfont); }
 
-		FontMetrics fm = null; //java
+		FontMetrics fm = null;
 		int tw = 0, th = 0;
-		int ta = 0; //java
+		int ta = 0;
 		if (text != null) {
-			fm = g.getFontMetrics(); //java
+			fm = g.getFontMetrics();
 			tw = fm.stringWidth(text);
-			ta = fm.getAscent(); //java
-			th = fm.getDescent() + ta; //java
-			//midp th = font.getHeight();
+			ta = fm.getAscent();
+			th = fm.getDescent() + ta;
 			Color customfg = (Color) get(component, "foreground"); //+no if disabled
 			g.setColor((customfg != null) ? customfg : fg);
 		}
 		int iw = 0, ih = 0;
 		if (icon != null) {
 			iw = icon.getWidth(this);
-			ih = icon.getHeight(this); //java
+			ih = icon.getHeight(this);
 			if (text != null) { iw += 2; }
 		}
 
@@ -2209,20 +2240,16 @@ public class Thinlet extends Container //java
 
 		if (clipped) { g.clipRect(x, y, width, height); }
 		if (icon != null) {
-			g.drawImage(icon, cx, y + (height - ih) / 2, this); //java
-			//midp g.drawImage(icon, cx, y + height / 2, Graphics.LEFT | Graphics.VCENTER);
+			g.drawImage(icon, cx, y + (height - ih) / 2, this);
 			cx += iw;
 		}
 		if (text != null) {
-			int ty = y + (height - th) / 2 + ta; //java
-			g.drawString(text, cx, ty); //java
-			//midp g.drawString(text, cx, y + (height - th) / 2, Graphics.LEFT | Graphics.TOP);
+			int ty = y + (height - th) / 2 + ta;
+			g.drawString(text, cx, ty);
 			if (checkmnemonic) {
 				int mnemonic = getInteger(component, "mnemonic", -1);
 				if ((mnemonic != -1) && (mnemonic < text.length())) {
-					int mx = cx + fm.stringWidth(text.substring(0, mnemonic)); //java
-					//midp int mx = cx + font.substringWidth(text, 0, mnemonic);
-					//midp int ty = (height + th) / 2;
+					int mx = cx + fm.stringWidth(text.substring(0, mnemonic));
 					g.drawLine(mx, ty + 1, mx + fm.charWidth(text.charAt(mnemonic)), ty + 1);
 				}
 			}
@@ -2230,8 +2257,6 @@ public class Thinlet extends Container //java
 		if (clipped) { g.setClip(clipx, clipy, clipwidth, clipheight); }
 		if (customfont != null) { g.setFont(font); } //restore the default font
 	}
-	//midp private void setTimer(long delay) {}
-	//java>
 
 	/**
 	 * A second thread is used to repeat value change events for scrollbar or spinbox
@@ -2295,10 +2320,6 @@ public class Thinlet extends Container //java
 	public boolean isFocusTraversable() {
 		return true;
 	}
-
-	//<java
-	/* insert midp event code */
-	//java>
 
 	/**
 	 * Dispatches mouse, key, focus, and component events occurring on the
@@ -2430,46 +2451,43 @@ public class Thinlet extends Container //java
 				boolean control = (keychar <= 0x1f) ||
 					((keychar >= 0x7f) && (keychar <= 0x9f)) ||
 					(keychar >= 0xffff) || ke.isControlDown();
-				boolean processed = false;
-				// !control type char, control press code
-				// press code char != 0 || e.isActionKey()
-				if (control == (id == KeyEvent.KEY_PRESSED)) {
-					int keycode = control ? ke.getKeyCode() : 0;
-					processed = processKeyPress((popupowner != null) ? popupowner : focusowner,
+				int keycode = control ? ke.getKeyCode() : 0;
+				
+				if ((control == (id == KeyEvent.KEY_PRESSED)) &&
+					processKeyPress((popupowner != null) ? popupowner : focusowner,
 						ke.isShiftDown(), ke.isControlDown(), ke.getModifiers(),
-						control ? 0 : keychar, keycode);
-					if (!processed) {
-						if ((keycode == KeyEvent.VK_TAB) ||
-								((keycode == KeyEvent.VK_F6) && (ke.isAltDown() || ke.isControlDown()))) {
-							boolean outgo = (keycode == KeyEvent.VK_F6);
-							if (!ke.isShiftDown() ? setNextFocusable(focusowner, outgo) :
-									setPreviousFocusable(focusowner, outgo)) {
-								ke.consume();
-							} else if (MOUSE_WHEEL != 0) { // 1.4
-								if (!ke.isShiftDown()) {
-									transferFocus();
-								}
-								else { try {
-										getClass().getMethod("transferFocusBackward", null). invoke(this, null);
-								} catch (Exception exc) { /* never */ } }
-							}
-							repaint(focusowner);
-							closeup();
+						control ? 0 : keychar, keycode)) {
+					ke.consume();
+				}
+				else if ((keycode == KeyEvent.VK_TAB) ||
+						((keycode == KeyEvent.VK_F6) && (ke.isAltDown() || ke.isControlDown()))) {
+					boolean outgo = (keycode == KeyEvent.VK_F6);
+					if (!ke.isShiftDown() ? setNextFocusable(focusowner, outgo) :
+							setPreviousFocusable(focusowner, outgo)) {
+						ke.consume();
+					} else if (MOUSE_WHEEL != 0) { // 1.4
+						if (!ke.isShiftDown()) {
+							transferFocus();
 						}
-						if (keycode == KeyEvent.VK_F8) {
-							for (Object splitpane = focusowner;
-									splitpane != null; splitpane = getParent(splitpane)) {
-								if (getClass(splitpane) == "splitpane") {
-									setFocus(splitpane); repaint(splitpane); break; //middle
-								}
-							}
+						else { try {
+								getClass().getMethod("transferFocusBackward", null). invoke(this, null);
+						} catch (Exception exc) { /* never */ } }
+					}
+					repaint(focusowner);
+					closeup();
+				}
+				else if (keycode == KeyEvent.VK_F8) {
+					for (Object splitpane = focusowner;
+							splitpane != null; splitpane = getParent(splitpane)) {
+						if (getClass(splitpane) == "splitpane") {
+							setFocus(splitpane); repaint(splitpane); ke.consume(); break; //middle
 						}
 					}
 				}
-				if (!processed && (id == KeyEvent.KEY_PRESSED) && ((keychar != 0) || ke.isActionKey())) {
-					checkMnemonic(focusowner, true, null, ke.getKeyCode(), ke.getModifiers());
+				else if ((id == KeyEvent.KEY_PRESSED) && ((keychar != 0) || ke.isActionKey()) &&
+						checkMnemonic(focusowner, true, null, ke.getKeyCode(), ke.getModifiers())) {
+					ke.consume();
 				}
-				ke.consume(); //+
 			}
 		}
 		else if (id == FocusEvent.FOCUS_LOST) {
@@ -2494,20 +2512,13 @@ public class Thinlet extends Container //java
 	}
 	
 	/**
-	 *
+	 * Check the previous mouse location again because of a possible layout change
 	 */
-	/*private Object findMenubar(Object component, Object from) {
-		if (component == null) { return null; }
-		if (getClass(component) == "menubar") { return component; }
-		for (Object comp = get(component, ":comp");
-				comp != null; comp = get(comp, ":next")) {
-			if (comp != from) {
-				Object found = findMenubar(comp, null);
-				if (found != null) { return found; }
-			}
-		}
-		return (from != null) ? findMenubar(getParent(component), component) : null;
-	}*/
+	private void checkLocation() {
+		findComponent(content, mousex, mousey);
+		handleMouseEvent(mousex, mousex, 1, false, false, false,
+			MouseEvent.MOUSE_ENTERED, mouseinside, insidepart);
+	}
 	
 	/**
 	 *
@@ -2529,7 +2540,6 @@ public class Thinlet extends Container //java
 		}
 		return false;
 	}*/
-	//<java
 
 	/**
 	 *
@@ -2660,6 +2670,7 @@ public class Thinlet extends Container //java
 				}
 				if (newvalue != selected) {
 					setInteger(component, "selected", newvalue, 0);
+					checkOffset(component);
 					repaint(component);
 					invoke(component, getItem(component, newvalue), "action");
 				}
@@ -2727,7 +2738,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (("list" == classname) || ("table" == classname)) {
-			return processList(component, shiftdown, controldown, keychar, keycode, false);
+			return processList(component, shiftdown, controldown, keychar, keycode, modifiers, false);
 		}
 		else if ("tree" == classname) {
 			//? clear childs' selection, select this is its 	subnode was selected
@@ -2767,7 +2778,7 @@ public class Thinlet extends Container //java
 					return true;
 				}
 			}
-			return processList(component, shiftdown, controldown, keychar, keycode, true);
+			return processList(component, shiftdown, controldown, keychar, keycode, modifiers, true);
 		}
 		else if (("menubar" == classname) || ("popupmenu" == classname)) {
 			// find the last open :popup and the previous one
@@ -2912,9 +2923,8 @@ public class Thinlet extends Container //java
 		int istart = start;
 		int iend = end;
 		String insert = null;
-		//midp if (editable && (keychar != 0)) {
-		if (editable && (keychar != 0) && //java
-			((modifiers == 0) || (modifiers == InputEvent.SHIFT_MASK))) { //java
+		if (editable && (keychar != 0) &&
+			((modifiers == 0) || (modifiers == InputEvent.SHIFT_MASK))) {
 			insert = String.valueOf((char) keychar);
 		}
 		else if (editable && (keycode == KeyEvent.VK_ENTER)) {
@@ -2934,7 +2944,6 @@ public class Thinlet extends Container //java
 			if (!shiftdown) { istart = iend; }
 		}
 		else if (keycode == KeyEvent.VK_LEFT) {
-			//java>
 			if (controldown) {
 				for (int i = 0; i < 2; i++) {
 					while ((iend > 0) && ((i != 0) ==
@@ -2943,12 +2952,9 @@ public class Thinlet extends Container //java
 			} else {
 				iend -= 1;
 			}
-			//<java
-			//midp iend -= 1;
 			if (!shiftdown) { istart = iend; }
 		}
 		else if (keycode == KeyEvent.VK_RIGHT) {
-			//java>
 			if (controldown) {
 				for (int i = 0; i < 2; i++) {
 					while ((iend < text.length()) && ((i == 0) ==
@@ -2957,8 +2963,6 @@ public class Thinlet extends Container //java
 			} else {
 				iend += 1;
 			}
-			//<java
-			//midp iend += 1;
 			if (!shiftdown) { istart = iend; }
 		}
 		else if (editable && (keycode == KeyEvent.VK_DELETE)) {
@@ -2978,25 +2982,20 @@ public class Thinlet extends Container //java
 			if (start != end) {
 				clipboard = text.substring(
 					Math.min(start, end), Math.max(start, end));
-				//java>
 				try {				
 					getToolkit().getSystemClipboard().setContents(
 						new StringSelection(clipboard), null);
 				} catch (Exception exc) {}
-				//<java
-				if (keycode == KeyEvent.VK_X) { insert = ""; }
+				if (keycode == KeyEvent.VK_X) { insert = ""; } else { return true; }
 			}
 		}
 		else if (editable && controldown && (keycode == KeyEvent.VK_V)) {
-			//java>
 			try {
 				insert = (String) getToolkit().getSystemClipboard().
 					getContents(this).getTransferData(DataFlavor.stringFlavor);
 			} catch (Exception exc) {
 				insert = clipboard;
 			}
-			//<java
-			//midp insert = clipboard;
 			if (insert != null) { // no text on system clipboard nor internal clipboard text
 				insert = filter(insert, multiline);
 			}
@@ -3058,7 +3057,7 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private boolean processList(Object component, boolean shiftdown, boolean controldown,
-			int keychar, int keycode, boolean recursive) {
+			int keychar, int keycode, int modifiers, boolean recursive) {
 		if ((keycode == KeyEvent.VK_UP) || // select previous/next/first/... item
 				(keycode == KeyEvent.VK_DOWN) || (keycode == KeyEvent.VK_PAGE_UP) ||
 				(keycode == KeyEvent.VK_PAGE_DOWN) ||
@@ -3113,7 +3112,7 @@ public class Thinlet extends Container //java
 	 */
 	private Object findText(char keychar, Object component,
 			Object leadowner, boolean recursive) {
-		if ((keychar != 0) && Character.isLetterOrDigit(keychar)) {
+		if (keychar != 0) {
 			long current = System.currentTimeMillis();
 			int i = (current > findtime + 1000) ? 1 : 0; // clear the starting string after a second
 			findtime = current;
@@ -3260,7 +3259,7 @@ public class Thinlet extends Container //java
 			repaint(component, null, lead);
 			
 			Rectangle r = getRectangle(lead, "bounds");
-			scrollToVisible(component, r.x, r.y, 0, r.height - 1); // no bottom line
+			scrollToVisible(component, r.x, r.y, 0, r.height);
 		}
 	}
 
@@ -3381,16 +3380,21 @@ public class Thinlet extends Container //java
 				processField(x, y, clickcount, id, component, part, true, false, 0);
 			}
 		}
-		//java>
-		else if ("desktop" == classname) {
-			if (id == MouseEvent.MOUSE_ENTERED) {
-				setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			}
-			else if (id == MouseEvent.MOUSE_EXITED) {
-				setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		else if ("panel" == classname) { // +desktop, dialog
+			if (getBoolean(component, "scrollable", false)) {
+				processScroll(x, y, id, component, part);
 			}
 		}
-		//<java
+		else if ("desktop" == classname) {
+			if (part == "modal") {
+				if (id == MouseEvent.MOUSE_ENTERED) {
+					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				}
+				else if (id == MouseEvent.MOUSE_EXITED) {
+					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				}
+			}
+		}
 		else if ("spinbox" == classname) {
 			if (part == null) {
 				processField(x, y, clickcount, id, component, part, false, false, 0);
@@ -3435,6 +3439,7 @@ public class Thinlet extends Container //java
 					//Object tabcontent = getItem(component, current);
 					//setFocus((tabcontent != null) ? tabcontent : component);
 					setNextFocusable(component, false);
+					checkOffset(component);
 					repaint(component);
 					invoke(component, part, "action");
 				}
@@ -3482,7 +3487,6 @@ public class Thinlet extends Container //java
 					validate(component);
 				}
 			}
-			//java>
 			else if ((id == MouseEvent.MOUSE_ENTERED) && (mousepressed == null)) {
 				boolean horizontal = ("vertical" != get(component, "orientation"));
 				setCursor(Cursor.getPredefinedCursor(horizontal ?
@@ -3492,7 +3496,6 @@ public class Thinlet extends Container //java
 					((id == MouseEvent.MOUSE_RELEASED) && (mouseinside != component))) {
 				setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 			}
-			//<java
 		}
 		else if (("list" == classname) ||
 				("table" == classname) || ("tree" == classname)) {
@@ -3507,7 +3510,7 @@ public class Thinlet extends Container //java
 						Rectangle r = getRectangle(item, "bounds");
 						if (my < r.y + r.height) {
 							if (id == MouseEvent.MOUSE_DRAGGED) { //!!!
-								scrollToVisible(component, r.x, r.y, 0, r.height - 1);
+								scrollToVisible(component, r.x, r.y, 0, r.height);
 							}
 							else if ("tree" == classname) {
 								int mx = x + view.x - referencex;
@@ -3716,7 +3719,7 @@ public class Thinlet extends Container //java
 			int mx = x - referencex;
 			int my = 0;
 			if (!multiline) {
-				mx += getInteger(component, "offset", 0);
+				mx += getInteger(component, ":offset", 0);
 			} else {
 				Rectangle view = getRectangle(component, ":view");
 				mx += view.x - 1;
@@ -3724,7 +3727,6 @@ public class Thinlet extends Container //java
 			}
 			int caretstart = getCaretLocation(component, mx, my, multiline, hidden);
 			int caretend = caretstart;
-			//java>
 			if (clickcount > 1) {
 				String text = getString(component, "text", "");
 				while ((caretstart > 0) && ((clickcount == 2) ?
@@ -3734,7 +3736,6 @@ public class Thinlet extends Container //java
 					Character.isLetterOrDigit(text.charAt(caretend)) :
 						(text.charAt(caretend) != '\n'))) { caretend++; }
 			}
-			//<java
 			setInteger(component, "start", caretstart, 0);
 			setInteger(component, "end", caretend, 0);
 			setFocus(component);
@@ -3744,7 +3745,7 @@ public class Thinlet extends Container //java
 			int mx = x - referencex;
 			int my = 0;
 			if (!multiline) {
-				mx += getInteger(component, "offset", 0);
+				mx += getInteger(component, ":offset", 0);
 			} else {
 				Rectangle view = getRectangle(component, ":view");
 				mx += view.x - 1;
@@ -3756,7 +3757,6 @@ public class Thinlet extends Container //java
 				validate(component); // caret check only
 			}
 		}
-		//java>
 		else if ((id == MouseEvent.MOUSE_ENTERED) && (mousepressed == null)) {
 			setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 		}
@@ -3765,7 +3765,6 @@ public class Thinlet extends Container //java
 				((mouseinside != component) || (insidepart != null)))) {
 			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
-		//<java
 	}
 
 	/**
@@ -3833,28 +3832,25 @@ public class Thinlet extends Container //java
 				Rectangle port = getRectangle(component, ":port");
 				Rectangle view = getRectangle(component, ":view");
 				if (part == "hknob") {
-					referencex = x -
-						view.x * (port.width - 2 * block) / view.width;
+					referencex = x - view.x * (port.width - 2 * block) / view.width;
 				} else {
-					referencey = y -
-						view.y * (port.height - 2 * block) / view.height;
+					referencey = y - view.y * (port.height - 2 * block) / view.height;
 				}
 			}
 			else if (id == MouseEvent.MOUSE_DRAGGED) {
 				Rectangle port = getRectangle(component, ":port");
 				Rectangle view = getRectangle(component, ":view");
 				if (part == "hknob") {
-					int viewx = (x - referencex) *
-						view.width / (port.width - 2 * block);
-					viewx = Math.max(0, Math.min(viewx, view.width - port.width + 2));
+					int viewx = (x - referencex) * view.width / (port.width - 2 * block);
+					viewx = Math.max(0, Math.min(viewx, view.width - port.width));
 					if (view.x != viewx) {
 						view.x = viewx;
 						repaint(component, null, "horizontal");
 					}
-				} else {
-					int viewy = (y - referencey) *
-						view.height / (port.height - 2 * block);
-					viewy = Math.max(0, Math.min(viewy, view.height - port.height + 2));
+				}
+				else { // (part == "vknob")
+					int viewy = (y - referencey) * view.height / (port.height - 2 * block);
+					viewy = Math.max(0, Math.min(viewy, view.height - port.height));
 					if (view.y != viewy) {
 						view.y = viewy;
 						repaint(component, null, "vertical");
@@ -3868,7 +3864,7 @@ public class Thinlet extends Container //java
 		else {
 			if (id == MouseEvent.MOUSE_PRESSED) {
 				Rectangle port = getRectangle(component, ":port");
-				setReference(component, port.x + 1, port.y + 1);
+				setReference(component, port.x, port.y);
 			}
 			return false;
 		}
@@ -3893,21 +3889,21 @@ public class Thinlet extends Container //java
 		else if (part == "downtrack") { dy = port.height; }
 		if (dx != 0) {
 			dx = (dx < 0) ? Math.max(-view.x, dx) :
-				Math.min(dx, view.width - port.width + 2 - view.x);
+				Math.min(dx, view.width - port.width - view.x);
 		}
 		else if (dy != 0) {
 			dy = (dy < 0) ? Math.max(-view.y, dy) :
-				Math.min(dy, view.height - port.height + 2 - view.y);
+				Math.min(dy, view.height - port.height - view.y);
 		}
 		else return false;
 		view.x += dx; view.y += dy;
 		repaint(component, null, (dx != 0) ? "horizontal" : "vertical");
 		return (((part == "left") || (part == "lefttrack")) && (view.x > 0)) ||
 			(((part == "right") || (part == "righttrack")) &&
-				(view.x < view.width - port.width + 2)) ||
+				(view.x < view.width - port.width)) ||
 			(((part == "up") || (part == "uptrack")) && (view.y > 0)) ||
 			(((part == "down") || (part == "downtrack")) &&
-				(view.y < view.height - port.height + 2));
+				(view.y < view.height - port.height));
 	}
 
 	/**
@@ -3930,7 +3926,6 @@ public class Thinlet extends Container //java
 		return false;
 	}
 
-	//java>
 	/**
 	 *
 	 */
@@ -3975,15 +3970,6 @@ public class Thinlet extends Container //java
 			exc.printStackTrace();
 		}
 	}
-	//<java
-	/*midp
-	private void invoke(Object component, Object part, String event) {
-			String action = (String) get(component, event);
-			if (action != null) { handle(component, action); }
-	}
-	protected void handle(Object source, String action) {
-	}
-	midp*/
 	
 	/**
 	 * Overwrite this method to handle exceptions thrown
@@ -4005,9 +3991,7 @@ public class Thinlet extends Container //java
 		}
 		if (!getBoolean(component, "visible", true)) { return false; }
 		Rectangle bounds = getRectangle(component, "bounds");
-		if ((bounds == null) || !(bounds.contains(x, y))) { return false; } //java
-		//midp if ((bounds == null) || (x < bounds.x) || (x - bounds.x >= bounds.width) ||
-		//midp 	(y < bounds.y) || (y - bounds.y >= bounds.height)) { return false; }
+		if ((bounds == null) || !(bounds.contains(x, y))) { return false; }
 		mouseinside = component;
 		x -= bounds.x; y -= bounds.y;
 		String classname = getClass(component);
@@ -4022,7 +4006,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if (":combolist" == classname) {
-			if (!findScrollPane(component, x, y, bounds)) {
+			if (!findScroll(component, x, y)) {
 				y += getRectangle(component, ":view").y;
 				for (Object choice = get(get(component, "combobox"), ":comp");
 						choice != null; choice = get(choice, ":next")) {
@@ -4034,7 +4018,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if ("textarea" == classname) {
-			findScrollPane(component, x, y, bounds);
+			findScroll(component, x, y);
 		}
 		else if ("tabbedpane" == classname) {
 			int selected = getInteger(component, "selected", 0);
@@ -4047,8 +4031,7 @@ public class Thinlet extends Container //java
 						break;
 					}
 				}
-				if (r.contains(x, y)) { //java
-				//midp if ((x >= r.x) && (x - r.x < r.width) && (y >= r.y) && (y - r.y < r.height)) {
+				if (r.contains(x, y)) {
 					insidepart = tab; break;
 				}
 				i++;
@@ -4059,12 +4042,14 @@ public class Thinlet extends Container //java
 			if (("dialog" == classname) &&
 					(y < 4 + getInteger(component, ":titleheight", 0))) {
 				insidepart = "header";
-			} else {
+			}
+			else if (!getBoolean(component, "scrollable", false) ||
+					!findScroll(component, x, y)) {
 				for (Object comp = get(component, ":comp");
 						comp != null; comp = get(comp, ":next")) {
 					if (findComponent(comp, x, y)) { break; }
 					if (("desktop" == classname) &&
-							getBoolean(comp, "modal", false)) { break; } // && dialog
+							getBoolean(comp, "modal", false)) { insidepart = "modal"; break; } // && dialog
 				}
 			}
 		}
@@ -4084,10 +4069,10 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if ("list" == classname) {
-			findScrollPane(component, x, y, bounds);
+			findScroll(component, x, y);
 		}
 		else if ("table" == classname) {
-			if (!findScrollPane(component, x, y, bounds)) {
+			if (!findScroll(component, x, y)) {
 				/*Object header = get(component, "header");
 				if (header != null) {
 					Rectangle view = getRectangle(component, ":view");
@@ -4099,7 +4084,7 @@ public class Thinlet extends Container //java
 			}
 		}
 		else if ("tree" == classname) {
-			findScrollPane(component, x, y, bounds);
+			findScroll(component, x, y);
 		}
 		else if ("menubar" == classname) {
 			for (Object menu = get(component, ":comp");
@@ -4123,47 +4108,48 @@ public class Thinlet extends Container //java
 	}
 
 	/**
-	 *
+	 * @param component a scrollable widget
+	 * @param x
+	 * @param y
+	 * @return true if the point (x, y) is inside scroll-control area
+	 * (scrollbars, corners, borders), false otherwise (vievport, header)
 	 */
-	private boolean findScrollPane(Object component,
-			int x, int y, Rectangle bounds) {
+	private boolean findScroll(Object component, int x, int y) {
 		Rectangle port = getRectangle(component, ":port");
-		if ((x < port.x) || (y < port.y) ||
-				((x >= port.x + port.width) && (y >= port.y + port.height))) {
-			insidepart = "corner";
+		if (port.contains(x, y)) { return false; }
+		Rectangle view = getRectangle(component, ":view");
+		Rectangle horizontal = getRectangle(component, ":horizontal");
+		Rectangle vertical = getRectangle(component, ":vertical");
+		if ((horizontal != null) && horizontal.contains(x, y)) {
+			findScroll(x - horizontal.x, horizontal.width, port.width, view.x, view.width, true);
 		}
-		else if ((x >= port.x + port.width) || (y >= port.y + port.height)) {
-			boolean horizontal = (y >= port.y + port.height);
-			int p = horizontal ? (x - port.x) : (y - port.y);
-			int portsize = horizontal ? port.width : port.height;
-			int button = Math.min(block, portsize / 2);
-			if (p < button) {
-				insidepart = horizontal ? "left" : "up";
-			}
-			else if (p >= portsize - button) {
-				insidepart = horizontal ? "right" : "down";
-			}
-			else {
-				Rectangle view = getRectangle(component, ":view");
-				int viewp = horizontal ? view.x : view.y;
-				int viewsize = horizontal ? view.width : view.height;
-				int track = portsize - (2 * button);
-				int knob = Math.min(track,
-					Math.max(track * (portsize - 2) / viewsize, 6));
-				int decrease = viewp * (track - knob) / (viewsize - portsize + 2);
-				if (p < button + decrease) {
-					insidepart = horizontal ? "lefttrack" : "uptrack";
-				}
-				else if (p < button + decrease + knob) {
-					insidepart = horizontal ? "hknob" : "vknob";
-				}
-				else {
-					insidepart = horizontal ? "righttrack" : "downtrack";
-				}
-			}
+		else if ((vertical != null) && vertical.contains(x, y)) {
+			findScroll(y - vertical.y, vertical.height, port.height, view.y, view.height, false);
 		}
-		else { return false; }
+		else { insidepart = "corner"; }
 		return true;
+	}
+	
+	/**
+	 * @param p x or y relative to the scrollbar begin
+	 * @param size scrollbar width or height
+	 * @param portsize viewport width or height
+	 * @param viewp view x or y
+	 * @param viewsize view width or height
+	 * @param horizontal if true horizontal, vertical otherwise
+	 */
+	private void findScroll(int p, int size, int portsize, int viewp, int viewsize, boolean horizontal) {
+		if (p < block) { insidepart = horizontal ? "left" : "up"; }
+		else if (p > size - block) { insidepart = horizontal ? "right" : "down"; }
+		else {
+			int track = size - 2 * block;
+			if (track < 10) { insidepart = "corner"; return; } // too small
+			int knob = Math.max(track * portsize / viewsize, 10);
+			int decrease = viewp * (track - knob) / (viewsize - portsize);
+			if (p < block + decrease) { insidepart = horizontal ? "lefttrack" : "uptrack"; }
+			else if (p < block + decrease + knob) { insidepart = horizontal ? "hknob" : "vknob"; }
+			else { insidepart = horizontal ? "righttrack" : "downtrack"; }
+		}
 	}
 
 	/**
@@ -4185,8 +4171,8 @@ public class Thinlet extends Container //java
 			repaint(component, b.x + r.x, b.y + r.y,
 				(classname == ":popup") ? b.width : r.width, r.height);
 		}
-		else //if ((classname == ":combolist") || (classname == "textarea") ||
-				{//(classname == "list") || (classname == "table") || (classname == "tree")) {
+		else { //if ((classname == ":combolist") || (classname == "textarea") ||
+				//(classname == "list") || (classname == "table") || (classname == "tree")) {
 			Rectangle port = getRectangle(component, ":port");
 			if (part == "left") {
 				repaint(component, b.x + port.x, b.y + b.height - block, block, block);
@@ -4209,11 +4195,11 @@ public class Thinlet extends Container //java
 			else if (part == "text") { //textarea
 				repaint(component, b.x + port.x, b.y + port.y, port.width, port.height);
 			}
-			else {
+			else { // repaint the whole line of its subcomponent
 				Rectangle view = getRectangle(component, ":view");
 				Rectangle r = getRectangle(part, "bounds");
 				if ((r.y + r.height >= view.y) && (r.y <= view.y + port.height)) {
-					repaint(component, b.x + port.x, b.y + port.y - view.y + 1 + r.y,
+					repaint(component, b.x + port.x, b.y + port.y - view.y + r.y,
 						port.width, r.height);
 					//? need cut item rectangle above/bellow viewport
 				}
@@ -4260,7 +4246,7 @@ public class Thinlet extends Container //java
 	 * visible and enabled parents, and tabbedpane's selected tab
 	 * @return true, if the given component was focusable
 	 */
-	public boolean requestFocus(Object component) {
+	public boolean requestFocus(Object component) { //#
 		if (checkFocusable(component, true)) {
 			setFocus(component); return true; //repaint too!
 		}
@@ -4271,9 +4257,9 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private boolean setFocus(Object component) {
-		if (!focusinside) { //java
-			requestFocus(); //java
-		} //java
+		if (!focusinside) {
+			requestFocus();
+		}
 		if (focusowner != component) {
 			Object focused = focusowner;
 			focusowner = component;
@@ -4366,7 +4352,6 @@ public class Thinlet extends Container //java
 		}
 	}
 
-	//java>
 	/**
 	 * @return previous focusable component is found (not the last of the desktop/dialog)
 	 */
@@ -4413,14 +4398,12 @@ public class Thinlet extends Container //java
 		}
 		return previous;
 	}
-	//<java
 	
 	/**
 	 *
 	 */
 	private boolean checkFocusable(Object component, boolean forced) {
 		String classname = getClass(component);
-		//midp forced=true;
 		if ((classname == "button") || (classname == "checkbox") || ("togglebutton" == classname) ||
 				(classname == "combobox") || (classname == "textfield") ||
 				(classname == "passwordfield") || (classname == "textarea") ||
@@ -4460,7 +4443,7 @@ public class Thinlet extends Container //java
 	 * @return a new component, every component is simply an <i>Object</i>
 	 * @throws java.lang.IllegalArgumentException for unknown widget type
 	 */
-	public static Object create(String classname) {
+	public static Object create(String classname) { //#
 		for (int i = 0; i < dtd.length; i += 3) {
 			if (dtd[i].equals(classname)) {
 				return createImpl((String) dtd[i]);
@@ -4475,7 +4458,7 @@ public class Thinlet extends Container //java
 	 * @param component a widget
 	 * @return the class name of the component (e.g. <i>button</i>)
 	 */
-	public String getClass(Object component) {
+	public static String getClass(Object component) { //#
 		return (String) get(component, ":class");
 	}
 
@@ -4484,7 +4467,7 @@ public class Thinlet extends Container //java
 	 *
 	 * @return the root object (it is a <i>desktop</i>), never <i>null</i>
 	 */
-	public Object getDesktop() {
+	public Object getDesktop() {//#
 		return content;
 	}
 
@@ -4498,7 +4481,7 @@ public class Thinlet extends Container //java
 	/**
 	 *
 	 */
-	private boolean set(Object component, Object key, Object value) {
+	private static boolean set(Object component, Object key, Object value) {
 		Object[] previous = (Object[]) component;
 		for (Object[] entry = previous; entry != null;
 				entry = (Object[]) entry[2]) {
@@ -5025,16 +5008,15 @@ public class Thinlet extends Container //java
 	 */
 	public Object parse(String path, Object handler) throws IOException {
 		InputStream inputstream = null;
-		try { //java
-			//midp inputstream = getClass().getResourceAsStream(path);
-			inputstream = getClass().getResourceAsStream(path); //java
+		try {
+			inputstream = getClass().getResourceAsStream(path);
 			//System.out.println("> " + path + " " + inputstream);
 			if (inputstream == null) {
 				try {
 					inputstream = new URL(path).openStream();
 				} catch (MalformedURLException mfe) { /* thows nullpointerexception*/ }
 			}
-		} catch (Throwable e) {} //java
+		} catch (Throwable e) {}
 		//if (inputstream == null) { // applet code
 		//	inputstream = new URL(getCodeBase(), path).openStream();
 		//}
@@ -5166,9 +5148,7 @@ public class Thinlet extends Container //java
 	 */
 	private Object parse(InputStream inputstream,
 			boolean validate, boolean dom, Object handler) throws IOException {
-		//UnsupportedEncodingException
-		Reader reader = new BufferedReader(new InputStreamReader(inputstream)); //java
-		//midp InputStreamReader reader = new InputStreamReader(inputstream);
+		Reader reader = new BufferedReader(new InputStreamReader(inputstream));
 		try {
 			Object[] parentlist = null;
 			Object current = null;
@@ -5212,10 +5192,14 @@ public class Thinlet extends Container //java
 						current = parentlist[0];
 						parentlist = (Object[]) parentlist[1];
 					}
+					else if (c == '!') { // DOCTYPE
+						while ((c = reader.read()) != '>'); //+(-1)
+					}
+					else if (c == '?') { // Processing Instructions
+						boolean question = false; // read until '?>'
+						while (((c = reader.read()) != '>') || !question) { question = (c == '?'); }
+					}
 					else { //start or standalone tag
-						boolean instruction = (c == '?'); // Processing Instructions
-						if (c == '!') { while ((c = reader.read()) != '>'); continue; } // DOCTYPE
-						if (instruction) { c = reader.read(); }
 						text.setLength(0);
 						boolean iscomment = false;
 						while (">/ \t\n\r".indexOf(c) == -1) {
@@ -5234,23 +5218,21 @@ public class Thinlet extends Container //java
 							c = reader.read();
 						}
 						if (iscomment) { continue; }
-						if (!instruction) {
-							String tagname = text.toString();
-							parentlist = new Object[] { current, parentlist, tagname };
-							if (validate) {
-								current = (current != null) ?
-									addElement(current, tagname) : create(tagname);
-							} else {
-								if (dom) {
-									Object parent = current;
-									current = createImpl(tagname = tagname.intern());
-									if (parent != null) {
-										insertItem(parent, tagname, current, -1);
-										//set(current, ":parent", parent);
-									}
-								} else {
-									current = tagname;
+						String tagname = text.toString();
+						parentlist = new Object[] { current, parentlist, tagname };
+						if (validate) {
+							current = (current != null) ?
+								addElement(current, tagname) : create(tagname);
+						} else {
+							if (dom) {
+								Object parent = current;
+								current = createImpl(tagname = tagname.intern());
+								if (parent != null) {
+									insertItem(parent, tagname, current, -1);
+									//set(current, ":parent", parent);
 								}
+							} else {
+								current = tagname;
 							}
 						}
 						text.setLength(0);
@@ -5261,7 +5243,6 @@ public class Thinlet extends Container //java
 								whitespace = true;
 							}
 							if (c == '>') {
-								if (instruction) throw new IllegalArgumentException(); // '?>'
 								if (!validate && !dom) {
 									startElement((String) current, attributelist); attributelist = null;
 								}
@@ -5269,7 +5250,6 @@ public class Thinlet extends Container //java
 								break;
 							}
 							else if (c == '/') {
-								if (instruction) throw new IllegalArgumentException(); // '?>'
 								if ((c = reader.read()) != '>') {
 									throw new IllegalArgumentException(); // '>'
 								}
@@ -5284,13 +5264,6 @@ public class Thinlet extends Container //java
 								}
 								current = parentlist[0];
 								parentlist = (Object[]) parentlist[1];
-								c = reader.read();
-								break;
-							}
-							else if (instruction && (c == '?')) {
-								if ((c = reader.read()) != '>') {
-									throw new IllegalArgumentException(); // '>'
-								}
 								c = reader.read();
 								break;
 							}
@@ -5317,27 +5290,24 @@ public class Thinlet extends Container //java
 										else if ("quot".equals(entity)) { text.append('"'); }
 										else if ("apos".equals(entity)) { text.append('\''); }
 										else if (entity.startsWith("#")) {
-											text.append((char) Integer.parseInt(entity.substring(1)));
+											boolean hexa = (entity.charAt(1) == 'x');
+											text.append((char) Integer.parseInt(entity.substring(hexa ? 2 : 1), hexa ? 16 : 10));
 										}
 										else throw new IllegalArgumentException("unknown " + "entity " + entity);
 									}
 									else text.append((char) c);
 								}
-								if (!instruction) {
-									if (validate) {
-										addAttribute(current, key, text.toString(), methods);
+								if (validate) {
+									addAttribute(current, key, text.toString(), methods);
+								} else {
+									if (dom) {
+										set(current, key.intern(), text.toString());
 									} else {
-										if (dom) {
-											set(current, key.intern(), text.toString());
-										} else {
-											if (attributelist == null) { attributelist = new Hashtable(); }
-											attributelist.put(key, text.toString());
-										}
+										if (attributelist == null) { attributelist = new Hashtable(); }
+										attributelist.put(key, text.toString());
 									}
 								}
-								//else if ("encoding".equals(key)) {
-									//reader = new InputStreamReader(inputstream, text.toString());
-								//}
+								//'<![CDATA[' ']]>'
 								text.setLength(0);
 								c = reader.read();
 							}
@@ -5364,6 +5334,18 @@ public class Thinlet extends Container //java
 		}
 	}
 	
+	/*
+	private String convert(StringBuffer text) {
+		StringBuffer converted = null;
+		for (int i = 0; i < text.length(); i++) {
+			if (text.charAt(i) == '&') {
+				int j = i; while (text.charAt(i++) != ';'); 
+			}
+			if (converted == null) { converted = new StringBuffer(); }
+		}
+		return (converted == null) ? text.toString() : converted.toString();
+	}*/
+	
 	/**
 	 *
 	 */
@@ -5375,7 +5357,7 @@ public class Thinlet extends Container //java
 				String value = (String) methods.elementAt(i + 2);
 				
 				if ("method" == definition[0]) {
-					Object[] method = getMethod(component, value, root, handler); //java
+					Object[] method = getMethod(component, value, root, handler);
 					if ("init" == definition[1]) {
 						invokeImpl(method, component, null);
 					}
@@ -5497,9 +5479,13 @@ public class Thinlet extends Container //java
 			lasts.addElement(value);
 		}
 		else if ("property" == definition[0]) {
-			int equals = value.indexOf('=');
-			if (equals == -1) { throw new IllegalArgumentException(value); }
-			putProperty(component, value.substring(0, equals), value.substring(equals + 1));
+			StringTokenizer st = new StringTokenizer(value, ";");
+			while (st.hasMoreTokens()) {
+				String token = st.nextToken();
+				int equals = token.indexOf('=');
+				if (equals == -1) { throw new IllegalArgumentException(token); }
+				putProperty(component, token.substring(0, equals), token.substring(equals + 1));
+			}
 		}
 		else if ("font" == definition[0]) {
 			String name = null;
@@ -5551,13 +5537,11 @@ public class Thinlet extends Container //java
 				set(component, key, new Long(((long) modifiers) << 32 | keycode));
 			} catch (Exception exc) { throw new IllegalArgumentException(token); } 
 		}
-		//java>
 		else if ("bean" == definition[0]) {
 			try {
 				set(component, key, (Component) Class.forName(value).newInstance());
 			} catch (Exception exc) { throw new IllegalArgumentException(value); }
 		}
-		//<java
 		else throw new IllegalArgumentException((String) definition[0]);
 	}
 
@@ -5565,7 +5549,7 @@ public class Thinlet extends Container //java
 	 *
 	 * @throws java.lang.IllegalArgumentException
 	 */
-	private Object[] getDefinition(Object classname, String key, String type) {
+	private static Object[] getDefinition(Object classname, String key, String type) {
 		Object currentname = classname;
 		while (classname != null) {
 			for (int i = 0; i < dtd.length; i += 3) {
@@ -5614,9 +5598,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public String getString(Object component, String key) {
-		Object[] definition = getDefinition(getClass(component), key, "string");
-		return getString(component, (String) definition[1],
-			(String) definition[3]);
+		return (String) get(component, key, "string");
 	}
 
 	/**
@@ -5655,9 +5637,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public boolean getBoolean(Object component, String key) {
-		Object[] definition = getDefinition(getClass(component), key, "boolean");
-		return getBoolean(component, (String) definition[1],
-			(definition[3] == Boolean.TRUE));
+		return get(component, key, "boolean") == Boolean.TRUE;
 	}
 
 	/**
@@ -5675,9 +5655,7 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public int getInteger(Object component, String key) {
-		Object[] definition = getDefinition(getClass(component), key, "integer");
-		return getInteger(component, (String) definition[1],
-			((Integer) definition[3]).intValue());
+		return ((Integer) get(component, key, "integer")).intValue();
 	}
 
 	/**
@@ -5694,11 +5672,19 @@ public class Thinlet extends Container //java
 	 * Gets the property value of the given component by the property key
 	 */
 	public Image getIcon(Object component, String key) {
-		Object[] definition = getDefinition(getClass(component), key, "icon");
-		return getIcon(component, (String) definition[1], (Image) definition[3]);
+		return (Image) get(component, key, "icon");
 	}
 	
-	//java>
+	/**
+	 *
+	 */
+	private static Object get(Object component, String key, String type) {
+		Object[] definition = getDefinition(getClass(component), key, type);
+		Object value = get(component, (String) definition[1]);
+		return (value != null) ? value : definition[3];
+	}
+	
+	
 	/**
 	 * Sets a new event handler method for a component
 	 *
@@ -5790,7 +5776,6 @@ public class Thinlet extends Container //java
 			throw new IllegalArgumentException(value + " " + exc.getMessage());
 		}
 	}
-	//<java
 
 	/**
 	 *
@@ -5957,8 +5942,7 @@ public class Thinlet extends Container //java
 			rectangle.width = width; rectangle.height = height;
 		}
 		else {
-			set(component, key, new Rectangle(x, y, width, height)); //java
-			//midp set(component, key, new int[] { width, height, x, y });
+			set(component, key, new Rectangle(x, y, width, height));
 		}
 	}
 
@@ -5966,8 +5950,7 @@ public class Thinlet extends Container //java
 	 *
 	 */
 	private Rectangle getRectangle(Object component, String key) {
-		return (Rectangle) get(component, key); //java
-		//midp return (int[]) get(component, key);
+		return (Rectangle) get(component, key);
 	}
 
 	// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -5998,10 +5981,6 @@ public class Thinlet extends Container //java
 			return null;
 		}
 		Image image = null; //(Image) imagepool.get(path);
-		//midp try {
-		//midp 	image = Image.createImage(path);
-		//midp } catch (IOException ioe) {}
-		//java>
 		try {
 			URL url = getClass().getResource(path); //ClassLoader.getSystemResource(path)
 			if (url != null) { // contributed by Stefan Matthias Aust
@@ -6036,7 +6015,6 @@ public class Thinlet extends Container //java
 			} catch (InterruptedException ie) { }
 			//imagepool.put(path, image);
 		} 
-		//<java
 		return image;
 	}
 
@@ -6136,7 +6114,6 @@ public class Thinlet extends Container //java
 			"tab", "choice", new Object[][] {
 				{ "integer", "mnemonic", "paint", integer_1 } },
 			"panel", "component", new Object[][] {
-				// scroll boolean false
 				{ "integer", "columns", "validate", integer0 },
 				{ "integer", "top", "validate", integer0 },
 				{ "integer", "left", "validate", integer0 },
@@ -6145,7 +6122,8 @@ public class Thinlet extends Container //java
 				{ "integer", "gap", "validate", integer0 },
 				{ "string", "text", "validate", null },
 				{ "icon", "icon", "validate", null },
-				{ "boolean", "border", "validate", Boolean.FALSE } },
+				{ "boolean", "border", "validate", Boolean.FALSE },
+				{ "boolean", "scrollable", "validate", Boolean.FALSE } },
 			"desktop", "component", null,
 			"dialog", "panel", new Object[][] {
 				{ "string", "text", "", null },
@@ -6171,7 +6149,8 @@ public class Thinlet extends Container //java
 			"list", "component", new Object[][] {
 				{ "choice", "selection", "paint", selections },
 				{ "method", "action", "", null },
-				{ "method", "perform", "", null } }, //...?
+				{ "method", "perform", "", null }, //...?
+				{ "boolean", "line", "validate", Boolean.FALSE } },
 			"item", "choice", new Object[][] {
 				{ "boolean", "selected", "", Boolean.FALSE } },
 			"table", "list", new Object[][] {

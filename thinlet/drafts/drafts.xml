@@ -1,39 +1,31 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <splitpane name="content" divider="120">
 	<tree action="loadDraft(content, this)">
-		<node text="Components">
+		<node text="Widgets">
 			<node text="Auto-fill"
-					property="ui=autofill.xml"
-					property="logic=thinlet.drafts.AutoFill" />
+					property="ui=autofill.xml;logic=thinlet.drafts.AutoFill" />
 			<node text="Tabbed pane"
-					property="ui=tabbedpane.xml"
-					property="logic=thinlet.drafts.TabbedPane" />
+					property="ui=tabbedpane.xml;logic=thinlet.drafts.TabbedPane" />
 			<node text="MDI"
-					property="ui=mdi.xml"
-					property="logic=thinlet.drafts.MDI" />
+					property="ui=mdi.xml;logic=thinlet.drafts.MDI" />
 			<node text="Class explorer"
-					property="ui=classexplorer.xml"
-					property="logic=thinlet.drafts.ClassExplorer" />
+					property="ui=classexplorer.xml;logic=thinlet.drafts.ClassExplorer" />
 			<node text="Folder browser"
-					property="ui=folderbrowser.xml"
-					property="logic=thinlet.drafts.FolderBrowser" />
+					property="ui=folderbrowser.xml;logic=thinlet.drafts.FolderBrowser" />
+			<node text="Bean test"
+					property="ui=beantest.xml;logic=thinlet.drafts.BeanTest" />
 		</node>
 		<node text="Style"
-				property="ui=style.xml"
-				property="logic=thinlet.drafts.Style" />
+				property="ui=style.xml;logic=thinlet.drafts.Style" />
 		<node text="Event logger"
-				property="ui=eventlogger.xml"
-				property="logic=thinlet.drafts.EventLogger" />
+				property="ui=eventlogger.xml;logic=thinlet.drafts.EventLogger" />
 		<node text="System" >
 			<node text="Properties"
-					property="ui=systemproperties.xml"
-					property="logic=thinlet.drafts.SystemProperties" />
+					property="ui=systemproperties.xml;logic=thinlet.drafts.SystemProperties" />
 			<node text="Colors"
-					property="ui=systemcolors.xml"
-					property="logic=thinlet.drafts.SystemColors" />
+					property="ui=systemcolors.xml;logic=thinlet.drafts.SystemColors" />
 			<node text="Windows"
-					property="ui=desktopproperties.xml"
-					property="logic=thinlet.drafts.DesktopProperties" />
+					property="ui=desktopproperties.xml;logic=thinlet.drafts.DesktopProperties" />
 		</node>
 	</tree>
 	<panel border="true" />

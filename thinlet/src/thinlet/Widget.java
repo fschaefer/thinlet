@@ -13,15 +13,22 @@ public class Widget {
 	/**
 	 *
 	 */
-	Widget(Thinlet thinlet, Object widget) {
-		this.thinlet = thinlet;
-		this.widget = widget;
+	public Widget(String classname) {
+		widget = Thinlet.create(classname);
 	}
 	
+	public String getClass() { 
+		return null;
+	}
+	
+	/**
+	 *
+	 */
 	public void set(String key, String value) {
 		thinlet.setString(widget, key, value);
 	}
+	
+	public boolean requestFocus(Object component) {
+		return true;
+	}
 }
-
-//jikes -classpath \java\j2sdk1.4.1\jre\lib\rt.jar;%CLASSPATH% thinlet\drafts\*.java thinlet\designer\*.java thinlet\common\*.java
-//java -nojit thinlet.drafts.Drafts
