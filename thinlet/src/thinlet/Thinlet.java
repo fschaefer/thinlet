@@ -273,22 +273,59 @@ public class Thinlet extends Container
 		else if (("panel" == classname) || (classname == "dialog")) {
 			int gap = getInteger(component, "gap", 0);
 			int[][] grid = getGrid(component, gap);
-			if (grid != null) {
-				int top = getInteger(component, "top", 0);
-				int left = getInteger(component, "left", 0);
+			int top = 0; int left = 0;
+			int contentwidth = 0; int contentheight = 0;
+			if (grid != null) { // has subcomponents
+				top = getInteger(component, "top", 0);
+				left = getInteger(component, "left", 0);
 				int bottom = getInteger(component, "bottom", 0);
 				int right = getInteger(component, "right", 0);
-				if (classname == "dialog") {
-					int titleheight = getSize(component, 0, 0).height;
-					setInteger(component, ":titleheight", titleheight, 0);
-					top += 4 + titleheight; left += 4; bottom += 4; right += 4;
+				// sums the preferred size of cell widths and heights, gaps
+				contentwidth = left + getSum(grid[0], 0, grid[0].length, gap, false) + right;
+				contentheight = top + getSum(grid[1], 0, grid[1].length, gap, false) + bottom;
+			}
+			
+			Dimension title = getSize(component, 0, 0); // title text and icon
+			boolean scrollable = getBoolean(component, "scrollable", false);
+			boolean border = ("panel" == classname) && getBoolean(component, "border", false);
+			int iborder = (border ? 1 : 0);
+			if (scrollable) { // set scrollpane areas
+				if ("panel" == classname) {
+					int head = title.height / 2;
+					int headgap = (title.height > 0) ? (title.height - head - iborder) : 0;
+					scrollable = layoutScroll(component, contentwidth, contentheight,
+						head, 0, 0, 0, border, headgap);
 				}
-
+				else { // dialog
+					scrollable = layoutScroll(component, contentwidth, contentheight,
+						3 + title.height, 3, 3, 3, true, 0);
+				}
+			}
+			
+			int areax = 0; int areay = 0; int areawidth = 0; int areaheight = 0;
+			if (scrollable) {
+				// components are relative to the viewport
+				Rectangle port = getRectangle(component, ":port");
+				areawidth = port.width; areaheight = port.height;
+			}
+			else { // scrollpane isn't required
+				// components are relative to top/left corner
 				Rectangle bounds = getRectangle(component, "bounds");
-				int wsum = left + getSum(grid[0], 0, grid[0].length, gap, false) + right;
-				int hsum = top + getSum(grid[1], 0, grid[1].length, gap, false) + bottom;
+				areawidth = bounds.width; areaheight = bounds.height;
+				if ("panel" == classname) {
+					areax = iborder; areay = Math.max(iborder, title.height);
+					areawidth -= 2 * iborder; areaheight -= areay - iborder;
+				}
+				else { // dialog
+					areax = 4; areay = 4 + title.height;
+					areawidth -= 8; areaheight -= areay + 4;
+				}
+			}
+			
+			if (grid != null) {
 				for (int i = 0; i < 2; i++) { // i=0: horizontal, i=1: vertical
-					int d = ((i == 0) ? (bounds.width - wsum) : 	(bounds.height - hsum));
+					// remaining space
+					int d = ((i == 0) ? (areawidth - contentwidth) : (areaheight - contentheight));
 					if (d != 0) { //+ > 0
 						int w = getSum(grid[2 + i], 0, grid[2 + i].length, 0, false);
 						if (w > 0) {
@@ -300,13 +337,13 @@ public class Thinlet extends Container
 						}
 					}
 				}
-
+				
 				int i = 0;
 				for (Object comp = get(component, ":comp");
 						comp != null; comp = get(comp, ":next")) {
 					if (!getBoolean(comp, "visible", true)) { continue; }
-					int ix = left + getSum(grid[0], 0, grid[4][i], gap, true);
-					int iy = top + getSum(grid[1], 0, grid[5][i], gap, true);
+					int ix = areax + left + getSum(grid[0], 0, grid[4][i], gap, true);
+					int iy = areay + top + getSum(grid[1], 0, grid[5][i], gap, true);
 					int iwidth = getSum(grid[0], grid[4][i], grid[6][i], gap, false);
 					int iheight = getSum(grid[1], grid[5][i], grid[7][i], gap, false);
 					String halign = getString(comp, "halign", "fill");
@@ -329,10 +366,6 @@ public class Thinlet extends Container
 					setRectangle(comp, "bounds", ix, iy, iwidth, iheight);
 					doLayout(comp);
 					i++;
-				}
-				
-				if (getBoolean(component, "scrollable", false)) {
-					layoutScroll(component, wsum, hsum, 0, 0, 0, 0, false, 0);
 				}
 			}
 		}
@@ -870,14 +903,17 @@ public class Thinlet extends Container
 	 * @param component scrollable widget
 	 * @param contentwidth preferred component width
 	 * @param contentheight preferred component height
-	 * @param header column height
-	 * @param topborder border size on the top (1 or 0)
-	 * @param border define left, bottom, and right border width (1 or 0)
+	 * @param top top inset (e.g. table header, dialog title, half of panel title)
+	 * @param left left inset (e.g. dialog border)
+	 * @param bottom bottom inset (e.g. dialog border)
+	 * @param right right inset (e.g. dialog border)
+	 * @param topgap (lower half of panel title)
+	 * @return true if scrollpane is required, otherwise false
 	 *
 	 * list: 0, 0, 0, 0, true, 0 | table: header, ... | dialog: header, 3, 3, 3, true, 0
 	 * title-border panel: header / 2, 0, 0, 0, true, head
 	 */
-	private void layoutScroll(Object component,
+	private boolean layoutScroll(Object component,
 			int contentwidth, int contentheight,
 			int top, int left, int bottom, int right, boolean border, int topgap) {
 		Rectangle bounds = getRectangle(component, "bounds");
@@ -909,6 +945,7 @@ public class Thinlet extends Container
 			viewy = Math.max(0, Math.min(view.y, contentheight - portheight));
 		}
 		setRectangle(component, ":view", viewx, viewy, contentwidth, contentheight);
+		return vneed || hneed;
 	}
 
 	/**
@@ -1019,16 +1056,22 @@ public class Thinlet extends Container
 				contentheight + (horizontal ? (tabsize + 3) : 4));
 		}
 		if (("panel" == classname) || (classname == "dialog")) {
-			Dimension size = new Dimension(
-				getInteger(component, "left", 0) + getInteger(component, "right", 0),
-				getInteger(component, "top", 0) + getInteger(component, "bottom", 0));
+			// title text and icon height
+			Dimension size = getSize(component, 0, 0);
+			// add border size
 			if (classname == "dialog") {
-				int titleheight = getSize(component, 0, 0).height;
-				size.width += 8; size.height += 8 + titleheight;
+				size.width = 8; size.height += 8; // title width neglected
 			}
+			else if (getBoolean(component, "border", false)) { // bordered panel
+				size.width = 2; size.height += (size.height > 0) ? 1 : 2; // title includes line
+			}
+			// add paddings
+			size.width = getInteger(component, "left", 0) + getInteger(component, "right", 0);
+			size.height += getInteger(component, "top", 0) + getInteger(component, "bottom", 0);
+			// add content preferred size
 			int gap = getInteger(component, "gap", 0);
 			int[][] grid = getGrid(component, gap);
-			if (grid != null) {
+			if (grid != null) { // has components
 				size.width += getSum(grid[0], 0, grid[0].length, gap, false);
 				size.height += getSum(grid[1], 0, grid[1].length, gap, false);
 			}
@@ -2081,20 +2124,36 @@ public class Thinlet extends Container
 					g.setColor(c_bg);
 					g.drawLine(0, r.y + r.height, viewwidth, r.y + r.height);
 				}
-				boolean itemenabled = enabled && getBoolean(item, "enabled", true);
-				paintContent(item, g, clipx, clipy, clipwidth, clipheight,
-					r.x + ITEM.left, r.y + ITEM.top, viewwidth - ITEM.left - ITEM.right, r.height - ITEM.top - ITEM.bottom,
-					itemenabled ? c_text : c_disable, "left", false);
-				if ("tree" == classname) {
-					int x = r.x - block / 2; int y = r.y + (r.height - 1) / 2;
-					g.setColor(itemenabled ? c_border : c_disable);
-					g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x, y);
-					if (subnode) {
-						paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
-							itemenabled ? c_ctrl : c_bg, true, true, true, true, true);
-						g.setColor(itemenabled ? c_text : c_disable);
-						g.drawLine(x - 2, y, x + 2, y);
-						if (!expanded) { g.drawLine(x, y - 2, x, y + 2); }
+				if ("table" != classname) {
+					boolean itemenabled = enabled && getBoolean(item, "enabled", true);
+					paintContent(item, g, clipx, clipy, clipwidth, clipheight,
+						r.x + ITEM.left, r.y + ITEM.top, viewwidth - ITEM.left - ITEM.right, r.height - ITEM.top - ITEM.bottom,
+						itemenabled ? c_text : c_disable, "left", false);
+					if ("tree" == classname) {
+						int x = r.x - block / 2; int y = r.y + (r.height - 1) / 2;
+						g.setColor(itemenabled ? c_border : c_disable);
+						g.drawLine(x, r.y, x, y); g.drawLine(x, y, r.x, y);
+						if (subnode) {
+							paintRect(g, x - 4, y - 4, 9, 9, itemenabled ? c_border : c_disable,
+								itemenabled ? c_ctrl : c_bg, true, true, true, true, true);
+							g.setColor(itemenabled ? c_text : c_disable);
+							g.drawLine(x - 2, y, x + 2, y);
+							if (!expanded) { g.drawLine(x, y - 2, x, y + 2); }
+						}
+					}
+				}
+				else { // tree
+					int x = 0;
+					for (Object cell = get(item, ":comp"); cell != null; cell = get(cell, ":next")) {
+						if (clipx + clipwidth <= x) { break; }
+						int iwidth = 80;
+						if (clipx < x + iwidth) {
+							boolean cellenabled = enabled && getBoolean(cell, "enabled", true);
+							paintContent(cell, g, clipx, clipy, clipwidth, clipheight,
+								r.x + x + 1, r.y + 1, iwidth - 2, r.height - 3,
+								cellenabled ? c_text : c_disable, "left", false);
+						}
+						x += iwidth;
 					}
 				}
 			}
