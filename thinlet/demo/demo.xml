@@ -26,6 +26,12 @@
 		 <menuitem text="Find..." icon="/icons/find.gif" />
 		 <menuitem text="Find Next" icon="/icons/findagain.gif" />
 		</menu>
+		<menu text="Theme">
+		 <checkboxmenuitem text="XP" name="t0" group="theme" action="actionTheme(this.name)" selected="true"/>
+		 <checkboxmenuitem text="Gray" name="t1" group="theme" action="actionTheme(this.name)"/>
+		 <checkboxmenuitem text="Sandstone" name="t2" group="theme" action="actionTheme(this.name)"/>
+		 <checkboxmenuitem text="Ocean" name="t3" group="theme" action="actionTheme(this.name)"/>
+		</menu>
 		<menu text="Help">
 		 <menuitem text="Help Topics" icon="/icons/help.gif" />
 		 <separator />
@@ -34,16 +40,21 @@
 	</menubar>
 	<tabbedpane selected="1" weightx="1" weighty="1">
 		<tab text="Texts">
-			<panel columns="5" top="4" left="4" bottom="4" right="4" gap="4">
-				<label text="Find in the text:" mnemonic="10" />
-				<button name="b_finddialog" text="Search" tooltip="Search..."
+			<panel columns="2" top="4" left="4" bottom="4" right="4" gap="4">
+				<panel columns="1" gap="2">
+					<label text="Find in the text:" mnemonic="10" />
+					<button name="b_finddialog" text="Search" tooltip="Search..."
 						icon="/icons/find.gif" mnemonic="1" action="showDialog()" />
-				<label weightx="1" />
-				<checkbox name="cb_editable" text="Editable" mnemonic="4"
+				</panel>
+				<panel columns="2" left="10" gap="4">
+					<checkbox name="cb_editable" text="Editable" mnemonic="4"
 						selected="true" action="changeEditable(this.selected, textarea)" />
-				<checkbox name="cb_enabled" text="Enabled" selected="true"
+					<checkbox name="cb_enabled" text="Enabled" selected="true"
 						action="changeEnabled(this.selected, textarea)" />
-				<textarea name="textarea" init="loadText(this)" colspan="5" weighty="1" />
+					<checkbox name="cb_border" text="Border" selected="true"
+						action="changeBorder(this.selected, textarea)" />
+				</panel>
+				<textarea name="textarea" init="loadText(this)" colspan="2" halign="fill" weightx="1" weighty="1" />
 			</panel>
 		</tab>
 
@@ -66,6 +77,12 @@
 					<splitpane divider="120">
 						<list name="list" selection="multiple" action="changeSelection(this, delete)"
 								colspan="4" weightx="1" weighty="1">
+							<popupmenu>
+								<menuitem text="one"/>
+								<menuitem text="two"/>
+								<separator/>
+								<menuitem text="three"/>
+							</popupmenu>
 							<item text="List item A" />
 							<item text="List item B" icon="/icons/bookmarks.gif" selected="true" />
 							<item text="List item C" enabled="false" />
@@ -75,6 +92,12 @@
 							<item text="List item G" />
 						</list>
 						<tree selection="multiple">
+							<popupmenu>
+								<menuitem text="one"/>
+								<menuitem text="two"/>
+								<separator/>
+								<menuitem text="three"/>
+							</popupmenu>
 							<node text="Tree node A" icon="/icons/open.gif">
 								<node text="Tree node" icon="/icons/open.gif" selected="true">
 									<node text="Tree node" icon="/icons/new.gif" />
@@ -87,6 +110,12 @@
 						</tree>
 					</splitpane>
 					<table selection="multiple">
+						<popupmenu>
+							<menuitem text="one"/>
+							<menuitem text="two"/>
+							<separator/>
+							<menuitem text="three"/>
+						</popupmenu>
 						<header>
 							<column text="Column" icon="/icons/bookmarks.gif" width="120" />
 							<column text="Column" alignment="center" />
@@ -109,29 +138,27 @@
 						</row>
 					</table>
 				</splitpane>
-				<separator colspan="5"/>
-				<button colspan="5" link="true" halign="left" text="www.thinlet.com"/>
 			</panel>
 		</tab>
 		
 		<tab text="Values">
 			<panel columns="3" top="4" left="4" gap="4"
-					init="storeWidgets(sl_red, sl_green, sl_blue, tf_hue, tf_saturation, tf_brightness, pb_hue, pb_saturation, pb_brightness)">
+					init="storeWidgets(sl_red, sl_green, sl_blue, tf_hue, tf_saturation, tf_brightness, pb_hue, pb_saturation, pb_brightness, rgb_label)">
 				<label text="Red, green, and blue values" colspan="3" />
 				<label text="Red:" alignment="right" />
 				<slider name="sl_red" maximum="255" valign="center"
 						action="sliderChanged(this.value, sb_red)" />
-				<spinbox name="sb_red" text="0" columns="3"
+				<spinbox name="sb_red" maximum="255" text="0" columns="3"
 						action="spinboxChanged(this.text, sl_red)" />
 				<label text="Green:" alignment="right" />
 				<slider name="sl_green" maximum="255" valign="center"
 						action="sliderChanged(this.value, sb_green)" />
-				<spinbox name="sb_green" text="0" columns="3"
+				<spinbox name="sb_green" maximum="255" text="0" columns="3"
 						action="spinboxChanged(this.text, sl_green)" />
 				<label text="Blue:" alignment="right" />
 				<slider name="sl_blue" maximum="255" valign="center"
 						action="sliderChanged(this.value, sb_blue)" />
-				<spinbox name="sb_blue" text="0" columns="3"
+				<spinbox name="sb_blue" maximum="255" text="0" columns="3"
 						action="spinboxChanged(this.text, sl_blue)" />
 				
 				<separator colspan="3" />
@@ -146,7 +173,106 @@
 				<label text="Brightness:" alignment="right" />
 				<textfield name="tf_brightness" text="0.0" editable="false" />
 				<progressbar name="pb_brightness" valign="center" />
+				<separator colspan="3"/>
+				<label colspan="3" name="rgb_label" valign="fill" weighty="1" background="#000000"/>
 				
+			</panel>
+		</tab>
+		<tab text="Other">
+			<panel halign="fill" weightx="1" valign="fill" weighty="1" gap="4" top="4" columns="3">
+				<panel halign="fill" weightx="1" columns="1" gap="2">
+					<label text="Sidebar widget:"/>
+					<tabbedpane placement="stacked" halign="fill" weightx="1" valign="fill" weighty="1">
+						<popupmenu>
+							<menuitem text="one"/>
+							<menuitem text="two"/>
+							<separator/>
+							<menuitem text="three"/>
+						</popupmenu>
+						<tab text="One" property="c=123;v=345">
+							<panel columns="1" gap="4">
+								<textarea valign="fill" weighty="1" weightx="1" halign="fill" border="false" wrap="true" editable="false" text="Popup menus are supported in many components. Try to right-click on the tab name. Try it on lists, trees and tables."/>
+							</panel>
+						</tab>
+						<tab text="Two" font="bold 14">
+							<panel scrollable="true" columns="1" gap="4">
+								<label text="This is a scrollable panel."/>
+								<label text="Custom colors/fonts:"/>
+								<button text="abcdef" font="18" background="#888888"/>
+								<button text="abcdef" font="Courier 17" background="#882288"/>
+								<button text="abcdef" font="Serif 16" background="#228888"/>
+								<button text="abcdef" font="bold 15" background="#888822"/>
+								<button text="abcdef" font="italic 14" background="#448844"/>
+								<button text="abcdef" font="bold italic 13" background="#444488"/>
+								<button text="abcdef" font="12" background="#884444"/>
+								<button text="abcdef" font="11" background="#2288ff"/>
+								<button text="abcdef" font="10" background="#ff2288"/>
+							</panel>
+						</tab>
+						<tab text="Three" font="bold" foreground="#0000ff">
+							<panel columns="1" gap="4">
+								<menubar halign="fill" weightx="1">
+									<menu text="File">
+										<menuitem text="one"/>
+									</menu>
+								</menubar>
+								<textarea wrap="true" valign="fill" weighty="1" halign="fill" weightx="1" border="false" editable="false" text="Menus can be placed on any panel or dialog."/>
+							</panel>
+						</tab>
+						<tab text="Four" font="Serif bold 14" background="#8888ff" foreground="#ffffff">
+							<panel columns="1" gap="4">
+								<textarea valign="fill" weighty="1" weightx="1" halign="fill" border="false" wrap="true" editable="false" font="Serif italic bold 14" foreground="#88ff88" background="#446600" text="Most components support custom background / foreground colors and font settings"/>
+							</panel>
+						</tab>
+					</tabbedpane>
+				</panel>
+				<separator/>
+				<panel weighty="1" weightx="1" halign="fill" valign="fill" columns="1" gap="2">
+					<textarea halign="fill" weightx="1" border="false" editable="false" text="Border-less textareas can be used as multiline labels." wrap="true"/>
+					<label text="Link widget:"/>
+					<button type="link" tooltip="Link widget" halign="left" text="www.thinlet.com"/>
+				</panel>
+				<separator colspan="3"/>
+				<panel colspan="3" halign="fill" weightx="1">
+					<menubar placement="top">
+						<menu text="Start" font="bold 13" tooltip="Click here to begin">
+							<menuitem text="Thinlet Home"/>
+							<separator/>
+							<menu text="Programs">
+								<menu text="Accessories">
+									<menuitem text="Thinlet!"/>
+									<menuitem text="Thinlet!"/>
+									<menuitem text="Thinlet!"/>
+								</menu>
+								<menuitem text="Amazon Browser"/>
+								<menuitem text="Calculator"/>
+							</menu>
+							<menu text="Documents">
+								<menuitem text="one"/>
+								<menuitem text="two"/>
+								<menuitem text="three"/>
+							</menu>
+							<menu text="Settings">
+								<menuitem text="Control Panel"/>
+								<separator/>
+								<menu text="Network &amp; Dialup">
+									<menuitem text="Thinlet!"/>
+								</menu>
+								<menuitem text="Printers"/>
+								<menuitem text="Taskbar &amp; Start Menu..."/>
+							</menu>
+							<menu text="Search">
+								<menuitem text="one"/>
+							</menu>
+							<menuitem text="Help"/>
+							<menuitem text="Run..."/>
+							<separator/>
+							<menuitem text="Shut Down..."/>
+						</menu>
+					</menubar>
+					<separator/>
+					<label text=" Unfold-up menus are supported."/>
+				</panel>
 			</panel>
 		</tab>
 	</tabbedpane>

@@ -47,8 +47,11 @@ public class Thinlet extends Container
 	private transient Color c_select;
 	private transient Color c_ctrl = null;
 	private transient int block;
-	private transient Image hgradient, vgradient;
+	private transient Image hgradient, vgradient, hmodal; //java
 
+        private static ResourceBundle langResource = null;
+        private static ResourceBundle langResourceDefault = null;
+        private transient boolean allI18n = false;
 	private transient Thread timer;
 	private transient long watchdelay;
 	private transient long watch;
@@ -109,7 +112,7 @@ public class Thinlet extends Container
 	}
 	
 	// button and togglebutton border + padding
-	private static final Insets BUTTON = new Insets(3, 12, 3, 12);
+	private static final Insets BUTTON = new Insets(3, 6, 3, 6);
 	// tabbedpane (not selected) tab padding are 1, 3, 1, and 3 pt
 	private static final Insets ITEM = new Insets(1, 3, 1, 3); // list/tree/table item padding
 
@@ -144,7 +147,7 @@ public class Thinlet extends Container
 		c_disable = new Color(disable); c_hover = new Color(hover);
 		c_press = new Color(press); c_focus = new Color(focus);
 		c_select = new Color(select);
-		hgradient = vgradient = null;
+		hgradient = vgradient = hmodal = null;
 		repaint();
 	}
 	
@@ -161,7 +164,7 @@ public class Thinlet extends Container
 		block = getFontMetrics(font).getHeight();
 		super.setFont(font);
 		this.font = font;
-		hgradient = vgradient = null;
+		hgradient = vgradient = hmodal = null;
 		if (content != null) validate(content);
 	}
 	
@@ -175,6 +178,123 @@ public class Thinlet extends Container
             if (component != null) set(component, "font", font);
         }
     
+	/**
+	 * Set custom foreground color (text color) on a component
+	 *
+	 * @param component component to use the custom foreground
+	 * @param color custom color to use, or null to reset component to use default foreground
+	 */
+        public void setForeground(Object component, Color color) {
+            if (component != null) set(component, "foreground", color);            
+        }
+        
+	/**
+	 * Set custom background color on a component.
+         * <p>Note: on gradient-filled
+         * components (such as tabs, buttons etc) this will result in a 
+         * component filled with solid background color, and not a new gradient.
+         * Also, Color.brighter() will be used for highlight, and Color.darker()
+         * will be used for pressed or not selected.
+	 *
+	 * @param component component to use the custom background
+	 * @param color custom color to use, or null to reset component to use default background
+	 */
+        public void setBackground(Object component, Color color) {
+            if (component != null) set(component, "background", color);
+        }
+        
+	/**
+         * Set current language resource bundle. This flushes all cached translated values, performs
+         * lazy loading of new values, and repaints the desktop. This implementation allows applications to switch
+         * language resources on the fly, without rebuilding/reloading components that use them.
+         * 
+         * <p>The pseudo-code is as follows:
+         * <ul>
+         *     <li>if langResource && langResourceDefault are null, don't
+         *       translate anything, no matter what other settings are. This
+         *       behaviour provides compatibility with previous versions.</li>
+         *     <li>if only langResourceDefault is set, use this when translation is required</li>
+         *     <li>if allI18n is set to true:
+         *         <ul>
+         *         <li>if property "i18n" on a component is missing,
+         *           or set to "true", translate</li>
+         *         <li>if property "i18n" is present, and set to "false",
+         *           do not translate</li>
+         *         </ul></li>
+         *     <li>if allI18n is set to false:
+         *         <ul>
+         *         <li>if property "i18n" on a component is missing,
+         *           or set to "false", do not translate</li>
+         *         <li>if property "i18n" is present, and set to "true",
+         *           translate</li>
+         *         </ul></li>
+         *   </ul>
+         *     <p>The "translate" step is applied only to values from "text"
+         *     and "tooltip" properties (for now), and is applied as follows:
+         *     <ul>
+         *     <li>use the value of "text" or "tooltip" as a lookup key</li>
+         *     <li>use langResource to lookup the result value
+         *       <ul>
+         *       <li>if no value is found, use langResourceDefault for lookup
+         *         <ul>
+         *         <li>if no value is found, just return the original value of
+         *           the property. Set a flag on component that prevents
+         *           lookups in the future. This flag is cleared when langResource is changed.</li>
+         *         </ul></li>
+         *       </ul></li>
+         *     <li>cache the result value, if any</li>
+         *     </ul>
+         *     <p>If translated value is found successfully, it is cached in the
+         *     component. This cache is gradually flushed when setLangResource
+         *     is called. Cached value is also flushed when setString() is
+         *     called on a component.
+         * 
+	 * @param res resource bundle containing localized texts for "text" and "tooltip"
+	 */
+        public void setLangResource(ResourceBundle res) {
+            langResource = res;
+            doLayout(content);
+            repaint(content);
+        }
+        
+	/**
+         * Returns language resource bundle currently in use, or default bundle, or null.
+	 */
+        public static ResourceBundle getLangResource() {
+            return langResource;
+        }
+        
+	/**
+         * Set default language resource bundle. Resources from this bundle will be used if
+         * they are missing in the current bundle.
+         *
+	 * @param res resource bundle containing default localized texts for "text" and "tooltip"
+	 */
+        public void setLangResourceDefault(ResourceBundle res) {
+            langResourceDefault = res;
+            if (langResource == null) setLangResource(res);
+        }
+        
+	/**
+         * Returns default language resource bundle, or null.
+	 */
+        public static ResourceBundle getLangResourceDefault() {
+            return langResourceDefault;
+        }
+        
+	/**
+	 * Sets the default behaviour of internationalization code. If set to "true", try to translate
+         * all components' "text" and "tooltip" values, unless explicitly prohibited by setting
+         * <code>i18n="false"</code> on a specific component. If set to "false", do not translate
+         * unless explicitly requested by setting <code>i18n="true"</code> on a specific component.
+         *<p>Default value is "false", to provide backwards compatibility.
+         *
+         *@param val if "true", translate by default; if "false", do not translate by default.
+	 */
+        public void setAllI18n(boolean val) {
+            allI18n = val;
+        }
+        
 	/**
 	 *
 	 */
@@ -241,31 +361,49 @@ public class Thinlet extends Container
 			Rectangle bounds = getRectangle(component, "bounds");
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
-			
+                        boolean stacked = (placement == "stacked");
 			int selected = getInteger(component, "selected", 0);
+                        int cnt = getItemCountImpl(component, ":comp");
 			// draw up tabs in row/column
 			int tabd = 0; Rectangle first = null; // x/y location of tab left/top
 			int tabsize = 0; // max height/width of tabs
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
-				Dimension d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8);
+                                Dimension d;
+                                if (stacked) {
+                                        d = getSize(tab, 9, 8);
+                                } else d = getSize(tab, horizontal ? 12 : 9, horizontal ? 5 : 8);
 				if ((tabd == 0) && ((first = getRectangle(tab, "bounds")) != null)) {
-					tabd = horizontal ? first.x : first.y; // restore previous offset
+					tabd = horizontal && !stacked? first.x : first.y; // restore previous offset
 				}
 				setRectangle(tab, "bounds",
-					horizontal ? tabd : 0, horizontal ? 0 : tabd, d.width, d.height);
+					horizontal? tabd : 0, horizontal? 0 : tabd, d.width, d.height);
 				tabd += (horizontal ? d.width : d.height) - 3;
-				tabsize = Math.max(tabsize, horizontal ? d.height : d.width);
+				tabsize = Math.max(tabsize, (horizontal || stacked)? d.height : d.width);
 			}
-			
 			// match tab height/width, set tab content size
-			int cx = (placement == "left") ? (tabsize + 1) : 2;
-			int cy = (placement == "top") ? (tabsize + 1) : 2;
-			int cwidth = bounds.width - (horizontal ? 4 : (tabsize + 3));
-			int cheight = bounds.height - (horizontal ? (tabsize + 3) : 4);
+			int cx = (placement == "left") ? (tabsize + 1) : stacked ? 2 : 2;
+			int cy = (placement == "top")? (tabsize + 1) : stacked ? (tabsize + 2) : 2;
+			int cwidth = bounds.width - ((horizontal || stacked)? 4 : (tabsize + 3));
+			int cheight = bounds.height - (horizontal ? (tabsize + 3) : stacked? (tabsize + 2)* cnt: 4);
+                        if (cheight < 0) cheight = 0;
+                        tabd = tabsize;
+                        int i = 0;
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
 				Rectangle r = getRectangle(tab, "bounds");
-				if (horizontal) {
+                                if (r == null) {
+                                    r = new Rectangle();
+                                    set(tab, "bounds", r);
+                                }
+				if (horizontal || stacked) {
 					if (placement == "bottom") { r.y = bounds.height - tabsize; }
+					else if (stacked) {
+                                            r.y = tabd; r.x = 2;
+                                            //r.width = cwidth - 4;
+                                            tabd += tabsize;
+                                            if (i == selected) tabd += cheight + 3;
+                                            cy += tabsize + 2;
+                                            i++;
+                                        }
 					r.height = tabsize;
 				} else {
 					if (placement == "right") { r.x = bounds.width - tabsize; }
@@ -523,6 +661,7 @@ public class Thinlet extends Container
 	private void checkOffset(Object component) {
 		String placement = getString(component, "placement", "top");
 		boolean horizontal = ((placement == "top") || (placement == "bottom"));
+                boolean stacked = (placement == "stacked");
 		int selected = getInteger(component, "selected", 0);
 		Rectangle bounds = getRectangle(component, "bounds");
 		int panesize = horizontal ? bounds.width : bounds.height;
@@ -736,10 +875,16 @@ public class Thinlet extends Container
 		// set :popup bounds
 		String classname = getClass(component);
 		Rectangle menubounds = getRectangle(selected, "bounds");
-		if ("menubar" == classname) { // bellow the menubar
+                if ("menubar" == classname) { // below the menubar
+			boolean below = getString(component, "placement", "bottom") == "bottom";
 			popupowner = component;
-			setRectangle(popup, "bounds",
-				menux + menubounds.x, menuy + menuheight - 1, pw + 2, ph + 2);
+			if (below) {
+				setRectangle(popup, "bounds",
+					menux + menubounds.x, menuy + menuheight - 1, pw + 2, ph + 2);
+			} else {
+				setRectangle(popup, "bounds",
+					menux + menubounds.x, menuy - ph - 1, pw + 2, ph + 2);
+			}
 		} else { // right to the previous :popup
 			setRectangle(popup, "bounds",
 				menux + menuwidth - 3, menuy + menubounds.y, pw + 2, ph + 2);
@@ -795,6 +940,10 @@ public class Thinlet extends Container
 			pw = Math.max(pw, d.width);
 			ph += d.height;
 		}
+		// if popup would fall outside desktop bounds, shift it
+		Rectangle bounds = getRectangle(content, "bounds");
+		if (x + pw + 2 > bounds.x + bounds.width) x -= (pw + 2);
+		if (y + ph + 2 > bounds.y + bounds.height) y -= (ph + 2);
 		// set :popup bounds
 		setRectangle(popup, "bounds", x, y, pw + 2, ph + 2);
 		repaint(popup);
@@ -807,6 +956,7 @@ public class Thinlet extends Container
 		if ((item != null) && getBoolean(item, "enabled", true)) {
 			String text = getString(item, "text", "");
 			set(combobox, "text", text); // if editable
+                        putProperty(combobox, "i18n.text", null);
 			setInteger(combobox, "start", text.length(), 0);
 			setInteger(combobox, "end", 0, 0);
 			set(combobox, "icon", get(item, "icon"));
@@ -1012,7 +1162,7 @@ public class Thinlet extends Container
 			return getSize(component, 0, 0);
 		} 
 		if (("button" == classname) || ("togglebutton" == classname)) {
-			if (getChoice(component, "type") == "link")
+			if ("button" == classname && getChoice(component, "type") == "link")
 				return getSize(component, ITEM.left + ITEM.right,
 					ITEM.top + ITEM.bottom);
 			else
@@ -1066,6 +1216,8 @@ public class Thinlet extends Container
 		if ("tabbedpane" == classname) {
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
+                        boolean stacked = (placement == "stacked");
+                        int cnt = getItemCountImpl(component, ":comp");
 			int tabsize = 0; // max tab height/width
 			int contentwidth = 0; int contentheight = 0; // max content size
 			for (Object tab = get(component, ":comp");
@@ -1080,8 +1232,8 @@ public class Thinlet extends Container
 					contentheight = Math.max(contentheight, dc.height);
 				}
 			}
-			return new Dimension(contentwidth + (horizontal ? 4 : (tabsize + 3)),
-				contentheight + (horizontal ? (tabsize + 3) : 4));
+			return new Dimension(contentwidth + ((horizontal || stacked)? 4 : (tabsize + 3)),
+				contentheight + (horizontal? (tabsize + 3) : stacked? (tabsize + 3) * cnt : 4));
 		}
 		if (("panel" == classname) || (classname == "dialog")) {
 			// title text and icon height
@@ -1406,6 +1558,20 @@ public class Thinlet extends Container
 			}
 			hgradient = createImage(new MemoryImageSource(block, block, pix[0], 0, block));
 			vgradient = createImage(new MemoryImageSource(block, block, pix[1], 0, block));
+			pix = new int[1][block * block];
+			r1 = c_select.getRed(); r2 = c_select.getRed();
+			g1 = c_select.getGreen(); g2 = c_select.getGreen();
+			b1 = c_select.getBlue(); b2 = c_select.getBlue();
+			for (int i = 0; i < block; i++) {
+				int cr = r1 - (r1 - r2) * i / block;
+				int cg = g1 - (g1 - g2) * i / block;
+				int cb = b1 - (b1 - b2) * i / block;
+				int color = (255 << 24) | (cr << 16) | (cg << 8) | cb;
+				for (int j = 0; j < block; j++) {
+					pix[0][i * block + j] = color;
+				}
+			}
+			hmodal = createImage(new MemoryImageSource(block, block, pix[0], 0, block));
 		}
 		//g.setColor(Color.orange);
 		//g.fillRect(0, 0, getSize().width, getSize().height);
@@ -1483,6 +1649,11 @@ public class Thinlet extends Container
 		enabled = getBoolean(component, "enabled", true); //enabled &&
 
 		if ("label" == classname) {
+                        Color bg = (Color) get(component, "background");
+                        if (bg != null) {
+                            g.setColor(bg);
+                            g.fillRect(0, 0, bounds.width, bounds.height);
+                        }
 			paintContent(component, g, clipx, clipy, clipwidth, clipheight,
 				0, 0, bounds.width, bounds.height,
 				enabled ? c_text : c_disable, "left", true);
@@ -1601,10 +1772,12 @@ public class Thinlet extends Container
 				g, clipx, clipy, clipwidth, clipheight);
 		}
 		else if ("tabbedpane" == classname) {
-			int i = 0; Object selectedtab = null;
+			int i = 0; int idx = 0; Object selectedtab = null;
 			int selected = getInteger(component, "selected", 0);
 			String placement = getString(component, "placement", "top");
 			boolean horizontal = ((placement == "top") || (placement == "bottom"));
+                        boolean stacked = (placement == "stacked");
+                        int cnt = getItemCountImpl(component, ":comp");
 			int bx = horizontal ? 2 : 1, by = horizontal ? 1 : 2, bw = 2 * bx, bh = 2 * by;
 			int dx = horizontal ? 6 : ((placement == "left") ? 5 : 4),
 				dy = horizontal ? ((placement == "top") ? 3 : 2) : 4,
@@ -1613,19 +1786,45 @@ public class Thinlet extends Container
 			g.clipRect(0, 0, bounds.width, bounds.height); //+clip
 			for (Object tab = get(component, ":comp"); tab != null; tab = get(tab, ":next")) {
 				if (selected != i) {
-					boolean hover = inside && 	(mousepressed == null) && (insidepart == tab);
+					boolean hover = inside && (mousepressed == null) && (insidepart == tab);
 					boolean tabenabled = enabled && getBoolean(tab, "enabled", true);
 					Rectangle r = getRectangle(tab, "bounds");
+                                        if (r == null) {
+                                            r = new Rectangle();
+                                            set(tab, "bounds", r);
+                                        }
+                                        Color bg = (Color) get(tab, "background");
+                                        if (bg == null) bg = tabenabled ? (hover ? c_hover : c_ctrl) : c_ctrl;
+                                        else bg = tabenabled ? (hover ? bg.brighter() : bg.darker()) : bg.brighter();
 					paintRect(g, r.x + bx, r.y + by, r.width - bw, r.height - bh,
 						enabled ? c_border : c_disable,
-						tabenabled ? (hover ? c_hover : c_ctrl) : c_ctrl,
+						bg,
 						(placement != "bottom"), (placement != "right"),
-						(placement != "top"), (placement != "left"), true);
+						stacked ? false : (placement != "top"), (placement != "left"), true);
+                                        if (stacked) {
+                                            g.setColor(enabled ? c_border : c_disable);
+                                            g.drawLine(1, r.y + r.height - 3, bounds.width - 1, r.y + r.height - 3);
+                                            g.drawLine(1, r.y + r.height - 3, 1, r.y + r.height );
+                                            g.drawLine(bounds.width - 1, r.y + r.height - 3, bounds.width - 1, r.y + r.height + 2);
+                                            /* cut corners ... uncomment if you like them
+                                            int x = r.x + bx + r.width - bw - r.height / 3;
+                                            int y = r.y + by;
+                                            g.drawLine(x, y, x + r.height / 3 - 1, y + r.height / 3 - 1);
+                                            g.setColor(c_bg);
+                                            g.fillPolygon(
+                                                new int[]{x + 1, x + r.height / 3, x + r.height / 3},
+                                                new int[]{y, y, y + r.height / 3 - 1},
+                                                3);
+                                             */
+                                        }
 					paintContent(tab, g, clipx, clipy, clipwidth, clipheight,
 						r.x + dx, r.y + dy, r.width - dw, r.height - dh,
 						tabenabled ? c_text : c_disable, "left", true);
 				}
-				else { selectedtab = tab; }
+				else {
+                                    selectedtab = tab;
+                                    idx = i;
+                                }
 				i++;
 			}
 			
@@ -1633,19 +1832,25 @@ public class Thinlet extends Container
 			if (selectedtab != null) {
 				Rectangle r = getRectangle(selectedtab, "bounds");
 				// paint tabbedpane border
+                                if (stacked) {
+                                    g.setColor(enabled ? c_border : c_disable);
+                                    g.drawLine(0, r.y + r.height - 1, bounds.width - 1, r.y + r.height - 1);
+                                } else
 				paintRect(g, (placement == "left") ? r.width - 1 : 0,
 					(placement == "top") ? r.height - 1 : 0,
 					horizontal ? bounds.width : (bounds.width - r.width + 1),
 					horizontal ? (bounds.height - r.height + 1) : bounds.height,
 					enabled ? c_border : c_disable, c_bg, true, true, true, true, true);
+                                Color bg = (Color) get(selectedtab, "background");
+                                if (bg == null) bg = c_bg;
 				// paint selected tab
-				paintRect(g, r.x, r.y, r.width, r.height, enabled ? c_border : c_disable, c_bg,
+				paintRect(g, r.x, r.y, stacked ? r.width: r.width, r.height, enabled ? c_border : c_disable, bg,
 					(placement != "bottom"), (placement != "right"),
-					(placement != "top"), (placement != "left"), true);
+					(placement != "top") && !stacked, (placement != "left"), true);
 				if (focus) {
 					g.setColor(c_focus);
 					g.drawRect(r.x + ((placement != "right") ? 2 : 0), r.y + ((placement != "bottom") ? 2 : 0),
-						r.width - (horizontal ? 5 : 3), r.height - (horizontal ? 3 : 5));
+						r.width - ((horizontal || stacked)? 5 : 3), r.height - ((horizontal || stacked) ? 3 : 5));
 				}
 				paintContent(selectedtab, g, clipx, clipy, clipwidth, clipheight,
 					r.x + dx, r.y + dy, r.width - dw, r.height - dh,
@@ -1653,6 +1858,19 @@ public class Thinlet extends Container
 					
 				Object comp = get(selectedtab, ":comp");
 				if ((comp != null) && getBoolean(comp, "visible", true)) {
+                                        if (stacked) {
+                                                Rectangle cr = getRectangle(comp, "bounds");
+                                                if (cr == null) {
+                                                    cr = new Rectangle();
+                                                    set(comp, "bounds", cr);
+                                                }
+                                                cr.y = r.height + 1;
+                                                doLayout(comp);
+                                                g.setColor(enabled ? c_border : c_disable);
+                                                g.drawLine(0, r.y + r.height - 1, 0, r.y + r.height - 1 + cr.height + 3);
+                                                g.drawLine(bounds.width - 1, r.y + r.height - 1, bounds.width - 1, r.y + r.height - 1 + cr.height + 3);
+                                                g.drawLine(0, r.y + r.height - 1 + cr.height + 3, bounds.width - 1, r.y + r.height - 1 + cr.height + 3);
+                                        }
 					clipx -= r.x; clipy -= r.y; g.translate(r.x, r.y); // relative to tab
 					paint(g, clipx, clipy, clipwidth, clipheight, comp, enabled);
 					clipx += r.x; clipy += r.y; g.translate(-r.x, -r.y);
@@ -1699,7 +1917,7 @@ public class Thinlet extends Container
 			if ((tooltipowner != null) && (component == content)) {
 				Rectangle r = getRectangle(tooltipowner, ":tooltipbounds");
 				paintRect(g, r.x, r.y, r.width, r.height,
-					c_border, c_bg, true, true, true, true, true);
+					c_border, c_textbg, true, true, true, true, true);
 				String text = getString(tooltipowner, "tooltip", null);
 				g.setColor(c_text);
 				g.drawString(text, r.x + 2, r.y + g.getFontMetrics().getAscent() + 2); //+nullpointerexception
@@ -1796,6 +2014,7 @@ public class Thinlet extends Container
 		else if ("menubar" == classname) {
 			Object selected = get(component, "selected");
 			int lastx = 0;
+                        boolean above = getString(component, "placement", "bottom") == "top";
 			for (Object menu = get(component, ":comp");
 					menu != null; menu = get(menu, ":next")) {
 				Rectangle mb = getRectangle(menu, "bounds");
@@ -1803,10 +2022,13 @@ public class Thinlet extends Container
 				if (clipx >= mb.x + mb.width) { continue; }
 				boolean menuenabled = enabled && getBoolean(menu, "enabled", true);
 				boolean armed = (selected == menu);
-				boolean hoover = (selected == null) && (insidepart == menu);
+				boolean hover = (selected == null) && (insidepart == menu);
+                                Color bg = (Color) get(menu, "background");
+                                if (bg == null) bg = enabled ? (menuenabled ? (armed ? c_select : (hover ? c_hover : c_ctrl)) : c_ctrl) : c_bg;
+                                else bg = enabled ? (menuenabled ? (armed ? c_select : (hover ? c_hover : bg)) : c_ctrl) : bg;
 				paintRect(g, mb.x, 0, mb.width, bounds.height, enabled ? c_border : c_disable,
-					enabled ? (menuenabled ? (armed ? c_select : (hoover ? c_hover : c_ctrl)) : c_ctrl) : c_bg,
-					armed, armed, true, armed, true);
+					bg,
+					armed || above, armed, armed || !above, armed, true);
 				paintContent(menu, g, clipx, clipy, clipwidth, clipheight,
 					mb.x + 4, 1, mb.width, bounds.height,
 					menuenabled ? c_text : c_disable, "left", true);
@@ -1814,7 +2036,9 @@ public class Thinlet extends Container
 			}
 			paintRect(g, lastx, 0, bounds.width - lastx, bounds.height,
 				enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
-				false, false, true, false, true);
+				above, false, true, false, true);
+                        //g.setColor(enabled ? c_border : c_disable);
+                        //g.drawLine(bounds.width, 0, bounds.width, bounds.height - 1);
 		}
 		else if (":popup" == classname) {
 			paintRect(g, 0, 0, bounds.width, bounds.height,
@@ -1941,8 +2165,9 @@ public class Thinlet extends Container
 			g.setColor(c_focus);
 			g.fillRect(1 + left - offset + caret, 1, 1 + evm, height - 2 + evm);
 		}
-
-		g.setColor(enabled ? c_text : c_disable);
+                Color fg = (Color) get(component, "foreground");
+                if (fg == null) fg = c_text;
+		g.setColor(enabled ? fg : c_disable);
 		int fx = 2 + left - offset;
 		int fy = (height + fm.getAscent() - fm.getDescent()) / 2;
 		if (hidden) {
@@ -2048,8 +2273,11 @@ public class Thinlet extends Container
 		
 		boolean hneed = (horizontal != null); boolean vneed = (vertical != null);
 		if (("panel" != classname) && ("dialog" != classname)) {
+                        boolean border = ("textarea" == classname) ? getBoolean(component, "border", true) : true;
+                        Color bg = (Color)get(component, "background");
+                        if (bg == null) bg = border ? c_textbg : c_bg;
 			paintRect(g, port.x - 1, port.y - 1, 	port.width + (vneed ? 1 : 2), port.height + (hneed ? 1 : 2),
-				enabled ? c_border : c_disable, c_textbg, true, true, !hneed, !vneed, true);
+				enabled ? c_border : c_disable, bg, border, border, !hneed && border, !vneed && border, true);
 			if ("table" == classname) {
 				Object header = get(component, "header");
 				if (header != null) {
@@ -2059,7 +2287,6 @@ public class Thinlet extends Container
 						if (i != 0) { column = get(column, ":next"); }
 						boolean lastcolumn = (i == columnwidths.length - 1);
 						int width = lastcolumn ? (port.width - x + 2) : columnwidths[i];
-						
 						paintRect(g, x - view.x, 0, width, port.y - 1,
 							enabled ? c_border : c_disable, enabled ? c_ctrl : c_bg,
 							true, true, false, lastcolumn, true);
@@ -2105,12 +2332,16 @@ public class Thinlet extends Container
 			char[] chars = (char[]) get(component, ":text");
 			int start = focus ? getInteger(component, "start", 0) : 0;
 			int end = focus ? getInteger(component, "end", 0) : 0;
+                        boolean border = getBoolean(component, "border", true);
+                        boolean editable = getBoolean(component, "editable", true);
 			int is = Math.min(start, end); int ie = Math.max(start, end);
 			Font currentfont = (Font) get(component, "font");
 			if (currentfont != null) { g.setFont(currentfont); }
 			FontMetrics fm = g.getFontMetrics();
 			int fontascent = fm.getAscent(); int fontheight = fm.getHeight();
 			int ascent = 1;
+                        Color fg = (Color) get(component, "foreground");
+                        if (fg == null) fg = c_text;
 			
 			for (int i = 0, j = 0; j <= chars.length; j++) {
 				if ((j == chars.length) || (chars[j] == '\n')) {
@@ -2124,9 +2355,9 @@ public class Thinlet extends Container
 							g.setColor(c_select);
 							g.fillRect(1 + xs, ascent, xe - xs + evm, fontheight + evm);
 						}
-						g.setColor(enabled ? c_text : c_disable);
+						g.setColor(enabled ? fg : c_disable);
 						g.drawChars(chars, i, j - i, 1, ascent + fontascent);
-						if (focus && (end >= i) && (end <= j)) {
+						if (focus && (end >= i) && (end <= j) && editable) {
 							int caret = fm.charsWidth(chars, i, end - i);
 							g.setColor(c_focus);
 							g.fillRect(caret, ascent, 1 + evm, fontheight + evm);
@@ -2136,6 +2367,7 @@ public class Thinlet extends Container
 					i = j + 1;
 				}
 			}
+			if (currentfont != null) { g.setFont(font); }
 		}
 		else if (":combolist" == classname) {
 			Object lead = get(component, ":lead");
@@ -2785,6 +3017,8 @@ public class Thinlet extends Container
 				}
 				if (newvalue != selected) {
 					setInteger(component, "selected", newvalue, 0);
+                                        String placement = getString(component, "placement", "top");
+                                        if (placement == "stacked") doLayout(component);
 					checkOffset(component);
 					repaint(component);
 					invoke(component, getItem(component, newvalue), "action");
@@ -3411,7 +3645,7 @@ public class Thinlet extends Container
 		if (id == MouseEvent.MOUSE_ENTERED) {
 			setTimer(750L);
 		}
-		else if (id == MouseEvent.MOUSE_EXITED) {
+		else if (id == MouseEvent.MOUSE_EXITED || id == MouseEvent.MOUSE_PRESSED) {
 			hideTip();
 		}
 		if (!getBoolean(component, "enabled", true)) { return; }
@@ -3556,6 +3790,8 @@ public class Thinlet extends Container
 				}
 				else {
 					setInteger(component, "selected", current, 0);
+                                        String placement = getString(component, "placement", "top");
+                                        if (placement == "stacked") doLayout(component);
 					//Object tabcontent = getItem(component, current);
 					//setFocus((tabcontent != null) ? tabcontent : component);
 					setNextFocusable(component, false);
@@ -4046,8 +4282,17 @@ public class Thinlet extends Container
 		String text = getString(component, "text", null);
 		if (text != null) {
 			try {
-				String value = String.valueOf(
-					Integer.parseInt(text) + ((part == "up") ? 1 : -1));
+                                int max = getInteger(component, "maximum");
+                                int min = getInteger(component, "minimum");
+                                int step = getInteger(component, "step");
+                                int val = Integer.parseInt(text);
+                                if (part == "up") {
+                                    if (val + step <= max) val += step;
+                                } else {
+                                    if (val - step >= min) val -= step;
+                                }
+				String value = String.valueOf(val);
+                                setInteger(component, "value", val);
 				setString(component, "text", value, null);
 				setInteger(component, "start", value.length(), 0);
 				setInteger(component, "end", 0, 0);
@@ -4062,7 +4307,7 @@ public class Thinlet extends Container
 	/**
 	 *
 	 */
-	private boolean invoke(Object component, Object part, String event) {
+	protected boolean invoke(Object component, Object part, String event) {
 		Object method = get(component, event);
 		if (method != null) {
 			invokeImpl(method, component, part);
@@ -4509,7 +4754,7 @@ public class Thinlet extends Container
 				(classname == "tabbedpane") || (forced && (classname == "splitpane"))) {
 			for (Object comp = component; comp != null;) {
 				// component and parents are enabled and visible
-				if (!getBoolean(comp, "enabled", true) || !getBoolean(comp, "visible", true) ) {
+				if (!getBoolean(comp, "enabled", true) || !getBoolean(comp, "visible", true)) {
 					return false;
 				}
 				Object parent = getParent(comp);
@@ -4629,7 +4874,8 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the index of the first selected item in the given component (list, table, or tree)
+	 * Gets the index of the first selected item in the given component
+         * (list, table, tree, tabbedpane or combobox)
 	 *
 	 * @param component a widget
 	 * @return the first selected index or -1
@@ -4648,7 +4894,8 @@ public class Thinlet extends Container
 	}
 	
 	/**
-	 * Gets the first selected item of the given component (list, table, or tree)
+	 * Gets the first selected item of the given component
+         * (list, table, tree, tabbedpane or combobox)
 	 *
 	 * @param component a widget
 	 * @return the first selected item or null
@@ -4709,7 +4956,7 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Removes all the components from this container's specified list
+	 * Removes all the components from this container
 	 *
 	 * @param component the specified container
 	 */
@@ -4732,7 +4979,7 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Returns the subcomponent of the given component's specified list at the given index
+	 * Returns the subcomponent of the given component at the given index
 	 *
 	 * @param component a specified container
 	 * @param index the index of the component to get
@@ -5029,10 +5276,14 @@ public class Thinlet extends Container
 	
 	/**
 	 * Binds the specified key to the specified value, and stores in this component.
-	 * <i>Null</i> value removes the property. Use the parameter tag in the xml
-	 * resource to bind a string value, the format is: <i>parameter='key=value'</i>
+	 * <i>Null</i> value removes the property. Previously existing value, if any, is
+         * silently replaced.
+         * <p>Use the <code>property</code> tag in the XML
+	 * resource to bind a string value, the format is: <i>property='key=value'</i>.
+         * For multiple key/value pairs use the format:
+         * <i>property='key1=value1';key2=value2'</i>.
 	 *
-	 * @param component the hashtable is binded to this component
+	 * @param component the property is bound to this component
 	 * @param key the client property key
 	 * @param value the new client property value
 	 */
@@ -5052,7 +5303,7 @@ public class Thinlet extends Container
 	/**
 	 * Returns the value of the property with the specified key.
 	 *
-	 * @param component searches the hashtable of this component
+	 * @param component use this component
 	 * @param key the client property key
 	 * @return the value to which the key is mapped or null if the key is not mapped to any value
 	 */
@@ -5460,7 +5711,7 @@ public class Thinlet extends Container
 					("checkboxmenuitem" == classname) || ("separator" == classname))) ||
 				((("panel" == parentclass) || ("desktop" == parentclass) ||
 					("splitpane" == parentclass) || ("dialog" == parentclass) ||
-					("tab" == parentclass)) && instance(classname, "component"))) {
+					("tab" == parentclass)) && instance(classname, "component") && (classname != "popupmenu"))) {
 			insertItem(parent, ":comp", component, index);
 			set(component, ":parent", parent);
 		}
@@ -5631,7 +5882,7 @@ public class Thinlet extends Container
 	// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 	/**
-	 * Sets the given property pair (key and value) for the component
+	 * Sets the given attribute (String value) for the component
 	 */
 	public void setString(Object component, String key, String value) {
 		Object[] definition = getDefinition(getClass(component), key, "string");
@@ -5642,14 +5893,16 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the property value of the given component by the property key
+	 * Gets the String attribute value of the given component by the attribute key
 	 */
 	public String getString(Object component, String key) {
-		return (String) get(component, key, "string");
+		Object[] definition = getDefinition(getClass(component), key, "string");
+		return getString(component, (String) definition[1],
+			(String) definition[3]);
 	}
 
 	/**
-	 * Sets the given property pair (key and value) for the component
+	 * Sets the given attribute (String value selected from available choices) for the component
 	 */
 	public void setChoice(Object component, String key, String value) {
 		Object[] definition = getDefinition(getClass(component), key, "choice");
@@ -5661,7 +5914,8 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the property value of the given component by the property key
+	 * Gets the String attribute value of the given component by the attribute key. The value
+         * returned is equal to one of available choices.
 	 */
 	public String getChoice(Object component, String key) {
 		Object[] definition = getDefinition(getClass(component), key, "choice");
@@ -5670,7 +5924,7 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Sets the given property pair (key and value) for the component
+	 * Sets the given attribute (boolean value) for the component
 	 */
 	public void setBoolean(Object component, String key, boolean value) {
 		Object[] definition = getDefinition(getClass(component), key, "boolean");
@@ -5681,14 +5935,14 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the property value of the given component by the property key
+	 * Gets the boolean attribute value of the given component by the attribute key
 	 */
 	public boolean getBoolean(Object component, String key) {
 		return get(component, key, "boolean") == Boolean.TRUE;
 	}
 
 	/**
-	 * Sets the given property pair (key and value) for the component
+	 * Sets the given attribute (int value) for the component
 	 */
 	public void setInteger(Object component, String key, int value) {
 		Object[] definition = getDefinition(getClass(component), key, "integer");
@@ -5699,14 +5953,14 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the property value of the given component by the property key
+	 * Gets the int attribute value of the given component by the attribute key
 	 */
 	public int getInteger(Object component, String key) {
 		return ((Integer) get(component, key, "integer")).intValue();
 	}
 
 	/**
-	 * Sets the given property pair (key and value) for the component
+	 * Sets the given attribute (java.awt.Image value) for the component
 	 */
 	public void setIcon(Object component, String key, Image icon) {
 		Object[] definition = getDefinition(getClass(component), key, "icon");
@@ -5716,7 +5970,7 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 * Gets the property value of the given component by the property key
+	 * Gets the java.awt.Image attribute value of the given component by the attribute key
 	 */
 	public Image getIcon(Object component, String key) {
 		return (Image) get(component, key, "icon");
@@ -5881,6 +6135,9 @@ public class Thinlet extends Container
 	 */
 	private boolean setString(Object component,
 			String key, String value, String defaultvalue) {
+                if (key.equals("text") || key.equals("tooltip")) {
+                    putProperty(component, "i18n." + key, null);
+                }
 		return set(component, key, value);
 	}
 
@@ -5889,8 +6146,40 @@ public class Thinlet extends Container
 	 */
 	private String getString(Object component,
 			String key, String defaultvalue) {
-		Object value = get(component, key);
-		return (value == null) ? defaultvalue : (String) value;
+		String text = (String)get(component, key);
+                if (text == null) return defaultvalue;
+                if (!(key.equals("text") || key.equals("tooltip"))) return text;
+                if (langResource != null) {
+                    boolean i18n = getBoolean(component, "i18n", true) && allI18n;
+                    if (i18n) {
+                        String ikey = (String)getProperty(component, "i18n." + key);
+                        // initialize
+                        if (ikey == null) {
+                            ikey = text;
+                            putProperty(component, "i18n." + key, ikey);
+                        } else if (ikey.equals("__NONE__")) return text;
+                        String itext = null;
+                        try {
+                            itext = langResource.getString(ikey);
+                            if (itext != null) {
+                                text = itext;
+                            }
+                        } catch (Exception e) {
+                            // not found. Try default
+                            if (langResourceDefault != null) {
+                                try {
+                                    itext = langResourceDefault.getString(ikey);
+                                    if (itext != null) {
+                                        text = itext;
+                                    };
+                                } catch (Exception e1) {
+                                    putProperty(component, "i18n." + key, "__NONE__");
+                                }
+                            }
+                        }
+                    }
+                }
+		return text;
 	}
 
 	/**
@@ -6065,6 +6354,7 @@ public class Thinlet extends Container
 				{ "string", "name", "", null },
 				{ "boolean", "enabled", "paint", Boolean.TRUE },
 				{ "boolean", "visible", "parent", Boolean.TRUE },
+				{ "boolean", "i18n", "validate", Boolean.FALSE },
 				{ "string", "tooltip", "", null },
 				{ "font", "font", "validate", null },
 				{ "color", "foreground", "paint", null },
@@ -6088,13 +6378,14 @@ public class Thinlet extends Container
 			"label", "component", new Object[][] {
 				{ "string", "text", "validate", null },
 				{ "icon", "icon", "validate", null },
+				{ "boolean", "i18n", "validate", Boolean.FALSE },
 			 	{ "choice", "alignment", "validate", leftcenterright },
 			 	{ "integer", "mnemonic", "paint", integer_1 },
 			 	{ "component", "for", "", null } },
 			"button", "label", new Object[][] {
 			 	{ "choice", "alignment", "validate", new String[] { "center", "left", "right" } },
 				{ "method", "action", "", null },
-				{ "choice", "type", "", new String[] { "normal", "default", "cancel" , "link"} }
+				{ "choice", "type", "", new String[] { "normal", "default", "cancel", "link" } }
 			},
 			"checkbox", "label", new Object[][] {
 				{ "boolean", "selected", "paint", Boolean.FALSE }, //...group
@@ -6107,6 +6398,7 @@ public class Thinlet extends Container
 			"choice", null, new Object[][] {
 				{ "string", "name", "", null },
 				{ "boolean", "enabled", "paint", Boolean.TRUE },
+				{ "boolean", "i18n", "validate", Boolean.FALSE },
 				{ "string", "text", "", null },
 				{ "icon", "icon", "", null },
 				{ "choice", "alignment", "", leftcenterright },
@@ -6119,6 +6411,7 @@ public class Thinlet extends Container
 				{ "string", "text", "layout", "" },
 				{ "integer", "columns", "validate", integer0 },
 				{ "boolean", "editable", "paint", Boolean.TRUE },
+				{ "boolean", "i18n", "validate", Boolean.FALSE },
 				{ "integer", "start", "layout", integer0 },
 				{ "integer", "end", "layout", integer0 },
 				{ "method", "action", "", null },
@@ -6129,10 +6422,11 @@ public class Thinlet extends Container
 			"passwordfield", "textfield", null,
 			"textarea", "textfield", new Object[][] {
 				{ "integer", "rows", "validate", integer0 },
+				{ "boolean", "border", "validate", Boolean.TRUE },
 				{ "boolean", "wrap", "layout", Boolean.FALSE } },
 			"tabbedpane", "component", new Object[][] {
 				{ "choice", "placement", "validate",
-					new String[] { "top", "left", "bottom", "right" } },
+					new String[] { "top", "left", "bottom", "right", "stacked" } },
 				{ "integer", "selected", "paint", integer0 },
 				{ "method", "action", "", null } }, //...focus
 			"tab", "choice", new Object[][] {
@@ -6146,6 +6440,7 @@ public class Thinlet extends Container
 				{ "integer", "gap", "validate", integer0 },
 				{ "string", "text", "validate", null },
 				{ "icon", "icon", "validate", null },
+				{ "boolean", "i18n", "validate", Boolean.FALSE },
 				{ "boolean", "border", "validate", Boolean.FALSE },
 				{ "boolean", "scrollable", "validate", Boolean.FALSE } },
 			"desktop", "component", null,
@@ -6153,7 +6448,11 @@ public class Thinlet extends Container
 				{ "string", "text", "", null },
 				{ "icon", "icon", "", null },
 				{ "boolean", "modal", "", Boolean.FALSE } },
-			"spinbox", "textfield", null, //...
+			"spinbox", "textfield", new Object[][] {
+				{ "integer", "minimum", "paint", integer0 }, //...checkvalue
+				{ "integer", "maximum", "paint", new Integer(100) },
+				{ "integer", "step", "paint", integer1 },
+				{ "integer", "value", "paint", integer0 } },
 			"progressbar", "component", new Object[][] {
 				{ "choice", "orientation", "validate", orientation },
 				{ "integer", "minimum", "paint", integer0 }, //...checkvalue
@@ -6201,7 +6500,10 @@ public class Thinlet extends Container
 				{ "boolean", "selected", "", Boolean.FALSE },
 				{ "boolean", "expanded", "", Boolean.TRUE } },
 			"separator", "component", null,
-			"menubar", "component", null,
+			"menubar", "component", new Object[][] {
+				{ "choice", "placement", "validate",
+					new String[] { "top", "bottom"} }
+			},
 			"menu", "choice", new Object[][] {
 				{ "integer", "mnemonic", "paint", integer_1 } },
 			"menuitem", "choice", new Object[][] {
