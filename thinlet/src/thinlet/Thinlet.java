@@ -179,28 +179,20 @@ public class Thinlet extends Container
         }
     
 	/**
-	 * Set custom foreground color (text color) on a component
-	 *
-	 * @param component component to use the custom foreground
-	 * @param color custom color to use, or null to reset component to use default foreground
-	 */
-        public void setForeground(Object component, Color color) {
-            if (component != null) set(component, "foreground", color);            
-        }
-        
-	/**
-	 * Set custom background color on a component.
-         * <p>Note: on gradient-filled
+	 * Set custom color on a component.
+         * <p>Notes: For "foreground" key, this sets the text color.
+         * For "background" key, on gradient-filled
          * components (such as tabs, buttons etc) this will result in a 
          * component filled with solid background color, and not a new gradient.
          * Also, Color.brighter() will be used for highlight, and Color.darker()
          * will be used for pressed or not selected.
 	 *
-	 * @param component component to use the custom background
-	 * @param color custom color to use, or null to reset component to use default background
+	 * @param component component to use for custom color
+         * @param key currently "background" and "foreground" are supported
+	 * @param color custom color to use, or null to reset component to use default color
 	 */
-        public void setBackground(Object component, Color color) {
-            if (component != null) set(component, "background", color);
+        public void setColor(Object component, String key, Color color) {
+            if (component != null) set(component, key, color);
         }
         
 	/**
@@ -1834,6 +1826,10 @@ public class Thinlet extends Container
 			// paint selected tab and its content
 			if (selectedtab != null) {
 				Rectangle r = getRectangle(selectedtab, "bounds");
+                                if (r == null) {
+                                    r = new Rectangle();
+                                    set(selectedtab, "bounds", r);
+                                }
 				// paint tabbedpane border
                                 if (stacked) {
                                     g.setColor(enabled ? c_border : c_disable);
