@@ -5139,7 +5139,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
         }
         // possibly fall-through from above
         for (Object[] entry = (Object[]) component; entry != null; entry = (Object[]) entry[2]) {
-            if (entry[0] == key) {
+            if (entry[0].equals(key)) {
                 return entry[1];
             }
         }
