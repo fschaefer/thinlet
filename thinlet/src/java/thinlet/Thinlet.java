@@ -29,6 +29,7 @@ import java.util.*;
 
 /**
  *  
+ * @version $Id$
  */
 public class Thinlet extends Container implements Runnable, Serializable {
 
@@ -6345,7 +6346,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
      */
     public void setComponent(Object component, String key, Component bean) {
         Object[] definition = getDefinition(getClass(component), key, "bean");
-        if (set(component, definition[1], font)) {
+        if (set(component, definition[1], bean)) {
             update(component, definition[2]);
         }
     }
