@@ -83,6 +83,8 @@ public class Thinlet extends Container implements Runnable, Serializable {
     private static Method wheelrotation = null;
     private static int evm = 0;
 
+    private static boolean useVectors = true;
+
     static {
         try {
             WHEEL_MASK = AWTEvent.class.getField("MOUSE_WHEEL_EVENT_MASK").getLong(null);
@@ -5079,6 +5081,23 @@ public class Thinlet extends Container implements Runnable, Serializable {
         return false;
     }
 
+    /** Select whether widget child lists should use Vectors or Object[]. Some JVMs don't
+     *  tolerate deeply nested arrays.
+     *  <p><b>WARNING: this value MUST NOT be changed while running instances
+     *  of Thinlet exist. The proper way to call this method is in the main()
+     *  method before any Thinlets are instantiated.</b></p> 
+     */
+    public static void setUseVectors(boolean b) {
+        useVectors = b;
+    }
+
+    /** If true, then Thinlet will use Vectors instead of Object[] to
+     * keep the child lists.
+     */
+    public static boolean getUseVectors() {
+	return useVectors;
+    }
+
     /**
      * Get a specified sub-component or component part. Key is e.g. "header"
      * (table header), ":parent" (parent component), ":comp" (head of a
@@ -5086,6 +5105,32 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * popupmenu, etc ...
      */
     static Object get(Object component, Object key) {
+        if (useVectors) {
+            if (key == ":comp") {
+                try {
+                    return ((Vector)get(component, ":children")).elementAt(0);
+                } catch (Exception e) {
+                    return null;
+                }
+            } else if (key == ":next") {
+                // the desktop doesn't have a parent so you can get
+                // null's here if you remove the only component
+                // from a desktop
+                Integer slotInteger = (Integer)get(component, ":slot");
+                if (slotInteger != null) {
+                    int nextSlot = ((Integer)get(component, ":slot")).intValue() + 1;
+                    Object parent = get(component, ":parent");
+                    try {
+                        return ((Vector)get(parent, ":children")).elementAt(nextSlot);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
+        }
+        // possibly fall-through from above
         for (Object[] entry = (Object[]) component; entry != null; entry = (Object[]) entry[2]) {
             if (entry[0] == key) {
                 return entry[1];
@@ -5217,6 +5262,9 @@ public class Thinlet extends Container implements Runnable, Serializable {
     public void removeAll(Object component) {
         if (get(component, ":comp") != null) {
             set(component, ":comp", null);
+            if (useVectors) {
+                set(component, ":children", null);
+            }
             update(component, "validate");
         }
     }
@@ -5328,14 +5376,36 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * Referenced by DOM
      */
     private void insertItem(Object parent, Object key, Object component, int index) {
-        Object item = parent, next = get(parent, key);
-        for (int i = 0;; i++) {
-            if ((i == index) || (next == null)) {
-                set(item, key, component);
-                set(component, ":next", next);
-                break;
+        if (useVectors && key.equals(":comp")) {
+            Vector v = (Vector)get(parent, ":children");
+            if (v == null) {
+                // tune here
+                v = new Vector(4, 4);
+                set(parent, ":children", v);
             }
-            next = get(item = next, key = ":next");
+
+            if (index == -1) {
+                set(component, ":slot", new Integer(v.size()));
+                v.addElement(component);
+            } else {
+                set(component, ":slot", new Integer(index));
+                v.insertElementAt(component, index);
+                int len = v.size();
+                for (int i = 0; i < len; i++) {
+                    Object child = v.elementAt(i);
+                    set(child, ":slot", new Integer(i));
+                }
+            }
+        } else {
+            Object item = parent, next = get(parent, key);
+            for (int i = 0;; i++) {
+                if ((i == index) || (next == null)) {
+                    set(item, key, component);
+                    set(component, ":next", next);
+                    break;
+                }
+                next = get(item = next, key = ":next");
+            }
         }
     }
 
@@ -5371,17 +5441,31 @@ public class Thinlet extends Container implements Runnable, Serializable {
      * @param component
      */
     private void removeItemImpl(Object parent, Object component) {
-        Object previous = null; // the widget before the given component
-        for (Object comp = get(parent, ":comp"); comp != null;) {
-            Object next = get(comp, ":next");
-            if (next == component) {
-                previous = comp;
-                break;
+        if (useVectors) {
+            Vector v = (Vector)get(parent, ":children");
+            if (v != null) {
+                v.removeElement(component);
+                int len = v.size();
+                // rebuld slot list, should only do it from position
+                // where component was removed
+                for (int i = 0; i < len; i++) {
+                    Object child = v.elementAt(i);
+                    set(child, ":slot", new Integer(i));
+                }
             }
-            comp = next;
+        } else {
+            Object previous = null; // the widget before the given component
+            for (Object comp = get(parent, ":comp"); comp != null;) {
+                Object next = get(comp, ":next");
+                if (next == component) {
+                    previous = comp;
+                    break;
+                }
+                comp = next;
+            }
+            set((previous != null) ? previous : parent, (previous != null) ? ":next" : ":comp", get(component, ":next"));
+            set(component, ":next", null);
         }
-        set((previous != null) ? previous : parent, (previous != null) ? ":next" : ":comp", get(component, ":next"));
-        set(component, ":next", null);
         set(component, ":parent", null); // not required
     }
 
