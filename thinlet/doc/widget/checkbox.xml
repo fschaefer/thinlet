@@ -1,0 +1,45 @@
+<!-- - - - checkbox - - - -->
+<widget class="checkbox" title="CheckBox">
+	<p>The first checkbox has a short text and an icon, its state is selected.
+	The second one is a deselected radio button,
+	one of a set of buttons identified by a string id.</p>
+	<xul><![CDATA[<checkbox text="CheckBox" icon="image.gif" selected="true"/>
+<checkbox text="RadioButton" group="group"/>]]></xul>
+	<parameters>
+		<parameter name="text" type="string">
+			The text string that the checkbox displays.
+		</parameter>
+		<parameter name="icon" type="icon">
+			The icon image that the checkbox displays.
+		</parameter>
+		<parameter name="alignment" type="choice" default="center">
+			The alignment of the text and image similar to label.
+			Possible values are: left, center, and right.
+		</parameter>
+		<parameter name="mnemonic" type="integer" default="-1">
+			Specifies the underlined char and the key combination
+			which change the checkboxs's state and invokes the action listener.
+		</parameter>
+		<parameter name="selected" type="boolean" default="false">
+			The state of the checkbox. True if the checkbox is selected, false if it's not.
+		</parameter>
+		<parameter name="group" type="string">
+			Identifies the radio button group if not null.
+			Only one radio button at a time can be selected.
+			User can set on a radio button, the selected button of the group will be set off
+			(the group members is searched only in the same parent).
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the given method when the checkbox state is changed
+			by mouse or keyboard event.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Spacebar">Selects or deselects</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

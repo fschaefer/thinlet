@@ -1,0 +1,93 @@
+<!-- - - - table - - - -->
+<widget class="table" title="Table">
+	<p>A table presents data in a two-dimensional table format, allows to select
+	rows, has header, and internally handles scrolling.
+	The following example table includes two columns ('A', and 'B'), and
+	two rows, the first row is selected, but allows to select multiple rows.</p>
+	<xul><![CDATA[<table selection="multiple">
+	<header>
+		<column text="A" width="24" /><column text="B" />
+	</header>
+	<row selected="true">
+		<cell text="a1" /><cell text="b1" enabled="false" />
+	</row>
+	<row>
+		<cell text="a2" /><cell text="b2" />
+	</row>
+</table>]]></xul>
+	<parameters>
+		<parameter name="selection" type="choice" default="single">
+			Possible values are: single, interval, and multiple. The default
+			single value allows to select one row at a time, the interval
+			value to select one contiguous range of rows, and the multiple
+			value to select one or more contiguous ranges of rows.
+		</parameter>
+		<parameter name="action" type="method">
+			Calls the method whenever the selection changes.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - header - - - -->
+	<widget class="header" title="Header">
+		<p>Table header includes the column texts, these items defines the column
+		widths. The key for the list of columns is 'column'.</p>
+	</widget>
+	<!-- - - - column - - - -->
+	<widget class="column" title="Column">
+		<p>Table header includes the column texts, these items defines the column
+		widths. The key for the list of columns is 'column'.</p>
+		<parameters>
+			<parameter name="width" type="integer" default="80">
+				The width of the column.
+			</parameter>
+			<parameter name="sort" type="choice" default="none">
+				[Pending]
+			</parameter>
+			<parameter extend="label">
+				name, text, icon, and alignment parameters are described at label
+			</parameter>
+		</parameters>
+	</widget>
+	<!-- - - - row - - - -->
+	<widget class="row" title="Row">
+		<p>Table contains rows (and columns for the header),
+		and row contains cells. The 'row' key identifies the list of rows.
+		An entire row (not cell) is selectable in a table.</p>
+		<parameters>
+			<parameter name="selected" type="boolean" default="false">
+				True if currently selected the entire row.
+			</parameter>
+		</parameters>
+	</widget>
+	<!-- - - - cell - - - -->
+	<widget class="cell" title="Cell">
+		<p>Cell displays a short text and icon, its height is equals with the
+		row's height, and its width is defined in the header column.</p>
+		<parameters>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="Up arrow">Selects previous row</key>
+		<key sequence="Down arrow">Selects next row</key>
+		<key sequence="Home">Selects first row</key>
+		<key sequence="End">Selects last row</key>
+		<key sequence="Page Up">Selects row one view up</key>
+		<key sequence="Page Down">Selects row one view down</key>
+
+		<key sequence="+Shift">Extends selection</key>
+		<key sequence="+Ctrl">Set lead row</key>
+
+		<key sequence="Space">Selects lead row</key>
+		<key sequence="Ctrl-A, Ctrl-Slash">Selects all</key>
+		<key sequence="Ctrl-Backslash">Deselects all</key>
+		
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,64 @@
+<!-- - - - list - - - -->
+<widget class="list" title="List">
+	<p>A list allows the user to select one or more objects from a list,
+	and internally handles scrolling.
+	The following example list has three items, the first is selected and the
+	last is disabled, allows to select multiple items.</p>
+	<xul><![CDATA[<list selection="multiple">
+	<item text="List" selected="true" />
+	<item text="Item"/>
+	<item text="Disabled" enabled="false" />
+</list>]]></xul>
+	<parameters>
+		<parameter name="selection" type="choice" default="single">
+			Possible values are: single, interval, and multiple. The default
+			single value allows to select one list item at a time, the interval
+			value to select one contiguous range of items, and the multiple
+			value to select one or more contiguous ranges of items.
+		</parameter>
+		<parameter name="action" type="method">
+			Calls the method whenever the selection changes.
+		</parameter>
+		<parameter name="perform" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="line" type="boolean" default="true">
+			[Pending]
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - item - - - -->
+	<widget class="item" title="Item">
+		<p>List contains items, items display a short text string and an image
+		and can be selected.</p>
+		<parameters>
+			<parameter name="selected" type="boolean" default="false">
+				True if the item currently selected.
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="Up arrow">Selects previous item</key>
+		<key sequence="Down arrow">Selects next item</key>
+		<key sequence="Home">Selects first item</key>
+		<key sequence="End">Selects last item</key>
+		<key sequence="Page Up">Selects item one view up</key>
+		<key sequence="Page Down">Selects item one view down</key>
+
+		<key sequence="+Shift">Extends selection</key>
+		<key sequence="+Ctrl">Set lead item</key>
+
+		<key sequence="Space">Selects lead item</key>
+		<key sequence="Ctrl-A, Ctrl-Slash">Selects all</key>
+		<key sequence="Ctrl-Backslash">Deselects all</key>
+		
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

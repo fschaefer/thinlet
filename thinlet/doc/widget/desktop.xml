@@ -1,0 +1,12 @@
+<!-- - - - desktop - - - -->
+<widget class="desktop" title="Desktop">
+	<p>Desktop is the root pane, it contains panels (fill the available space),
+	dialogs (centered), combolists, popupmenus, and tooltips. You can add only
+	components and dialogs to desktop, the last will be on the top.</p>
+	<parameters>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+</widget>

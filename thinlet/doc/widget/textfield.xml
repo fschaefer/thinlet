@@ -1,0 +1,64 @@
+<!-- - - - textfield - - - -->
+<widget class="textfield" title="TextField">
+	<p>TextField component allows the editing of a single line of text.
+	This field has a simple text value.</p>
+	<xul><![CDATA[<textfield text="TextField" />]]></xul>
+	<parameters>
+		<parameter name="text" type="string" default="''">
+			The text contained in this field.
+		</parameter>
+		<parameter name="columns" type="integer" default="0">
+			The preferred width of the component is fixed (if 0)
+			or calculated by the given value.
+		</parameter>
+		<parameter name="editable" type="boolean" default="true">
+			The specified boolean to indicate whether or not this textfield
+			should be editable. A not editable field is focusable, and selectable.
+		</parameter>
+		<parameter name="start" type="integer" default="0">
+			Start index of the selection.
+		</parameter>
+		<parameter name="end" type="integer" default="0">
+			End index of the selection, same as the caret position.
+		</parameter>
+		<parameter name="action" type="method">
+			Gives notification (invokes the given method) that there was an
+			insert into the text or a portion of the text has been removed.
+		</parameter>
+		<parameter name="insert" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="remove" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="caret" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="perform" type="method">
+			[Pending]
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Right arrow">Moves insertion point one character to the right</key>
+		<key sequence="Left arrow">Moves insertion point one character to the left</key>
+		<key sequence="Ctrl-right arrow">Moves insertion point to beginning of next word</key>
+		<key sequence="Ctrl-left arrow">Moves insertion point to beginning of previous word</key>
+		<key sequence="Home">Moves insertion point to beginning of field</key>
+		<key sequence="End">Moves insertion point to end of field</key>
+		<key sequence="+Shift">Extends selection</key>
+
+		<key sequence="Backspace">Deletes the previous character</key>
+		<key sequence="Delete">Removes the following character</key>
+		<key sequence="Ctrl-A, Ctrl-Slash">Selects all</key>
+		<key sequence="Ctrl-Backslash">Deselects all</key>
+		<key sequence="Ctrl-X">Cuts selected text into the clipboard</key>
+		<key sequence="Ctrl-C">Copies selected text into the clipboard</key>
+		<key sequence="Ctrl-V">Pastes the clipboard content</key>
+		
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

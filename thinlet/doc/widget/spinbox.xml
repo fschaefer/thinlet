@@ -1,0 +1,36 @@
+<!-- - - - spinbox - - - -->
+<widget class="spinbox" title="SpinBox">
+	<p>SpinBox is a textfield width 2 arrow buttons to change
+	(increase, and decrease by 1) its integer value.</p>
+	<xul><![CDATA[<spinbox text="100" />]]></xul>
+	<parameters>
+	<parameter name="minimum" type="integer" default="0">
+			[Pending]
+		</parameter>
+		<parameter name="maximum" type="integer" default="100">
+			[Pending]
+		</parameter>
+		<parameter name="step" type="integer" default="1">
+			[Pending]
+		</parameter>
+		<parameter name="value" type="integer" default="0">
+			[Pending]
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the given method when there was change in the text or a new
+			value was spinned.
+		</parameter>
+		<parameter extend="textfield">
+			text, columns, and editable parameters are described at textfield
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Up arrow">Decreases the value</key>
+		<key sequence="Down arrow">Increases the value</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,82 @@
+<!-- - - - combobox - - - -->
+<widget class="combobox" title="ComboBox">
+	<p>ComboBox is a combination of a text field and drop-down list.
+	This example has a default value, two choices, and it is editable.</p>
+	<xul><![CDATA[<combobox text="ComboBox">
+	<choice text="Choice" icon="image.gif" />
+	<choice text="Disabled" enabled="false" />
+</combobox>]]></xul>
+	<parameters>
+		<parameter name="icon" type="icon">
+			The icon image that the combobox displays.
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the given method when there was change in the text or a new
+			choice was selected.
+		</parameter>
+		<parameter name="selected" type="integer" default="-1">
+			The index of the currently selected choice, value -1
+			indicates a custom edited value in an editable box.
+		</parameter>
+		<parameter extend="textfield">
+			text, columns, and editable parameters are described at textfield
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - choice - - - -->
+	<widget class="choice" title="Choice">
+		<p>The drop down list of a combobox contains choices.
+		The popup combolist internally handles scrolling.</p>
+		<parameters>
+			<parameter name="name" type="string">
+				Identifies the item.
+			</parameter>
+			<parameter name="enabled" type="boolean" default="true">
+				Enables or disables the item. A disabled item is painted gray,
+				and can't be selected by mouse or keyboard.
+			</parameter>
+			<parameter name="text" type="string">
+				The text text that the choice displays.
+			</parameter>
+			<parameter name="icon" type="icon">
+				The icon image that the choice displays.
+			</parameter>
+			<parameter name="alignment" type="choice" default="left">
+				The alignment of the text and image similar to label.
+				Possible values are: left, center, and right.
+			</parameter>
+			<parameter name="tooltip" type="string">
+				The text pops up when the mouse lingers inside this specified part of the component,
+				otherwise the tooltip text of the component.
+			</parameter>
+			<parameter name="font" type="font" default="">
+				[Pending]
+			</parameter>
+			<parameter name="foreground" type="color" default="">
+				[Pending]
+			</parameter>
+			<parameter name="background" type="color" default="">
+				[Pending]
+			</parameter>
+			<parameter name="property" type="property">
+				Adds an arbitrary key/value client property stored in a hashtable of the item.
+				The format of its value is key=value, both are string objects.
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="Spacebar, Down arrow">Post menu</key>
+		<key sequence="Up arrow">Selects previous (or last) choice</key>
+		<key sequence="Down arrow">Selects next (or first) choice</key>
+		<key sequence="Home">Selects first choice</key>
+		<key sequence="End">Selects last choice</key>
+		<key sequence="Page Up">Selects choice one view up</key>
+		<key sequence="Page Down">Selects choice one view down</key>
+		<key sequence="Enter, Return, Spacebar">Activates selection, and retract menu</key>
+		<key sequence="Escape">Retract menu without taking selection</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,20 @@
+<!-- - - - togglebutton - - - -->
+<widget class="togglebutton" title="ToggleButton">
+	<p>An implementation of a two-state button, behaves as checkbox.</p>
+	<xul><![CDATA[<togglebutton text="ToggleButton" icon="image.gif" selected="true"/>
+<togglebutton text="ToggleButton" group="group"/>]]></xul>
+	<parameters>
+		<parameter extend="checkbox">
+			text, icon, alignment, mnemonic, selected, button, and action
+			parameters are similar to checkbox
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Spacebar">Selects or deselects</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

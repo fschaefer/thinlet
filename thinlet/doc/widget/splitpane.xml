@@ -1,0 +1,31 @@
+<!-- - - - splitpane - - - -->
+<widget class="splitpane" title="SplitPane">
+	<p>SplitPane is used to divide two components. The following one has two
+	text-areas aligned top to bottom.</p>
+	<xul><![CDATA[<splitpane orientation="vertical" divider="24">
+	<textarea text="Top"/>
+	<textarea text="Bottom" />
+</splitpane>]]></xul>
+	<parameters>
+		<parameter name="orientation" type="choice" default="horizontal">
+			 The splitpane orientation is either horizontal or vertical.
+			 By default the splitter is divided horizontally.
+		</parameter>
+		<parameter name="divider" type="integer" default="-1">
+			The location of the divider. A negative value implies the divider should be
+			reset to a value that attempts to honor the preferred size of the two components.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="F8">Gives focus to splitter bar</key>
+		<key sequence="Left arrow, up arrow">Steps location of splitter bar in left/top direction</key>
+		<key sequence="Right arrow, down arrow">Steps location of splitter bar in right/bottom direction</key>
+		<key sequence="Home">Moves splitter bar to left/top of splitter pane</key>
+		<key sequence="End">Moves splitter bar to right/bottom of splitter pane</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

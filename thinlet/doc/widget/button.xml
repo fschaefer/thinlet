@@ -1,0 +1,38 @@
+<!-- - - - button - - - -->
+<widget class="button" title="Button">
+	<p>The following button displays a short text string and an image.
+	Its content is on the left and centered vertically.</p>
+	<xul><![CDATA[<button text="Button" icon="image.gif" alignment="left" tooltip="ToolTip" />]]></xul>
+	<parameters>
+		<parameter name="text" type="string">
+			The text string that the button displays.
+		</parameter>
+		<parameter name="icon" type="icon">
+			The icon image that the button displays.
+		</parameter>
+		<parameter name="alignment" type="choice" default="center">
+			The alignment of the text and image similar to label.
+			Possible values are: center, left, and right. The default value is center.
+		</parameter>
+		<parameter name="mnemonic" type="integer" default="-1">
+			Specifies the underlined char and the key combination (alt+mnemonic)
+			which invokes the (not necessarily focused, but enabled and visible)
+			button's action listener.
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the given method when the button is pressed by mouse or keyboard.
+		</parameter>
+		<parameter name="type" type="choice" default="normal">
+			Possible values are: normal, default, cancel, and link. The default value is normal.
+			Default, and cancel values are for dialog control.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Spacebar">Activates button</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,53 @@
+<!-- - - - panel - - - -->
+<widget class="panel" title="Panel">
+	<p>Panel is a container with a layout manager similar to GridBagLayout.
+	The following example is similar to BorderLayout. This panel has 5 components,
+	the first row contains only the 'North' component, the second row has 3 components,
+	and the last has only the 'South' one. The extra space is distributed to the 2nd
+	row and the 2nd column. The gap between the components and on the border are 4pt.</p>
+	<xul><![CDATA[<panel columns="3" gap="4" top="4" left="4" bottom="4" right="4">
+	<textfield text="North" colspan="3" />
+	<label text="East" />
+	<textarea text="Center" weightx="1" weighty="1" />
+	<label text="West" />
+	<textfield text="South" colspan="3" />
+</panel>]]></xul>
+	<parameters>
+		<parameter name="columns" type="integer" default="0">
+			Specifies the number of available cells in a row. Default 0 value
+			specifies 1 row and unlimited cell columns.
+		</parameter>
+		<parameter name="top" type="integer" default="0">
+			The border gap from the top.
+			It specifies the space that the panel must leave.
+		</parameter>
+		<parameter name="left" type="integer" default="0">
+			The blank space from the left.
+		</parameter>
+		<parameter name="bottom" type="integer" default="0">
+			The blank space from the bottom.
+		</parameter>
+		<parameter name="right" type="integer" default="0">
+			The blank space from the right.
+		</parameter>
+		<parameter name="gap" type="integer" default="0">
+			The horizontal and vertical gap between components.
+		</parameter>
+		<parameter name="text" type="string">
+			The text string that the dialog title displays.
+		</parameter>
+		<parameter name="icon" type="icon">
+			The icon image that the dialog title displays.
+		</parameter>
+		<parameter name="border" type="boolean" default="false">
+			Border painted if true.
+		</parameter>
+		<parameter name="scrollable" type="boolean" default="false">
+			[Pending]
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+</widget>

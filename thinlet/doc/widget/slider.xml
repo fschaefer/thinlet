@@ -1,0 +1,44 @@
+<!-- - - - slider - - - -->
+<widget class="slider" title="Slider">
+	<p>A slider lets the user graphically select a value by sliding a knob
+	within a bounded interval, e.g. between 25 and 75.</p>
+	<xul><![CDATA[<slider minimum="25" maximum="75" value="50" orientation="vertical" />]]></xul>
+	<parameters>
+		<parameter name="orientation" type="choice" default="horizontal">
+			Possible values are: horizontal, and vertical.
+			The default value, if not set, is horizontal.
+		</parameter>
+		<parameter name="minimum" type="integer" default="0">
+			The slider's minimum value. By default, this is 0.
+		</parameter>
+		<parameter name="maximum" type="integer" default="100">
+			The slider's maximum value. By default, this is 100.
+		</parameter>
+		<parameter name="value" type="integer" default="0">
+			The value is always between the slider's minimum and maximum values, inclusive.
+			By default, the value equals the minimum.
+		</parameter>
+		<parameter name="unit" type="integer" default="5">
+			The distance of the value change when using arrow buttons.
+		</parameter>
+		<parameter name="block" type="integer" default="25">
+			The distance of the value change when using page buttons.
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the method when the slider has changed its value.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Left arrow, up arrow">Decreases the value (steps in left/top direction) by unit value</key>
+		<key sequence="Right arrow, down arrow">Increases the value (steps in right/bottom direction) by unit value</key>
+		<key sequence="Page Up">Decreases the value (jumps in left/top direction) by block value</key>
+		<key sequence="Page Down">Increases the value (jumps in right/bottom direction) by block value</key>
+		<key sequence="Home">Moves to minimum (left/top) value</key>
+		<key sequence="End">Moves to maximum (right/bottom) value</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,20 @@
+<!-- - - - separator - - - -->
+<widget class="separator" title="Separator">
+	<p>Separator is a horizontal or a vertical line. The following panel has
+	a button('Left'), a vertical separator line, and a second button ('Right')
+	in the first row, a horizontal separator in the second row, and the
+	final button ('Bottom') in the third row.</p>
+	<xul><![CDATA[<panel columns="3" gap="4" top="4" left="4">
+	<button text="Left" />
+	<separator />
+	<button text="Right" />
+	<separator colspan="3" />
+	<button text="Bottom" colspan="3" />
+</panel>]]></xul>
+	<parameters>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+</widget>

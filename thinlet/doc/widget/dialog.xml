@@ -1,0 +1,33 @@
+<!-- - - - dialog - - - -->
+<widget class="dialog" title="Dialog">
+	<p>Dialog is similar to panel, but it has border and title,
+	and you can drag it.</p>
+	<parameters>
+		<parameter name="text" type="string">
+			The title is displayed in the title bar.
+		</parameter>
+		<parameter name="icon" type="icon">
+			An image to be displayed in the titlebar of the dialog.
+		</parameter>
+		<parameter name="modal" type="boolean" default="false">
+			A modal dialog grabs all the input to the components behind
+			the dialog from the user.
+		</parameter>
+		<parameter extend="panel">
+			columns, top, left, bottom, right, and gap
+			parameters are described at panel
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<keys>
+		<key sequence="Tab, Shift-Tab">
+			Navigate forward, backward inside the dialog
+		</key>
+		<key sequence="Ctrl-F6, Alt-F6, Ctrl-Shift-F6, Alt-Shift-F6">
+			Navigate forward, backward, outside of the non-modal dialog too
+		</key>
+	</keys>
+</widget>

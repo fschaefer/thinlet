@@ -1,0 +1,97 @@
+<!-- - - - menubar - - - -->
+<widget class="menubar" title="MenuBar">
+	<p>The following panel contains a menubar on the top and a large text-area.
+	The menubar has only one menu ('Menu'), it has a menuitem ('MenuItem')
+	and a menu ('Menu'). The later's popup contains a menuitem with a selected
+	checkbox ('CheckBox'), a separator, and a radio button ('RadioButton').</p>
+	<xul><![CDATA[<panel columns="1" gap="4">
+	<menubar weightx="1">
+		<menu text="Menu">
+			<menuitem text="MenuItem" icon="image.gif" />
+			<menu text="Menu">
+				<checkboxmenuitem text="CheckBox" selected="true" />
+				<separator />
+				<checkboxmenuitem text="RadioButton" group="group"/>
+			</menu>
+		</menu>
+	</menubar>
+	<textarea weighty="1" />
+</panel>]]></xul>
+	<parameters>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - menu - - - -->
+	<widget class="menu" title="Menu">
+		<p>Menubar includes menu, and menu could contain menuitems, check or radio
+		button items, separators, and menus.</p>
+		<parameters>
+			<parameter name="mnemonic" type="integer" default="-1">
+				Specifies the index of the underlined char and the key combination
+				which selects the menu.
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<!-- - - - menuitem - - - -->
+	<widget class="menuitem" title="MenuItem">
+		<p>A regular menu item can have either text or a graphic icon
+		associated with it, or both.</p>
+		<parameters>
+			<parameter name="accelerator" type="keystroke">
+				The key combination which invokes the menuitem's action
+				method without navigating the menu hierarchy.
+			</parameter>
+			<parameter name="action" type="method">
+				Invokes the given method when the menuitem is pressed by mouse or keyboard.
+			</parameter>
+			<parameter name="mnemonic" type="integer" default="-1">
+				Specifies the underlined char index (thus the key combination)
+				which invokes the action listener.
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<!-- - - - checkboxmenuitem - - - -->
+	<widget class="checkboxmenuitem" title="CheckBoxMenuItem">
+		<p>A menu item that can be selected or deselected. The selecte menuitem
+		appears with a checkmark next to it. A radio-button menu-item is a
+		menu item that is part of a group of menu items in which
+		only one item in the group can be selected.</p>
+		<parameters>
+			<parameter name="selected" type="boolean" default="false">
+				The state of the checkboxmenuitem.
+			</parameter>
+			<parameter name="group" type="string">
+				Identifies a group if not null. Only one radio menuitem at a time
+				can be selected in a group.
+				User can set on a radio menuitem, the selected menuitem of the group will be set off
+				(the group members is searched only in the same menu).
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+			<parameter extend="menuitem">
+				mnemonic, accelerator, and action parameters are described at menuitem
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="F10">Moves focus to menu bar and posts first menu</key>
+		<key sequence="Up arrow">Selects previous item (or the last)</key>
+		<key sequence="Down arrow">Selects next item (or the first)</key>
+		<key sequence="Left arrow">Collapses last popupmenu, or selects previous (or the last) menu of menubar</key>
+		<key sequence="Right arrow">Expands menu, or selects next (or the first) menu of menubar</key>
+		<key sequence="Enter, Return, Spacebar">Activates a menu item, dismisses menu, and goes to last window item with focus</key>
+		<key sequence="Escape">Dismisses menu without taking action and returns focus to last component that had focus</key>
+	</keys>
+</widget>

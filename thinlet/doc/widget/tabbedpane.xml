@@ -1,0 +1,55 @@
+<!-- - - - tabbedpane - - - -->
+<widget class="tabbedpane" title="TabbedPane">
+	<p>TabbedPane contains tabs and components. The first tab
+	(has an index equal to 0) is associated with the first component.
+	This example tabbed pane has 3 tab and 3 components (text areas),
+	tabs are on the left, and the second component is visible.</p>
+	<xul><![CDATA[<tabbedpane placement="left" selected="1" action="tabchanged">
+	<tab text="One" icon="image.gif">
+		<textarea text="One" />
+	</tab>
+	<tab text="Two" alignment="right">
+		<textarea text="Two" />
+	</tab>
+	<tab text="Three" enabled="false">
+		<textarea text="Three" />
+	</tab>
+</tabbedpane>]]></xul>
+	<parameters>
+		<parameter name="placement" type="choice" default="top">
+			The placement for the tabs relative to the content. Possible values are:
+			top, left, bottom, right, and stack. The default value, if not set, is top.
+		</parameter>
+		<parameter name="selected" type="integer" default="0">
+			The index of the currently selected tab, and the visible content
+			(the first index is 0). Value -1 means there is no selected tab.
+		</parameter>
+		<parameter name="action" type="method">
+			Invokes the method when the tabbedpane has changed its selected tab index.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - tab - - - -->
+	<widget class="tab" title="Tab">
+		<p>Tabs are identified in the component's list as 'tab',
+		and components with the 'component' key.</p>
+		<parameters>
+			<parameter name="mnemonic" type="integer" default="-1">
+				Specifies the underlined char and the key combination
+				which selects the tab.
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="Left arrow, up arrow">Selects previous tab</key>
+		<key sequence="Right arrow, down arrow">Selects next tab</key>
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

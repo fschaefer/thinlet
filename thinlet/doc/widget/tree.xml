@@ -1,0 +1,77 @@
+<!-- - - - tree - - - -->
+<widget class="tree" title="Tree">
+	<p>Tree displays a set of hierarchical data, contains nodes
+	(not only one root node is allowed), and a node could have subnodes.
+	It internally handles scrolling.
+	The following example shows a tree with 2 root nodes ('Node A', and 'Node D'),
+	the first has 2 subnodes (a selected 'Node B' and 'Node C'), the collapsed
+	'Node D' includes one node.</p>
+	<xul><![CDATA[<tree selection="multiple">
+	<node text="Node A" icon="image.gif">
+		<node text="Node B" icon="image.gif" selected="true" />
+		<node text="Node C" icon="image.gif" />
+	</node>
+	<node text="Node D" expanded="false">
+		<node text="Node E" icon="image.gif" />
+	</node>
+</tree>]]></xul>
+	<parameters>
+		<parameter name="selection" type="choice" default="single">
+			Possible values are: single, interval, and multiple. For the default
+			single value the selection can only contain one path at a time,
+			for interval the selection can only be contiguous (of the currently
+			visible nodes), and for the multiple value the selection can contain
+			any number of nodes that are not necessarily contiguous.
+		</parameter>
+		<parameter name="action" type="method">
+			Calls the method whenever the selection changes.
+		</parameter>
+		<parameter name="expand" type="method">
+			The listener that's notified when the tree expands a node. 
+		</parameter>
+		<parameter name="collapse" type="method">
+			Called whenever a node in the tree has been collapsed.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+	<!-- - - - node - - - -->
+	<widget class="node" title="Node">
+		<p>Tree node is similar to list item, but maybe contains subnodes, and has
+		collapse control.</p>
+		<parameters>
+			<parameter name="selected" type="boolean" default="false">
+				True if currently selected.
+			</parameter>
+			<parameter name="expanded" type="boolean" default="true">
+				Ensures that the node is expanded if true, otherwise collapsed.
+			</parameter>
+			<parameter extend="choice">
+				name, enabled, text, icon, alignment, tooltip, and property parameters
+				are similar to combobox choice
+			</parameter>
+		</parameters>
+	</widget>
+	<keys>
+		<key sequence="Right arrow">Expands current collapsed node, or selects its first subnode</key>
+		<key sequence="Left arrow">Collapses current expanded node, or selects its parent node</key>
+		
+		<key sequence="Up arrow">Selects previous node</key>
+		<key sequence="Down arrow">Selects next node</key>
+		<key sequence="Home">Selects first node</key>
+		<key sequence="End">Selects last node</key>
+		<key sequence="Page Up">Selects node one view up</key>
+		<key sequence="Page Down">Selects node one view down</key>
+
+		<key sequence="+Shift">Extends selection</key>
+		<key sequence="+Ctrl">Set lead node</key>
+
+		<key sequence="Space">Selects lead node</key>
+		<key sequence="Ctrl-A, Ctrl-Slash">Selects all</key>
+		<key sequence="Ctrl-Backslash">Deselects all</key>
+		
+		<key sequence="Tab, Shift-Tab">Navigate forward, backward</key>
+	</keys>
+</widget>

@@ -1,0 +1,26 @@
+<!-- - - - progressbar - - - -->
+<widget class="progressbar" title="ProgressBar">
+	<p>ProressBar displays an integer value within a bounded interval, the
+	following between 25 and 75. Its value is currently in the middle.</p>
+	<xul><![CDATA[<progressbar minimum="25" maximum="75" value="50" orientation="vertical" />]]></xul>
+	<parameters>
+		<parameter name="orientation" type="choice" default="horizontal">
+			Possible values are: horizontal, and vertical.
+			The default value, if not set, is horizontal.
+		</parameter>
+		<parameter name="minimum" type="integer" default="0">
+			The progressbar's minimum value. By default, this is 0.
+		</parameter>
+		<parameter name="maximum" type="integer" default="100">
+			The progressbar's maximum value. By default, this is 100.
+		</parameter>
+		<parameter name="value" type="integer" default="0">
+			The value is always between the progressbar's minimum and maximum values, inclusive.
+			By default, the value equals the minimum.
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+</widget>

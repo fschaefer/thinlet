@@ -1,0 +1,84 @@
+<!-- - - - component - - - -->
+<widget class="component" title="Component">
+	<p>The folowing pages describe components, all have the following parameters.</p>
+	<parameters>
+		<parameter name="name" type="string">
+			 Identifies the component.
+		</parameter>
+		<parameter name="enabled" type="boolean" default="true">
+			Enables or disables this component. A disabled component is painted gray,
+			and can't respond to user mouse or keyboard input, gain the keyboard focus,
+			and generate events.
+		</parameter>
+		<parameter name="visible" type="boolean" default="true">
+			An invisible component doesn't take place in parent's layout.
+		</parameter>
+		<parameter name="tooltip" type="string">
+			The text pops up when the mouse lingers inside the component.
+		</parameter>
+		<parameter name="font" type="font" default="">
+			[Pending]
+		</parameter>
+		<parameter name="foreground" type="color" default="">
+			[Pending]
+		</parameter>
+		<parameter name="background" type="color" default="">
+			[Pending]
+		</parameter>
+		<parameter name="width" type="integer" default="0">
+			Fixed preferred width of the component irrespectively of its content.
+			If it is 0, the component will be asked for the preferred width.
+		</parameter>
+		<parameter name="height" type="integer" default="0">
+			Preferred height of the component, or 0.
+		</parameter>
+		<parameter name="colspan" type="integer" default="1">
+			Specifies the number of cells in a column in the component's display area.
+		</parameter>
+		<parameter name="rowspan" type="integer" default="1">
+			Specifies the number of cells in a row occupied by the component.
+		</parameter>
+		<parameter name="weightx" type="integer" default="0">
+			Used to determine how to distribute horizontal space among grid cells
+			when more space is available for its parent component than required.
+		</parameter>
+		<parameter name="weighty" type="integer" default="0">
+			The extra vertical space is distributed to each cell height in proportion
+			to its weight. Default value is 0. The row contains 0 weighted components
+			remains the calculated preferred size.
+		</parameter>
+		<parameter name="halign" type="choice" default="fill">
+			Horizontal alignment of the component when more space available
+			in the cell. Possible values are: fill, center, left, and right.
+		</parameter>
+		<parameter name="valign" type="choice" default="fill">
+			Vertical alignment in the cell.
+			Possible values are: fill, center, top, and bottom.
+		</parameter>
+		<parameter name="property" type="property">
+			Binds an arbitrary key/value client property. The format of its value
+			is key=value, both are strings and stored in a hashtable of the component.
+		</parameter>
+		<parameter name="init" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="focuslost" type="method">
+			[Pending]
+		</parameter>
+		<parameter name="focusgained" type="method">
+			[Pending]
+		</parameter>
+	</parameters>
+	<!-- - - - popupmenu - - - -->
+	<widget class="popupmenu" title="PopupMenu">
+		<p>[Pending].</p>
+		<parameters>
+			<parameter name="menushown" type="method">
+				[Pending]
+			</parameter>
+			<parameter extend="component">
+				[Pending]
+			</parameter>
+		</parameters>
+	</widget>
+</widget>

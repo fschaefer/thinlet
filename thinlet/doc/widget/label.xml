@@ -1,0 +1,29 @@
+<!-- - - - label - - - -->
+<widget class="label" title="Label">
+	<p>The following label displays a short text string and an image.
+	Its content is centered both vertically and horizontally.</p>
+	<xul><![CDATA[<label text="Label" icon="image.gif" alignment="center" />]]></xul>
+	<parameters>
+		<parameter name="text" type="string">
+			The text string that the label displays.
+		</parameter>
+		<parameter name="icon" type="icon">
+			The icon image that the label displays.
+		</parameter>
+		<parameter name="alignment" type="choice" default="left">
+			The alignment of the label's content along the X axis, vertically is centered.
+			Possible values are: left, center, and right. The default value, if not set, is left.
+			The image position horizontally left, above, and right relative to the text.
+		</parameter>
+		<parameter name="mnemonic" type="integer" default="-1">
+			Specifies the underlined char in the label's text.
+		</parameter>
+		<parameter name="for" type="component" default="">
+			[Pending]
+		</parameter>
+		<parameter extend="component">
+			name, enabled, visible, tooltip, property, width, height, colspan, rowspan,
+			weightx, weighty, halign, and valign parameters are similar to component
+		</parameter>
+	</parameters>
+</widget>
