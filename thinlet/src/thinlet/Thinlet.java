@@ -3007,7 +3007,9 @@ public class Thinlet extends Container
 		int iend = end;
 		String insert = null;
 		if (editable && (keychar != 0) &&
-			((modifiers == 0) || (modifiers == InputEvent.SHIFT_MASK))) {
+			( (modifiers == 0) ||
+			  (modifiers == InputEvent.SHIFT_MASK) ||
+			  (modifiers == InputEvent.ALT_GRAPH_MASK))) {
 			insert = String.valueOf((char) keychar);
 		}
 		else if (editable && (keycode == KeyEvent.VK_ENTER)) {
