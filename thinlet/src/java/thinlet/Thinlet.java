@@ -5114,6 +5114,7 @@ public class Thinlet extends Container
 		Object target = get(parent, key);
 		while (target != component) {
 			target = get(parent = target, key = ":next"); // (target != null)
+			if (target == null) return;
 		}
 		set(parent, key, get(target, ":next"));
 		set(target, ":next", null);
