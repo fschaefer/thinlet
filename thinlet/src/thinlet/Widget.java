@@ -17,6 +17,13 @@ public class Widget {
 		widget = Thinlet.create(classname);
 	}
 	
+<<<<<<< Widget.java
+	public String getClassName() { 
+		return null;
+	}
+	
+=======
+>>>>>>> 1.6
 	/**
 	 *
 	 */
