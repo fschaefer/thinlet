@@ -1,7 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - desktop - - - -->
 <widget class="desktop" title="Desktop">
-	<p>Desktop is the root pane, it contains panels (fill the available space),
-	dialogs (centered), combolists, popupmenus, and tooltips. You can add only
+	<p>Desktop is the root pane, it contains panels (that together
+	fill the available space on desktop), dialogs (centered), combolists,
+	popupmenus, and tooltips. You can add only
 	components and dialogs to desktop, the last will be on the top.</p>
 	<parameters>
 		<parameter extend="component">

@@ -1,10 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - checkbox - - - -->
 <widget class="checkbox" title="CheckBox">
 	<p>The first checkbox has a short text and an icon, its state is selected.
-	The second one is a deselected radio button,
-	one of a set of buttons identified by a group name.</p>
+	The second one is a selected radio button,
+	one of a set of two buttons identified by a group name.</p>
 	<xul><![CDATA[<checkbox text="CheckBox" icon="image.gif" selected="true"/>
-<checkbox text="RadioButton" group="group"/>]]></xul>
+<checkbox text="RadioButton 1" group="group" selected="true"/>
+<checkbox text="RadioButton 2" group="group"/>]]></xul>
 	<parameters>
 		<parameter name="text" type="string">
 			The text string that the checkbox displays.

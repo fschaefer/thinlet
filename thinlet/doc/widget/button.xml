@@ -1,8 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - button - - - -->
 <widget class="button" title="Button">
-	<p>The following button displays a short text string and an image.
-	Its content is on the left and centered vertically.</p>
-	<xul><![CDATA[<button text="Button" icon="image.gif" alignment="left" tooltip="ToolTip" />]]></xul>
+	<p>The first button below displays a short text string and an image.
+	Its content is on the left and centered vertically. The second button
+	resembles an HTML link, and when pressed invokes the action "goHome".</p>
+<xul><![CDATA[<button text="Button" icon="image.gif" alignment="left" tooltip="ToolTip" />
+<button text="www.thinlet.com" type="link" action="goHome" />]]></xul>
 	<parameters>
 		<parameter name="text" type="string">
 			The text string that the button displays.

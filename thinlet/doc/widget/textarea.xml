@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - textarea - - - -->
 <widget class="textarea" title="TextArea">
-	<p>TextArea is a multi-line area that displays plain text
+	<p>TextArea is a multi-line area that displays plain text, optionally
+		wrapped at word boundaries (whitespace),
 	and internally handles scrolling.</p>
-	<xul><![CDATA[<textarea text="TextArea" />]]></xul>
+	<xul><![CDATA[<textarea columns="40" rows="2" wrap="true" text="TextArea" />]]></xul>
 	<parameters>
 		<parameter name="text" type="string" default="''">
 			The text contained in this textarea.

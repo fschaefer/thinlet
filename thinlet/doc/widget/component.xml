@@ -1,6 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - component - - - -->
 <widget class="component" title="Component">
-	<p>The folowing pages describe components, all have the following parameters.</p>
+	<p>Component is an abstract superclass for most Thinlet widgets. All components support the parameters listed below.</p>
 	<parameters>
 		<parameter name="name" type="string">
 			 Identifies the component.
@@ -62,6 +64,10 @@
 		<parameter name="valign" type="choice" default="fill">
 			Vertical alignment in the cell.
 			Possible values are: fill, center, top, and bottom.
+		</parameter>
+		<parameter name="i18n" type="boolean" default="false">
+			Enables or disables lookup of internationalized version
+			of texts for "text" and "tooltip" parameters. See methods "setLangResource()" and "setAllI18n()" in Thinlet API.
 		</parameter>
 		<parameter name="property" type="property">
 			Binds an arbitrary key/value client property. The format of its value

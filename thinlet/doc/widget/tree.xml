@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="widget.xsl"?>
 <!-- - - - tree - - - -->
 <widget class="tree" title="Tree">
 	<p>Tree displays a set of hierarchical data, contains nodes
