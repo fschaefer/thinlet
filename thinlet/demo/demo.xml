@@ -109,6 +109,8 @@
 						</row>
 					</table>
 				</splitpane>
+				<separator colspan="5"/>
+				<button colspan="5" link="true" halign="left" text="www.thinlet.com"/>
 			</panel>
 		</tab>
 		
