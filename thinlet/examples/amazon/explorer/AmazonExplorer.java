@@ -1,4 +1,4 @@
-package thinlet.amazon.explorer;
+package examples.amazon.explorer;
 
 import java.applet.*;
 import java.awt.*;

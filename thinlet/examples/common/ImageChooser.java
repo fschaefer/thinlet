@@ -1,4 +1,4 @@
-package thinlet.common;
+package examples.common;
 
 import java.awt.*;
 import java.io.*;
