@@ -3956,7 +3956,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
                 }
                 int minimum = getInteger(component, "minimum", 0);
                 int maximum = getInteger(component, "maximum", 100);
-                int value = getInteger(component, "value", 50);
+                int value = getInteger(component, "value", 0);
                 Rectangle bounds = getRectangle(component, "bounds");
                 boolean horizontal = ("vertical" != get(component, "orientation"));
                 int newvalue = minimum + (horizontal ? (x - referencex) : (y - referencey)) * (maximum - minimum)
