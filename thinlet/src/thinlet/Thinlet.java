@@ -2281,11 +2281,24 @@ public class Thinlet extends Container
 	}
 
 	/**
-	 *
+	 * Paint component icon and text (using default or custom font)
+	 * @param component
+	 * @param g
+	 * @param clipx
+	 * @param clipy
+	 * @param clipwidth
+	 * @param clipheight
+	 * @param x
+	 * @param y
+	 * @param width
+	 * @param height
+	 * @param foreground default text color if custom foreground is null
+	 * @param defaultalignment
+	 * @param checkmnemonic find mnemonic index and underline text
 	 */
 	private void paintContent(Object component, Graphics g,
 			int clipx, int clipy, int clipwidth, int clipheight,
-			int x, int y, int width, int height, Color fg, String defaultalignment,
+			int x, int y, int width, int height, Color foreground, String defaultalignment,
 			boolean checkmnemonic) {
 		String text = getString(component, "text", null);
 		Image icon = getIcon(component, "icon", null);
@@ -2303,7 +2316,7 @@ public class Thinlet extends Container
 			ta = fm.getAscent();
 			th = fm.getDescent() + ta;
 			Color customfg = (Color) get(component, "foreground"); //+no if disabled
-			g.setColor((customfg != null) ? customfg : fg);
+			g.setColor((customfg != null) ? customfg : foreground);
 		}
 		int iw = 0, ih = 0;
 		if (icon != null) {
@@ -3581,9 +3594,9 @@ public class Thinlet extends Container
 				if (((id == MouseEvent.MOUSE_PRESSED)||
 						((id == MouseEvent.MOUSE_DRAGGED) &&
 							!shiftdown && !controldown))) { 
-					Rectangle view = getRectangle(component, ":view");
-					Rectangle viewport = getRectangle(component, ":port");
-					int my = y + view.y - referencey;
+					//Rectangle view = getRectangle(component, ":view");
+					Rectangle port = getRectangle(component, ":port");
+					int my = y + port.y - referencey;
 					for (Object item = get(component, ":comp"); item != null;) {
 						Rectangle r = getRectangle(item, "bounds");
 						if (my < r.y + r.height) {
@@ -3591,7 +3604,7 @@ public class Thinlet extends Container
 								scrollToVisible(component, r.x, r.y, 0, r.height);
 							}
 							else if ("tree" == classname) {
-								int mx = x + view.x - referencex;
+								int mx = x + port.x - referencex;
 								if (mx < r.x) {
 									if ((mx >= r.x - block) && (get(item, ":comp") != null)) {
 										boolean expanded = getBoolean(item, "expanded", true);
