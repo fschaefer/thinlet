@@ -90,7 +90,8 @@ public class Thinlet extends Container implements Runnable, Serializable {
         } catch (Exception exc) { /* not 1.4 */
         }
     }
-    {
+
+    public Thinlet() {
         setFont(new Font("SansSerif", Font.PLAIN, 12));
         //setFont((Font)
         // getToolkit().getDesktopProperty("win.messagebox.font"));
