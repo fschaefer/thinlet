@@ -6306,9 +6306,21 @@ public class Thinlet extends Container implements Runnable, Serializable {
     }
 
     /**
+     * Get custom font of a component. This method may return null if the
+     * default font is used.
+     * @param component a component
+     * @param key the identifier of the parameter, e.g. "font"
+     * @return 
+     */
+    public Font getFont(Object component, String key) {
+        return (Font) get(component, key, "font");
+    }
+
+    /**
      * Set custom font on a component
      * 
      * @param component component to use the custom font
+     * @param key currently only "font" is supported
      * @param font custom font to use, or null to reset component to use default
      *        font
      */
@@ -6337,6 +6349,17 @@ public class Thinlet extends Container implements Runnable, Serializable {
         if (set(component, definition[1], color)) {
             update(component, definition[2]);
         }
+    }
+
+    /**
+     * Get custom color of a component. This method may return null if the
+     * default color is used.
+     * @param component a component
+     * @param key the identifier of the parameter, e.g. "foreground"
+     * @return value of the custom color, or null if default color is used
+     */
+    public Color getColor(Object component, String key) {
+        return (Color) get(component, key, "color");
     }
 
     /**
