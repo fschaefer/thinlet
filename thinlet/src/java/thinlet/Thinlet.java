@@ -553,10 +553,8 @@ public class Thinlet extends Container implements Runnable, Serializable {
                 }
                 i++;
             }
-            if (mouseinside == component) { // layout changed, check the hovered
-                                            // tab
-                checkLocation();
-            }
+            // layout changed, check the hovered tab
+            checkLocation(component);
             return;
         }
         boolean horizontal = ((placement == "top") || (placement == "bottom"));
@@ -601,10 +599,8 @@ public class Thinlet extends Container implements Runnable, Serializable {
                     }
                 }
             }
-            if (mouseinside == component) { // layout changed, check the hovered
-                                            // tab
-                checkLocation();
-            }
+            // layout changed, check the hovered tab
+            checkLocation(component);
         }
     }
 
@@ -769,9 +765,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
             removeItemImpl(content, popup);
             set(popup, ":parent", null);
             set(component, ":popup", null);
-            if (mouseinside == popup) {
-                checkLocation();
-            }
+            checkLocation(popup);
             popupMenu(popup); // remove recursively
         }
         // pop up the selected menu only
@@ -913,9 +907,7 @@ public class Thinlet extends Container implements Runnable, Serializable {
         repaint(combolist);
         set(combolist, ":parent", null);
         popupowner = null;
-        if (mouseinside == combolist) {
-            checkLocation();
-        }
+        checkLocation(combolist);
     }
 
     /**
@@ -2930,12 +2922,15 @@ public class Thinlet extends Container implements Runnable, Serializable {
     }
 
     /**
-     * Check the previous mouse location again because of a possible layout
-     * change
+     * Check the previous mouse location again because of a possible layout change.
+     * 
+     * @param component  the component to check
      */
-    private void checkLocation() {
-        findComponent(content, mousex, mousey);
-        handleMouseEvent(mousex, mousex, 1, false, false, false, MouseEvent.MOUSE_ENTERED, mouseinside, insidepart);
+    private void checkLocation(Object component) {
+        if (mouseinside == component) {
+            findComponent(content, mousex, mousey);
+            handleMouseEvent(mousex, mousex, 1, false, false, false, MouseEvent.MOUSE_ENTERED, mouseinside, insidepart);
+        }
     }
 
     /**
